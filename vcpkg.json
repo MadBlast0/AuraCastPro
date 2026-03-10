@@ -2,62 +2,19 @@
   "name": "auracastpro",
   "version": "1.0.0",
   "description": "Ultra-low latency screen mirroring for Windows",
-  "homepage": "https://auracastpro.com",
   "dependencies": [
-    {
-      "name": "boost-asio",
-      "version>=": "1.83.0"
-    },
-    {
-      "name": "boost-system",
-      "version>=": "1.83.0"
-    },
-    {
-      "name": "openssl",
-      "version>=": "3.1.0"
-    },
-    {
-      "name": "protobuf",
-      "version>=": "23.0.0"
-    },
-    {
-      "name": "spdlog",
-      "version>=": "1.12.0"
-    },
-    {
-      "name": "ffmpeg",
-      "version>=": "6.0.0",
-      "features": [
-        "avcodec",
-        "avformat",
-        "avutil",
-        "swresample",
-        "swscale"
-      ]
-    },
-    {
-      "name": "nlohmann-json",
-      "version>=": "3.11.0"
-    },
-    {
-      "name": "gtest",
-      "version>=": "1.14.0"
-    },
-    {
-      "name": "libuv",
-      "version>=": "1.46.0"
-    },
-    {
-      "name": "zlib",
-      "version>=": "1.3.0"
-    },
-    {
-      "name": "directx-headers",
-      "version>=": "1.610.0"
-    },
+    "boost-asio",
+    "boost-system",
     "boost-beast",
-    "boost-program-options"
-  ],
-  "overrides": [],
-  "builtin-baseline": "3508985146f1b1d248c67ead13f8f54be5b4f5da"
+    "boost-program-options",
+    "openssl",
+    "protobuf",
+    "spdlog",
+    "ffmpeg",
+    "nlohmann-json",
+    "gtest",
+    "libuv",
+    "zlib",
+    "directx-headers"
+  ]
 }
