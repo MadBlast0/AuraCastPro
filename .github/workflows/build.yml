@@ -32,10 +32,34 @@ jobs:
           cache: true
 
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+          cd C:\vcpkg
+          .\bootstrap-vcpkg.bat -disableMetrics
+          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          C:\vcpkg\vcpkg install `
+            boost-asio:x64-windows `
+            boost-system:x64-windows `
+            openssl:x64-windows `
+            protobuf:x64-windows `
+            spdlog:x64-windows `
+            nlohmann-json:x64-windows `
+            gtest:x64-windows `
+            libuv:x64-windows `
+            zlib:x64-windows `
+            directx-headers:x64-windows
+        timeout-minutes: 60
+
+      - name: Install FFmpeg
+        shell: pwsh
+        run: |
+          C:\vcpkg\vcpkg install ffmpeg[core,avcodec,avformat,avutil,swresample,swscale]:x64-windows
+        timeout-minutes: 90
 
       - name: Find dxc.exe
         shell: pwsh
@@ -67,17 +91,19 @@ jobs:
       - name: Generate test fixtures
         shell: pwsh
         continue-on-error: true
-        run: python tests/generate_synthetic_fixtures.py
+        run: |
+          if (Test-Path "tests/generate_synthetic_fixtures.py") {
+            python tests/generate_synthetic_fixtures.py
+          }
 
       - name: Configure
         shell: pwsh
         run: |
-          $env:VCPKG_ROOT = "${{ github.workspace }}/vcpkg"
           $p = if ("${{ matrix.config }}" -eq "Debug") { "windows-debug" } else { "windows-release" }
           cmake --preset $p `
             -DDXC_EXECUTABLE="$env:DXC_PATH" `
             -DBONJOUR_SDK_DIR="$env:BONJOUR_SDK_DIR" `
-            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build
