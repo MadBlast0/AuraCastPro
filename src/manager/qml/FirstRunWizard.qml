@@ -96,7 +96,7 @@ Window {
                             onTextChanged: if (settingsModel) settingsModel.displayName = text
                         }
                         Text {
-                            text: qsTr("Appears as: \")" + (nameField.text || "AuraCastPro") + "\" in Screen Mirroring"
+                            text: qsTr("Appears as: '") + (nameField.text || "AuraCastPro") + "' in Screen Mirroring"
                             color: "#8B949E"; font.pixelSize: 12
                         }
                     }
