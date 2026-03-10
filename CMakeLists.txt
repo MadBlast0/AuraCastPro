@@ -77,18 +77,28 @@ endif()
 # Generates src/manager/i18n/AuraCastPro_en.qm before the resource compile.
 set(TS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/manager/i18n/AuraCastPro_en.ts")
 set(QM_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/manager/i18n/AuraCastPro_en.qm")
+# Always create a placeholder .qm file so resources.qrc can embed it.
+# qt6_add_lrelease has API differences across Qt versions; use lrelease directly.
+if(NOT EXISTS "${QM_FILE}")
+    file(WRITE "${QM_FILE}" "")
+endif()
 if(Qt6LinguistTools_FOUND)
-    qt6_add_lrelease(i18n_release
-        TS_FILES "${TS_FILE}"
-        QM_FILES_OUTPUT_VARIABLE QM_FILES)
-    # The resources.qrc references i18n/AuraCastPro_en.qm relative to its dir
-    message(STATUS "Qt6 LinguistTools found — lrelease will run automatically.")
-else()
-    # Create an empty placeholder so the build does not fail if tools not installed
-    if(NOT EXISTS "${QM_FILE}")
-        file(WRITE "${QM_FILE}" "")
-        message(WARNING "Qt6LinguistTools not found — empty placeholder .qm created.")
+    find_program(LRELEASE_EXECUTABLE lrelease
+        HINTS "${Qt6_DIR}/../../../bin"
+        NO_DEFAULT_PATH)
+    if(LRELEASE_EXECUTABLE)
+        add_custom_command(
+            OUTPUT  "${QM_FILE}"
+            COMMAND "${LRELEASE_EXECUTABLE}" "${TS_FILE}" -qm "${QM_FILE}"
+            DEPENDS "${TS_FILE}"
+            COMMENT "Compiling translation: AuraCastPro_en.ts -> .qm"
+            VERBATIM)
+        message(STATUS "lrelease found — translations will be compiled automatically.")
+    else()
+        message(STATUS "Qt6LinguistTools found but lrelease not in PATH — using placeholder.")
     endif()
+else()
+    message(STATUS "Qt6LinguistTools not found — using empty placeholder .qm.")
 endif()
 find_package(OpenSSL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
