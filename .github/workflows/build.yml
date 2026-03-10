@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main", "develop" ]
 
+env:
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
 jobs:
   build-windows:
     name: Build & Test — Windows x64
@@ -16,6 +19,13 @@ jobs:
         config: [Debug, Release]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -32,12 +42,9 @@ jobs:
           cache: true
 
       - name: Setup vcpkg
-        shell: pwsh
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-          cd C:\vcpkg
-          .\bootstrap-vcpkg.bat -disableMetrics
-          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
 
       - name: Find dxc.exe
         shell: pwsh
@@ -66,23 +73,13 @@ jobs:
           lib /DEF:"C:\BonjourSDK\dnssd.def" /OUT:"C:\BonjourSDK\lib\x64\dnssd.lib" /MACHINE:X64 2>&1
           echo "BONJOUR_SDK_DIR=C:\BonjourSDK" >> $env:GITHUB_ENV
 
-      - name: Generate test fixtures
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          if (Test-Path "tests/generate_synthetic_fixtures.py") {
-            python tests/generate_synthetic_fixtures.py
-          }
-
       - name: Configure
         shell: pwsh
         run: |
           $p = if ("${{ matrix.config }}" -eq "Debug") { "windows-debug" } else { "windows-release" }
           cmake --preset $p `
             -DDXC_EXECUTABLE="$env:DXC_PATH" `
-            -DBONJOUR_SDK_DIR="$env:BONJOUR_SDK_DIR" `
-            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows
+            -DBONJOUR_SDK_DIR="$env:BONJOUR_SDK_DIR"
         timeout-minutes: 120
 
       - name: Build
