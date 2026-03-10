@@ -31,33 +31,11 @@ jobs:
           modules: qtcharts
           cache: true
 
-      - name: Cache vcpkg
-        uses: actions/cache@v3
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
         with:
-          path: |
-            C:\vcpkg\installed
-            C:\vcpkg\packages
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-
-
-      - name: Bootstrap vcpkg
-        shell: pwsh
-        run: |
-          if (!(Test-Path "C:\vcpkg\vcpkg.exe")) {
-            git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
-            C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
-          }
-          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
-          echo "VCPKG_FEATURE_FLAGS=-versions" >> $env:GITHUB_ENV
-
-      - name: Install vcpkg dependencies
-        shell: pwsh
-        run: |
-          C:\vcpkg\vcpkg install --triplet x64-windows `
-            boost-asio boost-system openssl protobuf spdlog `
-            ffmpeg[avcodec,avformat,avutil,swresample,swscale] `
-            nlohmann-json gtest libuv zlib directx-headers
+          vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
 
       - name: Find dxc.exe
         shell: pwsh
@@ -94,11 +72,12 @@ jobs:
       - name: Configure
         shell: pwsh
         run: |
+          $env:VCPKG_ROOT = "${{ github.workspace }}/vcpkg"
           $p = if ("${{ matrix.config }}" -eq "Debug") { "windows-debug" } else { "windows-release" }
           cmake --preset $p `
             -DDXC_EXECUTABLE="$env:DXC_PATH" `
             -DBONJOUR_SDK_DIR="$env:BONJOUR_SDK_DIR" `
-            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build
