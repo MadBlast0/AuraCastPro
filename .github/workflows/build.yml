@@ -1,0 +1,128 @@
+name: AuraCastPro CI
+
+# ==============================================================================
+# CI runs on every push to main/develop and on pull requests.
+# Builds Debug and Release, runs all unit tests, checks code formatting.
+# ==============================================================================
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+env:
+  VCPKG_ROOT: C:\vcpkg
+  QT_VERSION: "6.6.0"
+  CMAKE_VERSION: "3.26"
+
+jobs:
+  # ─── BUILD AND TEST (Windows x64) ──────────────────────────────────────────
+  build-windows:
+    name: Build & Test — Windows x64
+    runs-on: windows-2022
+
+    strategy:
+      matrix:
+        config: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: C:\vcpkg\installed
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-
+
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat
+          C:\vcpkg\vcpkg integrate install
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: qtcharts qtquick
+
+      - name: Configure CMake (${{ matrix.config }})
+        run: |
+          cmake --preset windows-${{ matrix.config == 'Debug' && 'debug' || 'release' }}
+        env:
+          VCPKG_ROOT: C:\vcpkg
+
+      - name: Build (${{ matrix.config }})
+        run: |
+          cmake --build --preset build-${{ matrix.config == 'Debug' && 'debug' || 'release' }}
+
+      - name: Run unit tests
+        if: matrix.config == 'Debug'
+        run: |
+          ctest --preset run-all-tests --output-on-failure --timeout 60
+        working-directory: build/debug_x64
+
+      - name: Upload build artifacts
+        if: matrix.config == 'Release'
+        uses: actions/upload-artifact@v3
+        with:
+          name: AuraCastPro-Release-Windows-x64
+          path: |
+            build/release_x64/AuraCastPro.exe
+            build/release_x64/Shaders/*.cso
+          retention-days: 14
+
+  # ─── CODE FORMAT CHECK ─────────────────────────────────────────────────────
+  clang-format:
+    name: Code Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: sudo apt-get install -y clang-format-16
+
+      - name: Check formatting
+        run: |
+          find src cloud tests \
+            \( -name "*.cpp" -o -name "*.h" \) \
+            ! -path "*/build/*" \
+            ! -path "*vcpkg_installed*" \
+            | xargs clang-format-16 --dry-run --Werror
+        # This fails the CI if any file doesn't match .clang-format rules.
+        # Developers can auto-fix with: clang-format -i <file>
+
+  # ─── STATIC ANALYSIS ───────────────────────────────────────────────────────
+  cppcheck:
+    name: Static Analysis (cppcheck)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck
+        run: |
+          cppcheck \
+            --enable=warning,performance,portability \
+            --error-exitcode=1 \
+            --suppress=missingIncludeSystem \
+            --std=c++20 \
+            -I src/utils \
+            -I src/engine \
+            src/utils/ src/engine/ src/display/ src/integration/
+        # Note: suppressions for platform-specific headers are expected.
+        # Review any new warnings before suppressing them.

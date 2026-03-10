@@ -1,0 +1,690 @@
+{
+  "version": "1.0",
+  "description": "AuraCastPro Settings API \u2014 machine-readable schema for all configurable settings.",
+  "settings": [
+    {
+      "key": "maxResolutionWidth",
+      "type": "integer",
+      "default": 1920,
+      "min": 640,
+      "max": 7680,
+      "description": "Maximum width of the mirrored video in pixels",
+      "requiresTier": "Free",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxResolutionHeight",
+      "type": "integer",
+      "default": 1080,
+      "min": 480,
+      "max": 4320,
+      "description": "Maximum height of the mirrored video in pixels",
+      "requiresTier": "Free",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxFrameRate",
+      "type": "integer",
+      "default": 60,
+      "min": 24,
+      "max": 120,
+      "description": "Maximum frame rate for mirroring. 120fps requires Pro tier.",
+      "requiresTier": "Pro",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "preferredCodec",
+      "type": "enum",
+      "default": "H265",
+      "values": [
+        "H265",
+        "AV1",
+        "Auto"
+      ],
+      "description": "Preferred video codec. Auto selects based on device and GPU support.",
+      "requiresTier": "Free",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "hdrEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable HDR10 tone mapping when device streams HDR content.",
+      "requiresTier": "Pro",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "scalingMode",
+      "type": "enum",
+      "default": "Lanczos",
+      "values": [
+        "Bilinear",
+        "Lanczos",
+        "NearestNeighbour"
+      ],
+      "description": "GPU scaling algorithm. Lanczos gives best quality. Nearest is fastest.",
+      "requiresTier": "Free",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "chromaUpsampleQuality",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable high-quality chroma upsampling (Lanczos-2). Recommended for 4K.",
+      "requiresTier": "Pro",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "brightness",
+      "type": "float",
+      "default": 0.0,
+      "min": -0.5,
+      "max": 0.5,
+      "description": "Brightness adjustment applied in the colour conversion shader.",
+      "requiresTier": "Free",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "contrast",
+      "type": "float",
+      "default": 1.0,
+      "min": 0.5,
+      "max": 2.0,
+      "description": "Contrast multiplier applied in the colour conversion shader.",
+      "requiresTier": "Free",
+      "category": "video",
+      "requiresRestart": false
+    },
+    {
+      "key": "airplayEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable AirPlay receiver. Shows in iOS Screen Mirroring menu.",
+      "requiresTier": "Free",
+      "category": "protocol",
+      "requiresRestart": true
+    },
+    {
+      "key": "castEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable Google Cast receiver. Visible to Android Cast devices.",
+      "requiresTier": "Free",
+      "category": "protocol",
+      "requiresRestart": true
+    },
+    {
+      "key": "adbEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable ADB wired mirroring (requires adb.exe in PATH).",
+      "requiresTier": "Free",
+      "category": "protocol",
+      "requiresRestart": false
+    },
+    {
+      "key": "airplayPin",
+      "type": "string",
+      "default": "",
+      "description": "4-digit PIN for AirPlay pairing. Empty = no PIN required.",
+      "requiresTier": "Free",
+      "category": "security",
+      "requiresRestart": false
+    },
+    {
+      "key": "requirePairingApproval",
+      "type": "boolean",
+      "default": true,
+      "description": "Show approval dialog before accepting new device connections.",
+      "requiresTier": "Free",
+      "category": "security",
+      "requiresRestart": false
+    },
+    {
+      "key": "udpPortAirplay",
+      "type": "integer",
+      "default": 7236,
+      "min": 1024,
+      "max": 65535,
+      "description": "UDP port for AirPlay data stream.",
+      "requiresTier": "Free",
+      "category": "network",
+      "requiresRestart": true
+    },
+    {
+      "key": "udpPortCast",
+      "type": "integer",
+      "default": 8009,
+      "min": 1024,
+      "max": 65535,
+      "description": "Port for Google Cast.",
+      "requiresTier": "Free",
+      "category": "network",
+      "requiresRestart": true
+    },
+    {
+      "key": "fecEnabled",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable Forward Error Correction for lossy Wi-Fi networks.",
+      "requiresTier": "Pro",
+      "category": "network",
+      "requiresRestart": false
+    },
+    {
+      "key": "fecGroupSize",
+      "type": "integer",
+      "default": 10,
+      "min": 4,
+      "max": 32,
+      "description": "FEC group size N. One parity packet per N data packets.",
+      "requiresTier": "Pro",
+      "category": "network",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxJitterBufferMs",
+      "type": "integer",
+      "default": 50,
+      "min": 10,
+      "max": 200,
+      "description": "Maximum jitter buffer hold time in milliseconds.",
+      "requiresTier": "Free",
+      "category": "network",
+      "requiresRestart": false
+    },
+    {
+      "key": "targetBitrateKbps",
+      "type": "integer",
+      "default": 0,
+      "min": 0,
+      "max": 100000,
+      "description": "Target bitrate in Kbps. 0 = auto (PID controller manages).",
+      "requiresTier": "Free",
+      "category": "network",
+      "requiresRestart": false
+    },
+    {
+      "key": "recordingEnabled",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable session recording on connect.",
+      "requiresTier": "Pro",
+      "category": "recording",
+      "requiresRestart": false
+    },
+    {
+      "key": "recordingPath",
+      "type": "string",
+      "default": "%USERPROFILE%\\Videos\\AuraCastPro",
+      "description": "Directory where recorded MP4 files are saved.",
+      "requiresTier": "Pro",
+      "category": "recording",
+      "requiresRestart": false
+    },
+    {
+      "key": "recordingFormat",
+      "type": "enum",
+      "default": "FragmentedMP4",
+      "values": [
+        "FragmentedMP4",
+        "MP4",
+        "MKV"
+      ],
+      "description": "Recording container format. FragmentedMP4 survives crashes.",
+      "requiresTier": "Pro",
+      "category": "recording",
+      "requiresRestart": false
+    },
+    {
+      "key": "virtualCameraEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable virtual camera output (appears in OBS, Zoom, Teams).",
+      "requiresTier": "Pro",
+      "category": "virtualCamera",
+      "requiresRestart": true
+    },
+    {
+      "key": "rtmpEnabled",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable RTMP streaming output.",
+      "requiresTier": "Pro",
+      "category": "streaming",
+      "requiresRestart": false
+    },
+    {
+      "key": "rtmpUrl",
+      "type": "string",
+      "default": "",
+      "description": "RTMP stream URL (e.g. rtmp://live.twitch.tv/app/STREAM_KEY).",
+      "requiresTier": "Pro",
+      "category": "streaming",
+      "requiresRestart": false
+    },
+    {
+      "key": "telemetryEnabled",
+      "type": "boolean",
+      "default": false,
+      "description": "Send anonymous performance telemetry to help improve AuraCastPro.",
+      "requiresTier": "Free",
+      "category": "privacy",
+      "requiresRestart": false
+    },
+    {
+      "key": "autoUpdate",
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically check for and download updates.",
+      "requiresTier": "Free",
+      "category": "updates",
+      "requiresRestart": false
+    },
+    {
+      "key": "theme",
+      "type": "enum",
+      "default": "Dark",
+      "values": [
+        "Dark",
+        "Light",
+        "System"
+      ],
+      "description": "UI colour theme.",
+      "requiresTier": "Free",
+      "category": "ui",
+      "requiresRestart": false
+    },
+    {
+      "key": "performanceOverlayEnabled",
+      "type": "boolean",
+      "default": false,
+      "description": "Show real-time performance overlay (latency, fps, bitrate).",
+      "requiresTier": "Free",
+      "category": "ui",
+      "requiresRestart": false
+    },
+    {
+      "key": "displayName",
+      "type": "string",
+      "default": "AuraCastPro",
+      "description": "Friendly name shown to AirPlay/Cast devices on the network",
+      "category": "identity",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "airplayPort",
+      "type": "integer",
+      "default": 7236,
+      "min": 1024,
+      "max": 65535,
+      "description": "TCP/UDP port for AirPlay RTSP control and video stream",
+      "category": "network",
+      "requiresTier": "Free",
+      "requiresRestart": true
+    },
+    {
+      "key": "castPort",
+      "type": "integer",
+      "default": 8009,
+      "min": 1024,
+      "max": 65535,
+      "description": "TCP port for Google Cast WebSocket server",
+      "category": "network",
+      "requiresTier": "Free",
+      "requiresRestart": true
+    },
+    {
+      "key": "selectedNetworkIface",
+      "type": "string",
+      "default": "",
+      "description": "Network interface name to bind sockets (empty = auto-select best)",
+      "category": "network",
+      "requiresTier": "Free",
+      "requiresRestart": true
+    },
+    {
+      "key": "jitterBufferMs",
+      "type": "integer",
+      "default": 50,
+      "min": 0,
+      "max": 200,
+      "description": "Packet reorder cache timeout in milliseconds",
+      "category": "network",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxBitrateKbps",
+      "type": "integer",
+      "default": 20000,
+      "min": 1000,
+      "max": 100000,
+      "description": "Maximum incoming video bitrate in Kbps",
+      "category": "video",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxFps",
+      "type": "integer",
+      "default": 60,
+      "min": 15,
+      "max": 120,
+      "description": "Maximum frame rate cap",
+      "category": "video",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxWidth",
+      "type": "integer",
+      "default": 1920,
+      "min": 640,
+      "max": 7680,
+      "description": "Maximum mirrored frame width in pixels",
+      "category": "video",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxHeight",
+      "type": "integer",
+      "default": 1080,
+      "min": 480,
+      "max": 4320,
+      "description": "Maximum mirrored frame height in pixels",
+      "category": "video",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "maxResolutionIndex",
+      "type": "integer",
+      "default": 0,
+      "min": 0,
+      "max": 3,
+      "description": "Preset: 0=1080p 1=1440p 2=4K(Pro) 3=8K(Enterprise)",
+      "category": "video",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "fpsCapIndex",
+      "type": "integer",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "description": "FPS cap preset: 0=30fps 1=60fps 2=120fps",
+      "category": "video",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "hardwareDecodeEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Use hardware (MFT) video decoder when available; falls back to FFmpeg",
+      "category": "video",
+      "requiresTier": "Free",
+      "requiresRestart": true
+    },
+    {
+      "key": "gpuFrameBufferCount",
+      "type": "integer",
+      "default": 4,
+      "min": 2,
+      "max": 8,
+      "description": "Pre-allocated GPU NV12 frame buffer slots",
+      "category": "advanced",
+      "requiresTier": "Free",
+      "requiresRestart": true
+    },
+    {
+      "key": "audioEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable WASAPI audio capture and playback",
+      "category": "audio",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "outputDeviceId",
+      "type": "string",
+      "default": "",
+      "description": "WASAPI audio render endpoint device ID (empty = system default)",
+      "category": "audio",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "deviceVolume",
+      "type": "number",
+      "default": 1.0,
+      "min": 0.0,
+      "max": 1.0,
+      "description": "Device audio output volume",
+      "category": "audio",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "micEnabled",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable microphone mixing into audio output",
+      "category": "audio",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "micVolume",
+      "type": "number",
+      "default": 0.7,
+      "min": 0.0,
+      "max": 1.0,
+      "description": "Microphone volume in mixed audio output",
+      "category": "audio",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "avSyncOffsetMs",
+      "type": "integer",
+      "default": 0,
+      "min": -200,
+      "max": 200,
+      "description": "Manual A/V sync offset in ms (negative = advance audio)",
+      "category": "audio",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "virtualAudioEnabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Route audio to AuraCastPro Virtual Audio Cable device",
+      "category": "audio",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "recordingFolder",
+      "type": "string",
+      "default": "%APPDATA%\\AuraCastPro\\recordings",
+      "description": "Output folder for recorded MP4 files",
+      "category": "recording",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "recordingQuality",
+      "type": "string",
+      "default": "source",
+      "enum": [
+        "source",
+        "high",
+        "medium"
+      ],
+      "description": "Recording quality: source = stream-copy (no re-encode)",
+      "category": "recording",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "autoRecord",
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-start recording when mirroring begins",
+      "category": "recording",
+      "requiresTier": "Pro",
+      "requiresRestart": false
+    },
+    {
+      "key": "encoderPreference",
+      "type": "string",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "nvenc",
+        "amf",
+        "qsv",
+        "software"
+      ],
+      "description": "Hardware encoder for streaming output",
+      "category": "streaming",
+      "requiresTier": "Pro",
+      "requiresRestart": false
+    },
+    {
+      "key": "streamBitrateKbps",
+      "type": "integer",
+      "default": 6000,
+      "min": 1000,
+      "max": 20000,
+      "description": "Streaming output bitrate in Kbps",
+      "category": "streaming",
+      "requiresTier": "Pro",
+      "requiresRestart": false
+    },
+    {
+      "key": "streamKey",
+      "type": "string",
+      "default": "",
+      "description": "RTMP stream key (stored AES-256-GCM encrypted)",
+      "category": "streaming",
+      "requiresTier": "Pro",
+      "requiresRestart": false,
+      "sensitive": true
+    },
+    {
+      "key": "alwaysOnTop",
+      "type": "boolean",
+      "default": false,
+      "description": "Keep mirror window above all other windows",
+      "category": "ui",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "minimiseToTray",
+      "type": "boolean",
+      "default": true,
+      "description": "Minimise to system tray instead of taskbar",
+      "category": "ui",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "startWithWindows",
+      "type": "boolean",
+      "default": false,
+      "description": "Register in HKCU Run for auto-start on Windows login",
+      "category": "ui",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "showOverlay",
+      "type": "boolean",
+      "default": false,
+      "description": "Show performance stats overlay on mirror window",
+      "category": "ui",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "showOverlayOnStart",
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-show stats overlay when mirroring starts",
+      "category": "ui",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "darkMode",
+      "type": "boolean",
+      "default": true,
+      "description": "Use dark theme UI (light theme planned for future release)",
+      "category": "ui",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "language",
+      "type": "string",
+      "default": "en",
+      "description": "UI language code \u2014 currently only 'en' available",
+      "category": "ui",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "firstRunCompleted",
+      "type": "boolean",
+      "default": false,
+      "description": "Internal flag set after first-run wizard completes",
+      "category": "internal",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "logLevel",
+      "type": "string",
+      "default": "info",
+      "enum": [
+        "trace",
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ],
+      "description": "Minimum log level written to rotating log file",
+      "category": "advanced",
+      "requiresTier": "Free",
+      "requiresRestart": false
+    },
+    {
+      "key": "networkThreadCount",
+      "type": "integer",
+      "default": 0,
+      "min": 0,
+      "max": 32,
+      "description": "Boost.Asio IO worker thread count (0 = hardware_concurrency)",
+      "category": "advanced",
+      "requiresTier": "Free",
+      "requiresRestart": true
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+; Audio_Installer.inf
+; Windows INF for AuraCastPro Virtual Audio Cable (AudioVirtualCable.sys)
+; Installs a WDM audio capture/render device pair for audio routing
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = MEDIA
+ClassGUID   = {4D36E96C-E325-11CE-BFC1-08002BE10318}
+Provider    = %ManufacturerName%
+DriverVer   = 03/06/2026,1.0.0.0
+CatalogFile = Audio_Bridge.cat
+PnpLockdown = 1
+
+[Manufacturer]
+%ManufacturerName% = AuraCastPro, NTamd64
+
+[AuraCastPro.NTamd64]
+%AudioDevice.DeviceDesc% = AudioVCable_Device, Root\AuraCastProAudio
+
+[AudioVCable_Device.NT]
+Include    = ks.inf, wdmaudio.inf
+Needs      = KS.Registration, WDMAUDIO.Registration
+AddReg     = AudioVCable_AddReg
+CopyFiles  = AudioVCable_CopyFiles
+
+[AudioVCable_AddReg]
+; Render (output) endpoint
+HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AuraCastPro.Render.GUID%,Name,,%RenderName%
+HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AuraCastPro.Render.GUID%,Display,1,00,00,00,00
+; Capture (input) endpoint
+HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AuraCastPro.Capture.GUID%,Name,,%CaptureName%
+HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AuraCastPro.Capture.GUID%,Display,1,00,00,00,00
+
+[AudioVCable_CopyFiles]
+AudioVirtualCable.sys
+
+[AudioVCable_Device.NT.Services]
+AddService = AudioVirtualCable, 0x00000002, AudioVCable_ServiceInstall
+
+[AudioVCable_ServiceInstall]
+DisplayName   = %AudioDevice.DeviceDesc%
+ServiceType   = 1
+StartType     = 3
+ErrorControl  = 1
+ServiceBinary = %12%\AudioVirtualCable.sys
+
+[DestinationDirs]
+AudioVCable_CopyFiles = 12
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+AudioVirtualCable.sys = 1,,
+
+[Strings]
+ManufacturerName          = "AuraCastPro"
+AudioDevice.DeviceDesc    = "AuraCastPro Virtual Audio Cable"
+RenderName                = "AuraCastPro Audio Output"
+CaptureName               = "AuraCastPro Audio Capture"
+DiskName                  = "AuraCastPro Installation Disk"
+AuraCastPro.Render.GUID   = "{A4D1A7C8-3CD4-4C2D-9A5B-1F0C8E2D4F67}"
+AuraCastPro.Capture.GUID  = "{B5E2B8D9-4DE5-5D3E-AB6C-2G1D9F3E5G78}"

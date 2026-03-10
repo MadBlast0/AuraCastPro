@@ -1,0 +1,34 @@
+# license_keys.enc — AuraCastPro encrypted license key database
+#
+# FORMAT: AES-256-GCM encrypted JSON, DPAPI outer envelope
+#
+# This file is generated at runtime by LicenseManager.cpp when a key is
+# activated. It is stored in: %APPDATA%\AuraCastPro\security\license_keys.enc
+# and NEVER shipped in the installer.
+#
+# Encrypted payload structure (JSON before encryption):
+# {
+#   "version": 1,
+#   "keys": [
+#     {
+#       "key":         "AURA1-XXXXX-XXXXX-XXXXX-XXXXX",
+#       "email":       "user@example.com",
+#       "tier":        "Pro",              // "Free" | "Pro" | "Business"
+#       "machine_id":  "<sha256-of-machine-guid>",
+#       "activated_at": "2026-03-06T14:00:00Z",
+#       "expires_at":   "2027-03-06T14:00:00Z",  // null for perpetual
+#       "features":    ["4K","120fps","recording","vcam","no_watermark"]
+#     }
+#   ]
+# }
+#
+# Encryption:
+#   1. JSON → UTF-8 bytes
+#   2. AES-256-GCM encrypt with key derived from machine DPAPI + app salt
+#   3. Output: base64( iv[12] + ciphertext + tag[16] )
+#
+# This placeholder file is replaced on first activation.
+# DO NOT EDIT MANUALLY — the file will fail MAC verification.
+#
+# To reset: delete this file. The app will revert to Free tier until re-activated.
+PLACEHOLDER_NOT_YET_ACTIVATED

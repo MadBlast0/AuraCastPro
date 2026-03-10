@@ -1,0 +1,42 @@
+AuraCastPro Privacy Policy
+Effective Date: January 1, 2025
+
+1. DATA COLLECTION
+AuraCastPro collects NO personal data by default. The app operates entirely on your local 
+network and does not transmit any information to our servers unless you explicitly opt in 
+to anonymous diagnostics (see Section 3).
+
+2. LOCAL DATA
+The following data is stored locally on your PC only:
+  - Device pairing keys (encrypted with Windows DPAPI, accessible only to your Windows account)
+  - Application settings (settings.json in %APPDATA%\AuraCastPro)
+  - Log files (in %APPDATA%\AuraCastPro\logs, automatically rotated, max 50MB)
+  - License key (encrypted)
+
+Screen content mirrored from your device is processed in RAM only and is never written 
+to disk unless you start a recording, in which case the recording is saved to the folder 
+you specify.
+
+3. OPTIONAL ANONYMOUS TELEMETRY
+If you opt in via Settings → Privacy → Anonymous Diagnostics, the following is sent:
+  - App version
+  - Operating system version
+  - GPU vendor and model (e.g. "NVIDIA RTX 4080")
+  - Average session latency and codec used
+  - Crash stack traces (no personal identifiers)
+
+What is NEVER sent, even with telemetry enabled:
+  - Screen content or recordings
+  - IP addresses
+  - Device names or identifiers
+  - Your name, email, or any personal information
+  - Pairing keys or license keys
+
+You can opt out at any time. Disabling telemetry takes effect immediately.
+
+4. CONTACT
+Privacy questions: privacy@auracastpro.com
+
+5. CHANGES
+We will update this policy and notify users via the in-app update system if material 
+changes are made.

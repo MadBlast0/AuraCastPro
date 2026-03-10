@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "trusted_devices_schema.json",
+  "title": "AuraCastPro Trusted Devices",
+  "description": "Schema for the trusted_devices.json file stored in security/",
+  "type": "object",
+  "required": ["version", "devices"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Schema version. Increment when adding new fields.",
+      "minimum": 1
+    },
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "protocol", "firstSeen", "publicKeyHash"],
+        "properties": {
+          "id":            { "type": "string", "description": "Unique device UUID" },
+          "name":          { "type": "string", "description": "User-visible device name" },
+          "protocol":      { "type": "string", "enum": ["airplay2", "cast", "adb"], "description": "Mirroring protocol" },
+          "firstSeen":     { "type": "string", "format": "date-time" },
+          "lastSeen":      { "type": "string", "format": "date-time" },
+          "publicKeyHash": { "type": "string", "description": "SHA-256 of device public key (hex)" },
+          "pairPin":       { "type": "string", "description": "AirPlay PIN hash (bcrypt)" },
+          "trusted":       { "type": "boolean", "default": true },
+          "notes":         { "type": "string" }
+        }
+      }
+    }
+  },
+  "example": {
+    "version": 1,
+    "devices": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Alice's iPhone 15",
+        "protocol": "airplay2",
+        "firstSeen": "2025-01-15T10:30:00Z",
+        "lastSeen":  "2025-03-01T18:00:00Z",
+        "publicKeyHash": "a3f4e5b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4",
+        "trusted": true
+      }
+    ]
+  }
+}

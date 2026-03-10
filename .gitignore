@@ -1,0 +1,32 @@
+# Build output
+build/
+out/
+*.user
+
+# vcpkg
+vcpkg_installed/
+
+# IDE
+.vs/
+.vscode/
+*.suo
+CMakeSettings.json
+.cache/
+
+# Qt Creator
+*.pro.user
+CMakeLists.txt.user
+
+# Compiled shaders (generated at build time)
+**/*.cso
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

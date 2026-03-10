@@ -1,0 +1,73 @@
+AURACASTPRO THIRD-PARTY LICENSES
+=================================
+This software includes the following open-source components:
+
+─────────────────────────────────────────────────────────────────────────────
+1. Qt Framework (https://www.qt.io)
+   License: GNU Lesser General Public License v3 (LGPL-3.0)
+   Used for: UI framework, QML rendering, networking, threading
+   Source available at: https://code.qt.io/cgit/qt/
+─────────────────────────────────────────────────────────────────────────────
+2. FFmpeg (https://ffmpeg.org)
+   License: GNU Lesser General Public License v2.1 (LGPL-2.1)
+   Used for: Video/audio decoding, encoding, muxing, resampling
+   Source available at: https://ffmpeg.org/download.html
+   LGPL compliance: AuraCastPro links FFmpeg as shared DLLs (avcodec-*.dll,
+   avformat-*.dll, avutil-*.dll, swresample-*.dll). Users may replace these
+   DLLs with their own builds. dumpbin /imports AuraCastPro.exe lists all
+   imported FFmpeg functions.
+─────────────────────────────────────────────────────────────────────────────
+3. Boost Libraries (https://www.boost.org)
+   License: Boost Software License 1.0
+   Used for: boost::asio (networking), boost::beast (WebSocket)
+   Permission is hereby granted, free of charge, to use, copy, modify, merge,
+   publish, distribute, sublicense, and/or sell copies of the Software.
+─────────────────────────────────────────────────────────────────────────────
+4. OpenSSL (https://www.openssl.org)
+   License: Apache License 2.0
+   Used for: TLS 1.2/1.3, RSA/AES/SRP cryptography, certificate handling
+─────────────────────────────────────────────────────────────────────────────
+5. Protocol Buffers (protobuf) (https://github.com/protocolbuffers/protobuf)
+   License: BSD 3-Clause
+   Used for: Google Cast v2 protocol serialisation
+   Copyright 2008 Google Inc. All rights reserved.
+   Redistribution in source and binary forms with or without modification
+   is permitted provided the copyright notice and this list of conditions
+   are retained.
+─────────────────────────────────────────────────────────────────────────────
+6. spdlog (https://github.com/gabime/spdlog)
+   License: MIT License
+   Used for: Structured logging
+   Copyright (c) 2016 Gabi Melman
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software to use, copy, modify, merge, and distribute it.
+─────────────────────────────────────────────────────────────────────────────
+7. nlohmann/json (https://github.com/nlohmann/json)
+   License: MIT License
+   Used for: JSON serialisation/deserialisation (settings, device info)
+   Copyright (c) 2013-2022 Niels Lohmann
+─────────────────────────────────────────────────────────────────────────────
+8. Google Test (gtest) (https://github.com/google/googletest)
+   License: BSD 3-Clause
+   Used for: Unit and integration testing (not shipped in release builds)
+   Copyright 2005, Google Inc. All rights reserved.
+─────────────────────────────────────────────────────────────────────────────
+9. libuv (https://libuv.org)
+   License: MIT License
+   Used for: Event loop and asynchronous I/O
+   Copyright (c) 2015-present libuv project contributors
+─────────────────────────────────────────────────────────────────────────────
+
+─────────────────────────────────────────────────────────────────────────────
+10. scrcpy-server (https://github.com/Genymobile/scrcpy)
+    License: Apache License 2.0
+    Used for: Android screen capture server pushed via ADB for USB mirroring
+    Copyright (C) 2018 Genymobile, Romain Vimont
+    Licensed under the Apache License, Version 2.0. You may obtain a copy at
+    https://www.apache.org/licenses/LICENSE-2.0
+─────────────────────────────────────────────────────────────────────────────
+
+FULL LICENSE TEXTS
+Copies of all applicable license texts are included in the
+licenses/ subdirectory of the installation folder, or available
+at the URLs listed above.

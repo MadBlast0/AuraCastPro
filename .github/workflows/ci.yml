@@ -1,0 +1,199 @@
+name: AuraCastPro CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+env:
+  QT_VERSION: "6.6.3"
+
+jobs:
+  # ─── BUILD AND TEST (Windows x64) ──────────────────────────────────────────
+  build-windows:
+    name: Build & Test — Windows x64
+    runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Debug, Release]
+
+    steps:
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ── 2. Install MSVC (already on windows-2022, just activate) ────────────
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # ── 3. Install Qt ────────────────────────────────────────────────────────
+      - name: Install Qt ${{ env.QT_VERSION }}
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: qtcharts qtquick qtquickcontrols2 qtshadertools
+          cache: true
+
+      # ── 4. Cache vcpkg packages ──────────────────────────────────────────────
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        id: vcpkg-cache
+        with:
+          path: |
+            C:\vcpkg\installed
+            C:\vcpkg\packages
+          key: vcpkg-win64-${{ hashFiles('vcpkg.json') }}-v2
+          restore-keys: |
+            vcpkg-win64-${{ hashFiles('vcpkg.json') }}-
+            vcpkg-win64-
+
+      # ── 5. Bootstrap vcpkg ───────────────────────────────────────────────────
+      - name: Bootstrap vcpkg
+        run: |
+          if (!(Test-Path "C:\vcpkg\vcpkg.exe")) {
+            git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+            C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+          }
+          C:\vcpkg\vcpkg integrate install
+        shell: pwsh
+
+      # ── 6. Install vcpkg dependencies ────────────────────────────────────────
+      - name: Install dependencies via vcpkg
+        run: |
+          C:\vcpkg\vcpkg install --triplet x64-windows `
+            boost-asio boost-system openssl protobuf spdlog `
+            "ffmpeg[avcodec,avformat,avutil,swresample,swscale]" `
+            nlohmann-json gtest libuv zlib directx-headers
+        shell: pwsh
+
+      # ── 7. Find dxc.exe (HLSL shader compiler, ships with Windows SDK) ───────
+      - name: Locate dxc.exe
+        id: dxc
+        run: |
+          # dxc.exe ships with the Windows 10/11 SDK (ships on windows-2022 runners)
+          $dxc = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" `
+                   -Recurse -Filter "dxc.exe" -ErrorAction SilentlyContinue |
+                 Where-Object { $_.FullName -match "x64" } |
+                 Sort-Object FullName -Descending |
+                 Select-Object -First 1 -ExpandProperty FullName
+          if (!$dxc) {
+            Write-Warning "dxc.exe not found in Windows SDK — shaders will not compile"
+            $dxc = "dxc.exe"  # hope it's on PATH
+          }
+          echo "DXC_PATH=$dxc" >> $env:GITHUB_ENV
+          echo "Found dxc: $dxc"
+        shell: pwsh
+
+      # ── 8. Find Bonjour SDK (pre-installed or install stub) ──────────────────
+      - name: Setup Bonjour SDK stub
+        run: |
+          # GitHub runners don't have the Apple Bonjour SDK.
+          # Create a stub so the build doesn't fail on the dnssd.lib link.
+          $bonjourDir = "C:\BonjourSDK"
+          New-Item -ItemType Directory -Force "$bonjourDir\include" | Out-Null
+          New-Item -ItemType Directory -Force "$bonjourDir\lib\x64"  | Out-Null
+          # Minimal dns_sd.h stub so headers compile
+          Set-Content "$bonjourDir\include\dns_sd.h" @"
+          #pragma once
+          // Bonjour SDK stub for CI — real SDK needed for production build
+          typedef unsigned int DNSServiceFlags;
+          typedef unsigned int DNSServiceErrorType;
+          typedef struct _DNSServiceRef_t* DNSServiceRef;
+          #define kDNSServiceErr_NoError 0
+          #define kDNSServiceInterfaceIndexAny 0
+          #define kDNSServiceFlagsShareConnection 0
+          "@
+          # Empty import lib stub
+          lib /DEF /OUT:"$bonjourDir\lib\x64\dnssd.lib" /MACHINE:X64 2>$null
+          if (!(Test-Path "$bonjourDir\lib\x64\dnssd.lib")) {
+            New-Item -ItemType File "$bonjourDir\lib\x64\dnssd.lib" | Out-Null
+          }
+          echo "BONJOUR_SDK_DIR=$bonjourDir" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      # ── 9. Configure ─────────────────────────────────────────────────────────
+      - name: Configure CMake (${{ matrix.config }})
+        run: |
+          $preset = if ("${{ matrix.config }}" -eq "Debug") { "windows-debug" } else { "windows-release" }
+          cmake --preset $preset `
+            -DDXC_EXECUTABLE="$env:DXC_PATH" `
+            -DBONJOUR_SDK_DIR="$env:BONJOUR_SDK_DIR" `
+            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows
+        shell: pwsh
+        env:
+          Qt6_DIR: ${{ env.Qt6_DIR }}
+
+      # ── 10. Build ────────────────────────────────────────────────────────────
+      - name: Build (${{ matrix.config }})
+        run: |
+          $preset = if ("${{ matrix.config }}" -eq "Debug") { "build-debug" } else { "build-release" }
+          cmake --build --preset $preset --parallel
+        shell: pwsh
+
+      # ── 11. Run tests (Debug only — faster CI loop) ──────────────────────────
+      - name: Run unit tests
+        if: matrix.config == 'Debug'
+        run: |
+          ctest --preset run-all-tests-debug --output-on-failure --timeout 120
+        shell: pwsh
+
+      # ── 12. Upload Release build artifacts ───────────────────────────────────
+      - name: Upload Release artifact
+        if: matrix.config == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AuraCastPro-Release-Windows-x64
+          path: |
+            build/release_x64/AuraCastPro.exe
+            build/release_x64/Shaders/*.cso
+          retention-days: 30
+          if-no-files-found: warn
+
+      # ── 13. Upload build log on failure ──────────────────────────────────────
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.config }}
+          path: |
+            build/*/CMakeFiles/CMakeOutput.log
+            build/*/CMakeFiles/CMakeError.log
+            build/**/*.log
+          retention-days: 7
+
+  # ─── STATIC ANALYSIS (Linux, fast) ─────────────────────────────────────────
+  cppcheck:
+    name: Static Analysis (cppcheck)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck
+        run: |
+          cppcheck \
+            --enable=warning,performance \
+            --error-exitcode=1 \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            --std=c++20 \
+            -I src/utils \
+            -I src/engine \
+            src/utils/ src/engine/ src/integration/
+        # Note: display/ and streaming/ use Windows-only DX12/NVENC headers
+        # so they're excluded from the Linux cppcheck job.

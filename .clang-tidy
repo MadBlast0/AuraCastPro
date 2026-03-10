@@ -1,0 +1,49 @@
+# =============================================================================
+# .clang-tidy — AuraCastPro static analysis configuration
+# Task 199: Run with clang-tidy on all src/ files before release.
+#
+# Usage:
+#   clang-tidy src/**/*.cpp -- -std=c++20 -I src -I cloud
+#   Or via CMake: set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+# =============================================================================
+
+Checks: >
+  bugprone-*,
+  cppcoreguidelines-*,
+  performance-*,
+  readability-*,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-vararg,
+  -readability-magic-numbers,
+  -readability-identifier-length,
+  -bugprone-easily-swappable-parameters
+
+WarningsAsErrors: >
+  bugprone-use-after-move,
+  bugprone-dangling-handle,
+  bugprone-infinite-loop,
+  performance-move-const-arg,
+  modernize-use-nullptr,
+  modernize-use-override
+
+HeaderFilterRegex: '(src|cloud)/.*\.h$'
+
+CheckOptions:
+  - key:   readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key:   readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key:   readability-identifier-naming.FunctionCase
+    value: camelCase
+  - key:   readability-identifier-naming.MemberPrefix
+    value: m_
+  - key:   readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  - key:   readability-function-cognitive-complexity.Threshold
+    value: '40'
+  - key:   modernize-use-default-member-init.UseAssignment
+    value: '1'

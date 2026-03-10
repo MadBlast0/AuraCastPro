@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- AuraCastPro App Icon
+       Task 163: Vector source. On your PC convert to .ico:
+         magick convert -background transparent app_icon.svg \
+           -define icon:auto-resize="256,128,96,64,48,32,24,16" \
+           app_icon.ico
+       Or use: https://convertio.co/svg-ico/
+       Place the resulting app_icon.ico next to this file.
+  -->
+  <!-- Background: pure black neo-brutalist -->
+  <rect width="256" height="256" fill="#000000" rx="0"/>
+  <!-- White border — 4px, hard edge, no radius -->
+  <rect x="2" y="2" width="252" height="252" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+
+  <!-- Signal arcs — 3 concentric arcs (broadcast/cast motif) -->
+  <!-- Outer arc -->
+  <path d="M 72 160 A 72 72 0 0 1 184 160"
+        fill="none" stroke="#FFFFFF" stroke-width="10"
+        stroke-linecap="square"/>
+  <!-- Middle arc -->
+  <path d="M 92 160 A 50 50 0 0 1 164 160"
+        fill="none" stroke="#FFFFFF" stroke-width="10"
+        stroke-linecap="square"/>
+  <!-- Inner arc -->
+  <path d="M 112 160 A 28 28 0 0 1 144 160"
+        fill="none" stroke="#FFFFFF" stroke-width="10"
+        stroke-linecap="square"/>
+
+  <!-- Center dot -->
+  <rect x="120" y="152" width="16" height="16" fill="#FFFFFF"/>
+
+  <!-- "A" letterform — bold, Roboto Mono style, top-left inset -->
+  <text x="28" y="110"
+        font-family="'Roboto Mono', 'Courier New', monospace"
+        font-size="72"
+        font-weight="700"
+        fill="#FFFFFF"
+        letter-spacing="-2">AC</text>
+
+  <!-- Hard-offset drop shadow line — neo-brutalist signature -->
+  <line x1="6" y1="250" x2="250" y2="250" stroke="#FFFFFF" stroke-width="3"/>
+  <line x1="250" y1="6" x2="250" y2="250" stroke="#FFFFFF" stroke-width="3"/>
+</svg>

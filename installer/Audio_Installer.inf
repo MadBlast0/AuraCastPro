@@ -1,0 +1,82 @@
+; =============================================================================
+; Audio_Installer.inf — AudioVirtualCable virtual audio driver installation
+; =============================================================================
+[Version]
+Signature  = "$Windows NT$"
+Class      = Media
+ClassGuid  = {4d36e96c-e325-11ce-bfc1-08002be10318}
+Provider   = %ManufacturerName%
+CatalogFile= Audio_Bridge.cat
+DriverVer  = 01/01/2025,0.1.0.1
+PnpLockDown= 1
+
+[Manufacturer]
+%ManufacturerName% = Standard,NTamd64
+
+[Standard.NTamd64]
+%DeviceDescription% = AudioVirtualCable_Install,Root\AudioVirtualCable
+
+; =============================================================================
+; Installation sections
+; =============================================================================
+[AudioVirtualCable_Install]
+Include    = ks.inf,wdmaudio.inf
+Needs      = KS.Registration, WDMAUDIO.Registration
+CopyFiles  = AudioVirtualCable_CopyFiles
+AddReg     = AudioVirtualCable_AddReg
+
+[AudioVirtualCable_Install.Services]
+Include    = ks.inf,wdmaudio.inf
+Needs      = KS.Registration.Services, WDMAUDIO.Registration.Services
+AddService = AudioVirtualCable,0x00000002,AudioVirtualCable_ServiceInstall
+
+[AudioVirtualCable_ServiceInstall]
+DisplayName   = %ServiceName%
+ServiceType   = 1
+StartType     = 3
+ErrorControl  = 1
+ServiceBinary = %12%\AudioVirtualCable.sys
+LoadOrderGroup= Base
+
+; =============================================================================
+; Registry entries
+; =============================================================================
+[AudioVirtualCable_AddReg]
+; Render endpoint: "AuraCastPro Audio Output"
+HKR,,AssociatedFilters,,"wdmaud,redbook"
+HKR,,Driver,,AudioVirtualCable.sys
+HKR,,NTMPDriver,,"AudioVirtualCable.sys,sbemul.sys"
+
+HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%GUID_AuraOutput%,Name,,%RenderEndpointName%
+HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%GUID_AuraInput%, Name,,%CaptureEndpointName%
+
+; =============================================================================
+; File copy
+; =============================================================================
+[AudioVirtualCable_CopyFiles]
+AudioVirtualCable.sys
+
+[DestinationDirs]
+AudioVirtualCable_CopyFiles = 12  ; %SystemRoot%\System32\drivers
+
+; =============================================================================
+; Source media
+; =============================================================================
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+AudioVirtualCable.sys = 1
+
+; =============================================================================
+; Strings
+; =============================================================================
+[Strings]
+ManufacturerName      = "AuraCastPro"
+DeviceDescription     = "AuraCastPro Virtual Audio Cable"
+ServiceName           = "AuraCastPro Virtual Audio Driver"
+RenderEndpointName    = "AuraCastPro Audio Output"
+CaptureEndpointName   = "AuraCastPro Audio Input"
+DiskName              = "AuraCastPro Driver Disk"
+GUID_AuraOutput       = "{A1B2C3D4-0001-0001-0001-AURACASTPRO00}"
+GUID_AuraInput        = "{A1B2C3D4-0001-0001-0002-AURACASTPRO00}"

@@ -1,0 +1,50 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+    <!-- QML files -->
+    <file alias="qml/Main.qml">qml/Main.qml</file>
+    <file alias="qml/Dashboard.qml">qml/Dashboard.qml</file>
+    <file alias="qml/DeviceList.qml">qml/DeviceList.qml</file>
+    <file alias="qml/DeviceCard.qml">qml/DeviceCard.qml</file>
+    <file alias="qml/BitrateGraph.qml">qml/BitrateGraph.qml</file>
+    <file alias="qml/LatencyGraph.qml">qml/LatencyGraph.qml</file>
+    <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
+    <file alias="qml/PairingDialog.qml">qml/PairingDialog.qml</file>
+    <file alias="qml/AboutDialog.qml">qml/AboutDialog.qml</file>
+    <file alias="qml/DiagnosticsPanel.qml">qml/DiagnosticsPanel.qml</file>
+    <file alias="qml/StatsOverlay.qml">qml/StatsOverlay.qml</file>
+    <file alias="qml/FirstRunWizard.qml">qml/FirstRunWizard.qml</file>
+    <file alias="qml/LicensePage.qml">qml/LicensePage.qml</file>
+    <file alias="qml/Theme.qml">qml/Theme.qml</file>
+    <file alias="qml/SplashProgress.qml">qml/SplashProgress.qml</file>
+    <!-- Fonts — Roboto Mono (Apache 2.0). See assets/fonts/README.txt to download. -->
+    <!-- Aliases kept as Inter-*/JetBrains* for Theme.qml compatibility -->
+    <file alias="fonts/Inter-Regular.ttf">../../assets/fonts/RobotoMono-Regular.ttf</file>
+    <file alias="fonts/Inter-Bold.ttf">../../assets/fonts/RobotoMono-Bold.ttf</file>
+    <file alias="fonts/JetBrainsMono-Regular.ttf">../../assets/fonts/RobotoMono-Medium.ttf</file>
+    <!-- Icons & textures — see assets/textures/icons/README.txt to generate -->
+    <file alias="icons/app_icon.png">../../assets/textures/icons/png/app_icon.png</file>
+    <file alias="icons/ios.png">../../assets/textures/icons/png/ios.png</file>
+    <file alias="icons/android.png">../../assets/textures/icons/png/android.png</file>
+    <!-- Splash screen — see assets/textures/8K_Splashes/README.txt to generate -->
+    <file alias="textures/8K_Splashes/splash.png">../../assets/textures/8K_Splashes/splash.png</file>
+    <!-- Translations — run lrelease to generate .qm from i18n/AuraCastPro_en.ts -->
+    <file alias="i18n/AuraCastPro_en.qm">i18n/AuraCastPro_en.qm</file>
+    <!-- Documents -->
+    <file alias="doc/PrivacyPolicy.txt">../../doc/user/PrivacyPolicy.txt</file>
+    <file alias="doc/THIRD_PARTY_LICENSES.txt">../../installer/THIRD_PARTY_LICENSES.txt</file>
+        <file>qml/UpdateDialog.qml</file>
+            <file>qml/ErrorDialog.qml</file>
+            <file>qml/RecordingControls.qml</file>
+            <file>qml/MirrorViewPage.qml</file>
+            <file>qml/HotkeysPage.qml</file>
+            <file>qml/TroubleshootingPage.qml</file>
+            <file>qml/WelcomeWizard.qml</file>
+            <file>qml/HubPage.qml</file>
+            <file>qml/AboutPage.qml</file>
+            <file>qml/ConnectionGuide.qml</file>
+            <file>qml/DeviceListView.qml</file>
+            <file>qml/StatsBadge.qml</file>
+            <file>qml/ThemeEngine.qml</file>
+            <file>qml/SplashScreen.qml</file>
+    </qresource>
+</RCC>

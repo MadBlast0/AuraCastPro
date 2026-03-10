@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <!-- AuraCastPro Splash Screen
+       Task 166: 1920×1080 source SVG. Renders as pure black neo-brutalist.
+       Convert to PNG on your PC:
+         magick convert -background black splash.svg \
+           -resize 1920x1080 splash.png
+       Place splash.png in this directory (assets/textures/8K_Splashes/).
+  -->
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="#000000"/>
+
+  <!-- Top border line -->
+  <rect x="0" y="0" width="1920" height="4" fill="#FFFFFF"/>
+  <!-- Bottom border line -->
+  <rect x="0" y="1076" width="1920" height="4" fill="#FFFFFF"/>
+  <!-- Left border -->
+  <rect x="0" y="0" width="4" height="1080" fill="#FFFFFF"/>
+  <!-- Right border -->
+  <rect x="1916" y="0" width="4" height="1080" fill="#FFFFFF"/>
+
+  <!-- Hard offset decorative block (bottom-right, neo-brutalist) -->
+  <rect x="1700" y="860" width="200" height="200"
+        fill="none" stroke="#FFFFFF" stroke-width="3"/>
+  <rect x="1706" y="866" width="200" height="200"
+        fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.3"/>
+
+  <!-- Signal arcs — large, centred -->
+  <path d="M 760 540 A 160 160 0 0 1 1160 540"
+        fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="square"/>
+  <path d="M 810 540 A 110 110 0 0 1 1110 540"
+        fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="square"/>
+  <path d="M 860 540 A 60 60 0 0 1 1060 540"
+        fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="square"/>
+  <!-- Center dot -->
+  <rect x="952" y="530" width="16" height="16" fill="#FFFFFF"/>
+
+  <!-- App name — large mono -->
+  <text x="960" y="380"
+        font-family="'Roboto Mono', 'Courier New', monospace"
+        font-size="96"
+        font-weight="700"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        letter-spacing="8">AURACASTPRO</text>
+
+  <!-- Tagline -->
+  <text x="960" y="440"
+        font-family="'Roboto Mono', 'Courier New', monospace"
+        font-size="24"
+        font-weight="400"
+        fill="#AAAAAA"
+        text-anchor="middle"
+        letter-spacing="4">ULTRA-LOW LATENCY SCREEN MIRRORING</text>
+
+  <!-- Version (bottom centre) -->
+  <text x="960" y="1040"
+        font-family="'Roboto Mono', 'Courier New', monospace"
+        font-size="18"
+        font-weight="400"
+        fill="#555555"
+        text-anchor="middle">v1.0.0</text>
+
+  <!-- Horizontal rule below arcs -->
+  <rect x="360" y="620" width="1200" height="2" fill="#333333"/>
+
+  <!-- Loading label -->
+  <text x="960" y="680"
+        font-family="'Roboto Mono', 'Courier New', monospace"
+        font-size="16"
+        font-weight="400"
+        fill="#555555"
+        text-anchor="middle"
+        letter-spacing="3">INITIALISING...</text>
+</svg>

@@ -1,0 +1,75 @@
+; MirrorCam_Installer.inf
+; Windows INF for AuraCastPro virtual DirectShow camera (MirrorCam)
+; Installs MirrorCam.dll as a kernel streaming video capture device
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = Camera
+ClassGUID   = {CA3E7AB9-B4C3-4AE6-8251-579EF933890F}
+Provider    = %ManufacturerName%
+DriverVer   = 03/06/2026,1.0.0.0
+CatalogFile = MirrorCam_Driver.cat
+PnpLockdown = 1
+
+[Manufacturer]
+%ManufacturerName% = AuraCastPro, NTamd64
+
+[AuraCastPro.NTamd64]
+%DeviceDescription% = MirrorCam_Device, SW\{860BB310-5D01-11D0-BD3B-00A0C911CE86}
+
+[MirrorCam_Device.NT]
+Include      = ks.inf, kscaptur.inf
+Needs        = KS.Registration, Stream.Registration
+AddReg       = MirrorCam_AddReg
+CopyFiles    = MirrorCam_CopyFiles
+
+[MirrorCam_Device.NT.Interfaces]
+AddInterface = %KSCATEGORY_VIDEO_CAMERA%, %KSNAME_Filter%, MirrorCam_Interface
+AddInterface = %KSCATEGORY_CAPTURE%,      %KSNAME_Filter%, MirrorCam_Interface
+
+[MirrorCam_Interface]
+AddReg = MirrorCam_Interface_AddReg
+
+[MirrorCam_Interface_AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%DeviceDescription%
+
+[MirrorCam_AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,MirrorCam.dll
+HKR,,OkToHibernate,3,01,00,00,00
+HKCR,CLSID\%AuraCastPro.CLSID%,,,%DeviceDescription%
+HKCR,CLSID\%AuraCastPro.CLSID%\InprocServer32,,,MirrorCam.dll
+HKCR,CLSID\%AuraCastPro.CLSID%\InprocServer32,ThreadingModel,,Both
+
+[MirrorCam_CopyFiles]
+MirrorCam.dll
+
+[MirrorCam_Device.NT.Services]
+AddService = MirrorCam, 0x00000002, MirrorCam_ServiceInstall
+
+[MirrorCam_ServiceInstall]
+DisplayName    = %DeviceDescription%
+ServiceType    = 1
+StartType      = 3
+ErrorControl   = 1
+ServiceBinary  = %12%\MirrorCam.dll
+
+[DestinationDirs]
+MirrorCam_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+MirrorCam.dll = 1,,
+
+[Strings]
+ManufacturerName     = "AuraCastPro"
+DeviceDescription    = "AuraCastPro Virtual Camera"
+DiskName             = "AuraCastPro Installation Disk"
+KSNAME_Filter        = "Filter"
+Proxy.CLSID          = "{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+KSCATEGORY_VIDEO_CAMERA = "{E5323777-F976-4f5b-9B55-B94699C46E44}"
+KSCATEGORY_CAPTURE   = "{65E8773D-8F56-11D0-A3B9-00A0C9223196}"
+AuraCastPro.CLSID    = "{8E14549B-DB61-4309-AFA1-3578E927E935}"
