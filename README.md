@@ -15,7 +15,7 @@ DirectX 12, and seamless integration with streaming software like OBS Studio.
 - **Adaptive bitrate** with PID controller
 - **Forward Error Correction** for lossy networks
 
-## Target Performance 
+## Target Performance
 
 | Metric | Target |
 |--------|--------|
