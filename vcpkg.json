@@ -2,7 +2,6 @@
   "name": "auracastpro",
   "version": "1.0.0",
   "description": "Ultra-low latency screen mirroring for Windows",
-  "homepage": "https://auracastpro.com",
   "dependencies": [
     "boost-asio",
     "boost-system",
@@ -18,6 +17,5 @@
     "libuv",
     "zlib",
     "directx-headers"
-  ],
-  "builtin-baseline": "a34c873a9717a888f58dc05268dea15592c2f822"
+  ]
 }
