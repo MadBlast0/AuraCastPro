@@ -34,7 +34,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: C:\vcpkg\installed
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}-v6
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}-v7
           restore-keys: vcpkg-
 
       - name: Bootstrap vcpkg
@@ -47,20 +47,12 @@ jobs:
           C:\vcpkg\vcpkg integrate install
 
       - name: Install dependencies
-        shell: pwsh
-        run: |
-          C:\vcpkg\vcpkg install `
-            boost-asio:x64-windows `
-            boost-system:x64-windows `
-            openssl:x64-windows `
-            protobuf:x64-windows `
-            spdlog:x64-windows `
-            "ffmpeg[avcodec,avformat,avutil,swresample,swscale]:x64-windows" `
-            nlohmann-json:x64-windows `
-            gtest:x64-windows `
-            libuv:x64-windows `
-            zlib:x64-windows `
-            directx-headers:x64-windows
+        shell: cmd
+        run: C:\vcpkg\vcpkg install boost-asio:x64-windows boost-system:x64-windows openssl:x64-windows protobuf:x64-windows spdlog:x64-windows nlohmann-json:x64-windows gtest:x64-windows libuv:x64-windows zlib:x64-windows directx-headers:x64-windows
+
+      - name: Install ffmpeg
+        shell: cmd
+        run: C:\vcpkg\vcpkg install ffmpeg[avcodec,avformat,avutil,swresample,swscale]:x64-windows
 
       - name: Find dxc.exe
         shell: pwsh
