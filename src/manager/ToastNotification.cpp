@@ -11,6 +11,7 @@
 #include <windows.h>
 #include <ShObjIdl_core.h>   // IToastNotificationManagerStatics
 #include <shlobj.h>
+#include <shellapi.h>   // ShellExecuteW
 
 #include <format>
 #include <string>

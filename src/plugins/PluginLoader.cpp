@@ -166,14 +166,8 @@ void PluginLoader::unload(IPlugin* plugin, void* handle) {
         try { delete plugin; } catch (...) {}
     }
 
-    // FreeLibrary wrapped in SEH — a badly written plugin might crash on unload
-    __try {
-        FreeLibrary(static_cast<HMODULE>(handle));
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
-        AURA_LOG_WARN("PluginLoader",
-            "FreeLibrary threw SEH exception for plugin '{}'. "
-            "Module handle left dangling.", name);
-    }
+    // FreeLibrary — SEH cannot be mixed with C++ unwinding in the same function
+    FreeLibrary(static_cast<HMODULE>(handle));
 
     AURA_LOG_INFO("PluginLoader", "Unloaded plugin '{}'.", name);
 }
