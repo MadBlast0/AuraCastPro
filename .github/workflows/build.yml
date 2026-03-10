@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ "main", "develop" ]
 
-env:
-  QT_VERSION: "6.6.2"
-
 jobs:
   build-windows:
     name: Build & Test — Windows x64
@@ -24,19 +21,20 @@ jobs:
         with:
           arch: x64
 
-      - uses: jurplel/install-qt-action@v3
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
         with:
-          version: "6.6.2"
+          version: "6.5.3"
           host: windows
           target: desktop
-          arch: win64_msvc2022_64
-          modules: qtcharts qtquick3d
+          arch: win64_msvc2019_64
+          modules: qtcharts
           cache: true
 
       - uses: actions/cache@v4
         with:
           path: C:\vcpkg\installed
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}-v5
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}-v6
           restore-keys: vcpkg-
 
       - name: Bootstrap vcpkg
