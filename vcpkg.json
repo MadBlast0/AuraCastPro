@@ -8,10 +8,7 @@
     "openssl",
     "protobuf",
     "spdlog",
-    {
-      "name": "ffmpeg",
-      "features": [ "avcodec", "avformat", "avutil", "swresample", "swscale" ]
-    },
+    "ffmpeg",
     "nlohmann-json",
     "gtest",
     "libuv",
