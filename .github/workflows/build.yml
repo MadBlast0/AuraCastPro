@@ -31,6 +31,16 @@ jobs:
           modules: qtcharts
           cache: true
 
+      - name: Cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: |
+            C:\vcpkg\installed
+            C:\vcpkg\packages
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+
       - name: Bootstrap vcpkg
         shell: pwsh
         run: |
@@ -40,6 +50,14 @@ jobs:
           }
           echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
           echo "VCPKG_FEATURE_FLAGS=-versions" >> $env:GITHUB_ENV
+
+      - name: Install vcpkg dependencies
+        shell: pwsh
+        run: |
+          C:\vcpkg\vcpkg install --triplet x64-windows `
+            boost-asio boost-system openssl protobuf spdlog `
+            ffmpeg[avcodec,avformat,avutil,swresample,swscale] `
+            nlohmann-json gtest libuv zlib directx-headers
 
       - name: Find dxc.exe
         shell: pwsh
