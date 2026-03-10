@@ -36,6 +36,7 @@ jobs:
           path: C:\vcpkg\packages
           key: vcpkg-bin-${{ hashFiles('vcpkg.json') }}-v1
           restore-keys: vcpkg-bin-
+          save-always: true
 
       - name: Bootstrap vcpkg
         shell: pwsh
@@ -45,7 +46,6 @@ jobs:
             C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
           }
           echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
-          echo "VCPKG_FEATURE_FLAGS=-versions" >> $env:GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,C:\vcpkg\packages,readwrite" >> $env:GITHUB_ENV
 
       - name: Find dxc.exe
