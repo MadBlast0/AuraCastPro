@@ -7,7 +7,7 @@ on:
     branches: [ "main", "develop" ]
 
 env:
-  QT_VERSION: "6.6.3"
+  QT_VERSION: "6.6.2"
 
 jobs:
   build-windows:
@@ -26,11 +26,11 @@ jobs:
 
       - uses: jurplel/install-qt-action@v3
         with:
-          version: ${{ env.QT_VERSION }}
+          version: "6.6.2"
           host: windows
           target: desktop
           arch: win64_msvc2022_64
-          modules: qtcharts qtquick qtquickcontrols2 qtshadertools
+          modules: qtcharts qtquick3d
           cache: true
 
       - uses: actions/cache@v4
