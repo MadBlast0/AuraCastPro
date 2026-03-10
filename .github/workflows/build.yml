@@ -35,10 +35,11 @@ jobs:
         shell: pwsh
         run: |
           if (!(Test-Path "C:\vcpkg\vcpkg.exe")) {
-            git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+            git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
             C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
           }
           echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
+          echo "VCPKG_FEATURE_FLAGS=-versions" >> $env:GITHUB_ENV
 
       - name: Find dxc.exe
         shell: pwsh
