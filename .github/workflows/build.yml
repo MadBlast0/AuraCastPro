@@ -31,12 +31,6 @@ jobs:
           modules: qtcharts
           cache: true
 
-      - uses: actions/cache@v4
-        with:
-          path: C:\vcpkg\installed
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}-v7
-          restore-keys: vcpkg-
-
       - name: Bootstrap vcpkg
         shell: pwsh
         run: |
@@ -44,15 +38,7 @@ jobs:
             git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
             C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
           }
-          C:\vcpkg\vcpkg integrate install
-
-      - name: Install dependencies
-        shell: cmd
-        run: C:\vcpkg\vcpkg install boost-asio:x64-windows boost-system:x64-windows openssl:x64-windows protobuf:x64-windows spdlog:x64-windows nlohmann-json:x64-windows gtest:x64-windows libuv:x64-windows zlib:x64-windows directx-headers:x64-windows
-
-      - name: Install ffmpeg
-        shell: cmd
-        run: C:\vcpkg\vcpkg install ffmpeg[avcodec,avformat,avutil,swresample,swscale]:x64-windows
+          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
 
       - name: Find dxc.exe
         shell: pwsh
@@ -90,7 +76,11 @@ jobs:
         shell: pwsh
         run: |
           $p = if ("${{ matrix.config }}" -eq "Debug") { "windows-debug" } else { "windows-release" }
-          cmake --preset $p -DDXC_EXECUTABLE="$env:DXC_PATH" -DBONJOUR_SDK_DIR="$env:BONJOUR_SDK_DIR" -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+          cmake --preset $p `
+            -DDXC_EXECUTABLE="$env:DXC_PATH" `
+            -DBONJOUR_SDK_DIR="$env:BONJOUR_SDK_DIR" `
+            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build
         shell: pwsh
