@@ -6,7 +6,7 @@ DirectX 12, and seamless integration with streaming software like OBS Studio.
 
 ## Features
 
-- **AirPlay 2** receiver for iOS/macOS devices
+- **AirPlay 2** receiver for iOS/macOS devices 
 - **Google Cast** receiver for Android devices
 - **ADB wired** mirroring for Android (zero network dependency)
 - **DirectX 12** GPU rendering — up to 4K @ 120 FPS
