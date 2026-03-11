@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "ProxySettings.h"
 #include "../utils/Logger.h"
 #include <QNetworkProxyFactory>

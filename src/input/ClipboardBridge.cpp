@@ -1,6 +1,7 @@
 // =============================================================================
 // ClipboardBridge.cpp — Task 150: Bidirectional clipboard sharing
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "ClipboardBridge.h"
 #include "../utils/Logger.h"
 

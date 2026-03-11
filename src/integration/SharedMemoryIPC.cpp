@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "SharedMemoryIPC.h"
 #include "../utils/Logger.h"
 #include <cstring>

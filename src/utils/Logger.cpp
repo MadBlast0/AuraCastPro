@@ -2,6 +2,7 @@
 // Logger.cpp — Implementation of the centralised async spdlog logger
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "Logger.h"
 
 #include <spdlog/async.h>

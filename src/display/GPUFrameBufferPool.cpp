@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "GPUFrameBufferPool.h"
 #include "../utils/Logger.h"
 #include <thread>

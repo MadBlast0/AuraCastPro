@@ -18,6 +18,7 @@
 // without being logged in as the same Windows user.
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "SecurityVault.h"
 #include "../utils/Logger.h"
 #include "../utils/EncryptHelper.h"

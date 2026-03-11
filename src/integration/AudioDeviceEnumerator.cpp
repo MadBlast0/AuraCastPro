@@ -4,6 +4,7 @@
 // Uses IMMDeviceEnumerator (Windows Core Audio) to list all active render
 // endpoints and register for endpoint change notifications.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "AudioDeviceEnumerator.h"
 #include "../utils/Logger.h"
 

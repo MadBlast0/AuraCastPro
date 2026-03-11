@@ -12,6 +12,7 @@
 // Video: stream copy (H.265) or transcode to H.264 for compatibility.
 // Audio: PCM → AAC-LC 128kbps.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "RTMPOutput.h"
 #include "../utils/Logger.h"
 

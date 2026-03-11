@@ -1,6 +1,7 @@
 // =============================================================================
 // GlobalHotkey.cpp — Task 175: System-wide global hotkey registration
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "GlobalHotkey.h"
 #include "../utils/Logger.h"
 

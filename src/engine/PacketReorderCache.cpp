@@ -7,6 +7,7 @@
 // Only contention: spinlock on release pointer, held < 100ns.
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "PacketReorderCache.h"
 #include "../utils/Logger.h"
 #include <algorithm>

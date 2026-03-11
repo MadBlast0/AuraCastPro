@@ -2,6 +2,7 @@
 // OSVersionHelper.cpp — Runtime Windows version detection via RtlGetVersion
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "OSVersionHelper.h"
 #include "Logger.h"
 

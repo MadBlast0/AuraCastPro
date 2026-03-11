@@ -43,10 +43,9 @@ public:
         // Convert to narrow for SetThreadDescription fallback
         std::string narrow(name.begin(), name.end());
         THREADNAME_INFO info = { 0x1000, narrow.c_str(), (DWORD)-1, 0 };
-        __try {
-            RaiseException(0x406D1388, 0, sizeof(info)/sizeof(ULONG_PTR),
-                           reinterpret_cast<ULONG_PTR*>(&info));
-        } __except(EXCEPTION_EXECUTE_HANDLER) {}
+        // __try cannot be used in functions with C++ object unwinding.
+        // Use a no-op: the SetThreadDescription below is sufficient on Win10+.
+        // RaiseException-based naming only works in MSVC debugger anyway.
 
         // Also use modern Win10+ API
         #if defined(_WIN32)

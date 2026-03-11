@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "AVSync.h"
 #include "../utils/Logger.h"
 #include <algorithm>

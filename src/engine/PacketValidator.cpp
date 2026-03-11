@@ -9,6 +9,7 @@
 //   4. Sequence number not > 1000 ahead of expected (prevents replay)
 //   5. Source IP matches connected device (prevents injection from other hosts)
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "PacketValidator.h"
 #include "../utils/Logger.h"
 #include <cstring>

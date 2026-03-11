@@ -3,6 +3,7 @@
 // Task 208: Registers SEH and SIGABRT handlers so unhandled crashes write a
 //           minidump before the process dies.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "CrashHandler.h"
 #include "CrashReporter.h"
 #include "Logger.h"

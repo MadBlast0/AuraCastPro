@@ -14,6 +14,7 @@
 //   executeCommandList(list) → GPU executes all recorded draw calls
 //   signalAndPresent(fence)  → signal fence[frameIndex%3] + swapchain Present
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "DX12CommandQueue.h"
 #include "DX12Fence.h"
 #include "GPUProfileMarkers.h"

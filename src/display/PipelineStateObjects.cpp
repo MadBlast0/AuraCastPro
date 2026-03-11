@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "PipelineStateObjects.h"
 #include "../utils/Logger.h"
 #include <fstream>

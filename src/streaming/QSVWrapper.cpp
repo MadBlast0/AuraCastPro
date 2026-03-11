@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "QSVWrapper.h"
 #include "../utils/Logger.h"
 extern "C" {

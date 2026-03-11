@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "WindowsServices.h"
 #include "../utils/Logger.h"
 #include <dbghelp.h>

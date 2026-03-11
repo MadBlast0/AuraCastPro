@@ -17,6 +17,7 @@
 //                  → NvEncUnlockBitstream → NvEncUnmapInputResource
 //   close()        → NvEncDestroyEncoder
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "NVENCWrapper.h"
 #include "../utils/Logger.h"
 

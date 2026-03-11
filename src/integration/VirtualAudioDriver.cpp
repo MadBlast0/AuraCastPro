@@ -12,6 +12,7 @@
 // Shared memory: "Global\\AuraCastPro_AudioBridge_v1"
 // Event:         "Global\\AuraCastPro_AudioReady_v1"
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "VirtualAudioDriver.h"
 #include "../utils/Logger.h"
 

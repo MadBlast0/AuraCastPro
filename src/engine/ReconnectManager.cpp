@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "ReconnectManager.h"
 #include "../utils/Logger.h"
 #include <chrono>

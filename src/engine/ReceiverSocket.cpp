@@ -2,6 +2,7 @@
 // ReceiverSocket.cpp — High-performance UDP receive socket
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "ReceiverSocket.h"
 #include "PacketValidator.h"
 #include "../utils/Logger.h"

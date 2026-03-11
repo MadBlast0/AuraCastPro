@@ -5,6 +5,7 @@
 // Task 179: setAlwaysOnTop() wired to HWND_TOPMOST
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "MirrorWindowWin32.h"
 #include "DisplayHelpers.h"      // Task 111: SwapchainResize::execute()
 #include "GPUProfileMarkers.h"   // Task 107: AURA_GPU_BEGIN / AURA_GPU_END macros

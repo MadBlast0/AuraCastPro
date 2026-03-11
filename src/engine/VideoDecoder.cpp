@@ -4,6 +4,7 @@
 // Uses MF H.265/AV1 hardware MFT with D3D12-aware mode for zero-copy output.
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "VideoDecoder.h"
 #include "../utils/Logger.h"
 

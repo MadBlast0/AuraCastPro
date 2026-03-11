@@ -3,6 +3,7 @@
 // FIXED: All missing properties added with load/save/reset/setters.
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "SettingsModel.h"
 #include "../utils/AppVersion.h"
 #include "SecurityVault.h"

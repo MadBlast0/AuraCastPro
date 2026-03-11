@@ -3,6 +3,7 @@
 // Task 211: Writes timestamped session events to %APPDATA%\AuraCastPro\sessions\
 //           for post-session diagnostics and support.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "SessionLogger.h"
 #include "../utils/Logger.h"
 #include "../utils/AppDataInit.h"

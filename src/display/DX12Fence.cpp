@@ -2,6 +2,7 @@
 // DX12Fence.cpp — GPU/CPU synchronisation fence implementation
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "DX12Fence.h"
 #include "../utils/Logger.h"
 

@@ -1,6 +1,7 @@
 // =============================================================================
 // ErrorDialog.cpp — Task 177: User-facing error dialog system
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "ErrorDialog.h"
 #include "../utils/Logger.h"
 

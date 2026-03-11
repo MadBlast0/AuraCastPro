@@ -3,6 +3,7 @@
 // Uses DXGI to enumerate adapters and Windows API for CPU/RAM info.
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "HardwareProfiler.h"
 #include "Logger.h"
 

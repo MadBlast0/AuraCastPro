@@ -11,6 +11,7 @@
 //
 // Falls back transparently if amfrt64.dll is absent (e.g. Intel/NVIDIA only).
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "AMFWrapper.h"
 #include "../utils/Logger.h"
 

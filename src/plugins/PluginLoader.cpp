@@ -7,6 +7,7 @@
 //   • SEH try/catch around FreeLibrary (plugins that crash on unload)
 //   • Detailed logging for every load/unload attempt
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "PluginLoader.h"
 #include "PluginInterface.h"
 #include "../utils/Logger.h"

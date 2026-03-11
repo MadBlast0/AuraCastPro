@@ -1,6 +1,7 @@
 // =============================================================================
 // ADBBridge.cpp — scrcpy-based Android wired/wireless mirroring via ADB
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "ADBBridge.h"
 #include "../utils/Logger.h"
 

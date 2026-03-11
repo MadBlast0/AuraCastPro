@@ -7,6 +7,7 @@
 //   3. swapChain->Present(1, 0)        ← vsync-locked, tear-free
 //   4. Signal fence, advance buffer index
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "MirrorWindow.h"
 #include "MirrorWindowWin32.h"
 #include "DX12Manager.h"

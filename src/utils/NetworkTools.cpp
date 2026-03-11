@@ -2,6 +2,7 @@
 // NetworkTools.cpp — Network enumeration and port utilities (Windows)
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "NetworkTools.h"
 #include "Logger.h"
 

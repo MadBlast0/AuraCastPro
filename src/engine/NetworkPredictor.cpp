@@ -1,6 +1,7 @@
 // =============================================================================
 // NetworkPredictor.cpp — EMA bandwidth predictor
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "NetworkPredictor.h"
 #include "../utils/Logger.h"
 

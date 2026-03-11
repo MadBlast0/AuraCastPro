@@ -14,6 +14,7 @@
 //
 // MirrorCam.dll polls frameIndex and copies new frames to DirectShow.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "VCamBridge.h"
 #include "../utils/Logger.h"
 

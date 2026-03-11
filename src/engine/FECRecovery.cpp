@@ -16,6 +16,7 @@
 //   when group has >= K packets: decode → recover missing data packets
 //   when group times out (50ms) with < K packets: discard (too much loss)
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "FECRecovery.h"
 #include "../utils/Logger.h"
 #include <array>

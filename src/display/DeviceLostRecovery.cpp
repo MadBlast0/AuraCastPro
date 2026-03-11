@@ -16,6 +16,7 @@
 //   5. Re-run DX12Manager::init() chain
 //   6. Clear m_recovering flag, resume
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "DeviceLostRecovery.h"
 #include "../utils/Logger.h"
 

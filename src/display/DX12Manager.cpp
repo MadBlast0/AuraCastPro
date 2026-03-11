@@ -2,6 +2,7 @@
 // DX12Manager.cpp — DirectX 12 device creation and PSO management
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "DX12Manager.h"
 #include "DX12DeviceContext.h"
 #include "DX12CommandQueue.h"

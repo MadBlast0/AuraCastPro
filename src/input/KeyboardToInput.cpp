@@ -1,6 +1,7 @@
 // =============================================================================
 // KeyboardToInput.cpp — Win32 VK codes → Android/iOS key events
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "KeyboardToInput.h"
 #include "../utils/Logger.h"
 

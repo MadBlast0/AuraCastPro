@@ -1,6 +1,7 @@
 // =============================================================================
 // NetworkStatsModel.cpp — FIXED: Full implementation with 9 added properties.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "NetworkStatsModel.h"
 #include "../utils/Logger.h"
 #include <algorithm>

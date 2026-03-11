@@ -11,6 +11,7 @@
 // Online validation: optional heartbeat at auracastpro.com/api/validate
 //   for subscription licenses.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "LicenseManager.h"
 #include "../utils/Logger.h"
 #include "../utils/EncryptHelper.h"

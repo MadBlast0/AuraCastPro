@@ -1,6 +1,7 @@
 // =============================================================================
 // FrameTimingQueue.cpp — Frame pacing for smooth 120fps playback
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "FrameTimingQueue.h"
 #include "../utils/Logger.h"
 #include <algorithm>

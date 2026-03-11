@@ -1,6 +1,7 @@
 // =============================================================================
 // USBHotplug.cpp — Task 062: WM_DEVICECHANGE for Android USB auto-detect
 // =============================================================================
+#include "../pch.h"  // PCH
 #define WIN32_LEAN_AND_MEAN
 #include "USBHotplug.h"
 #include "../utils/Logger.h"

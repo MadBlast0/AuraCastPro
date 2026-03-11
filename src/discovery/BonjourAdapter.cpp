@@ -1,6 +1,7 @@
 // =============================================================================
 // BonjourAdapter.cpp — Bonjour SDK API wrapper
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "BonjourAdapter.h"
 #include "../utils/Logger.h"
 

@@ -1,6 +1,7 @@
 // =============================================================================
 // MouseToTouch.cpp — Mouse → touch event translation
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "MouseToTouch.h"
 #include "../utils/Logger.h"
 #include <chrono>

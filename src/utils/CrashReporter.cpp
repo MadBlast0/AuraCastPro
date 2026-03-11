@@ -3,6 +3,7 @@
 // BUILT: Was previously missing. Now writes full minidump on any unhandled
 // exception so crashes can be diagnosed from the .dmp file.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "CrashReporter.h"
 #include "AppVersion.h"
 #include "Logger.h"

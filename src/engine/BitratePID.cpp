@@ -2,6 +2,7 @@
 // BitratePID.cpp — PID-based adaptive bitrate controller implementation
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "BitratePID.h"
 #include "../utils/Logger.h"
 

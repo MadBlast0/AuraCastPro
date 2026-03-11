@@ -14,6 +14,7 @@
 //   RFC 7798 — RTP payload for H.265
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "AirPlay2Host.h"
 #include "../utils/Logger.h"
 #include "../utils/NetworkTools.h"

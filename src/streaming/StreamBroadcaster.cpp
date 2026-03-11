@@ -1,6 +1,7 @@
 // =============================================================================
 // StreamBroadcaster.cpp — Multi-sink frame distribution
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "StreamBroadcaster.h"
 #include "RTMPOutput.h"
 #include "../integration/VCamBridge.h"

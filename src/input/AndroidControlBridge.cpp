@@ -19,6 +19,7 @@
 //   buttons:    4 bytes
 //   actionButton: 4 bytes
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "AndroidControlBridge.h"
 #include "../utils/Logger.h"
 #include "../engine/ADBBridge.h"

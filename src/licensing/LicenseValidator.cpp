@@ -10,6 +10,7 @@
 // The RSA signature is verified against the embedded public key.
 // This works fully offline — no network connection required.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "LicenseValidator.h"
 #include "../utils/Logger.h"
 

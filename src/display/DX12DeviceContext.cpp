@@ -1,6 +1,7 @@
 // =============================================================================
 // DX12DeviceContext.cpp — Task 103: GPU descriptor heap manager + resource allocator
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "DX12DeviceContext.h"
 #include "../utils/Logger.h"
 #include <stdexcept>

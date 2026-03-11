@@ -3,6 +3,7 @@
 // BUILT: Was missing. Copies logs + crash dump + sysinfo into a zip.
 // Uses minizip (bundled with zlib via vcpkg) or falls back to plain folder.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "DiagnosticsExporter.h"
 #include "Logger.h"
 #include "HardwareProfiler.h"

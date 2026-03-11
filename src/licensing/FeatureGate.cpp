@@ -1,4 +1,5 @@
 // FeatureGate.cpp
+#include "../pch.h"  // PCH
 #include "FeatureGate.h"
 #include "LicenseManager.h"
 #include "../utils/Logger.h"

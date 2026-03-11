@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "ADBServerLifecycle.h"
 #include "../utils/Logger.h"
 #define WIN32_LEAN_AND_MEAN

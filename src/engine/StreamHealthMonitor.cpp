@@ -3,6 +3,7 @@
 // Task 210: Tracks packet loss, jitter, decode errors and fires callbacks
 //           when stream health degrades below thresholds.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "StreamHealthMonitor.h"
 #include "../utils/Logger.h"
 #include <algorithm>

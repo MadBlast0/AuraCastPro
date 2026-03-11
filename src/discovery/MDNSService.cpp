@@ -25,6 +25,7 @@
 //   rs        = (empty)
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "MDNSService.h"
 #include "BonjourAdapter.h"
 #include "../utils/Logger.h"

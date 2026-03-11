@@ -17,6 +17,7 @@
 //   8. Loop: GetBuffer() → process → ReleaseBuffer()
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "AudioLoopback.h"
 #include <mutex>
 #include "../utils/Logger.h"

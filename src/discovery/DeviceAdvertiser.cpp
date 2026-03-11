@@ -1,4 +1,5 @@
 // DeviceAdvertiser.cpp
+#include "../pch.h"  // PCH
 #include "DeviceAdvertiser.h"
 #include "BonjourAdapter.h"
 #include "../utils/Logger.h"

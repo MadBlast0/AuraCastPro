@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "FirstRunAndSplash.h"
 #include "SettingsModel.h"
 #include "../utils/NetworkTools.h"

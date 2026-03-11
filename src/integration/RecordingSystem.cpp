@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "RecordingSystem.h"
 #include "StreamRecorder.h"
 #include "../utils/Logger.h"

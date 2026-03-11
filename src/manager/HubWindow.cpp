@@ -4,6 +4,7 @@
 // settingsModel→save debounce, menu bar (File/View/Help), tray minimise.
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "HubWindow.h"
 #include "GlobalHotkey.h"
 #include "../integration/StreamRecorder.h"

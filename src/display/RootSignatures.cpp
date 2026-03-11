@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "RootSignatures.h"
 #include "../utils/Logger.h"
 #include <d3dx12.h>

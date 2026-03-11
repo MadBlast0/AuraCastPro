@@ -2,6 +2,7 @@
 // DeviceManager.cpp — Device lifecycle management
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "DeviceManager.h"
 #include "../utils/Logger.h"
 

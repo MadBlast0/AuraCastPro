@@ -1,4 +1,5 @@
 // ProtocolHandshake.cpp
+#include "../pch.h"  // PCH
 #include "ProtocolHandshake.h"
 #include "../utils/Logger.h"
 #include "../utils/EncryptHelper.h"

@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "AudioResampler.h"
 #include "../utils/Logger.h"
 #include <stdexcept>

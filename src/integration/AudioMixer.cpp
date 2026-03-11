@@ -7,6 +7,7 @@
 // All audio is processed at 48kHz / 32-bit float / stereo.
 // Sample rate conversion is handled if inputs differ.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "AudioMixer.h"
 #include "AudioLoopback.h"
 #include "../utils/Logger.h"

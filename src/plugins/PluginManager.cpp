@@ -7,6 +7,7 @@
 //   • per-frame dispatch — onVideoFrame / onAudioBuffer / onDeviceEvent
 //   • enable/disable individual plugins at runtime
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "PluginManager.h"
 #include "PluginLoader.h"
 #include "../utils/Logger.h"

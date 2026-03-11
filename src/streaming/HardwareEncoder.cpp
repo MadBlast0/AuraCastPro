@@ -11,6 +11,7 @@
 // All encoders are accessed through FFmpeg's AVCodec interface,
 // so the codec-specific initialization is abstracted.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "HardwareEncoder.h"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

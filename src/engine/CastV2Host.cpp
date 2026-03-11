@@ -21,6 +21,7 @@
 //   Field 7  (bytes) : payload_binary (if BINARY)
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "CastV2Host.h"
 #include "../utils/Logger.h"
 

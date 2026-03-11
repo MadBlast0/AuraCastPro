@@ -4,6 +4,7 @@
 // Uses the Windows Runtime Shell notification API (IToastNotificationManagerStatics)
 // available on Windows 10+. Gracefully falls back to a no-op on older Windows.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "ToastNotification.h"
 #include "../utils/Logger.h"
 
@@ -109,7 +110,7 @@ void ToastNotification::show(const std::string& title,
 
         const std::wstring wAumid(g_appUserModelId.begin(), g_appUserModelId.end());
         ToastNotificationManager::CreateToastNotifier(wAumid)
-            .Show(ToastNotification(doc));
+            .Show(winrt::Windows::UI::Notifications::ToastNotification(doc));
 
     } catch (const winrt::hresult_error& e) {
         AURA_LOG_WARN("ToastNotification",
@@ -203,7 +204,7 @@ void ToastNotification::showUpdateAvailable(const std::string& version,
             ShellExecuteW(nullptr, L"open", wUrl.c_str(),
                           nullptr, nullptr, SW_SHOW);
         },
-        ToastIcon::Info);
+        ToastIcon::Default);
 }
 
 } // namespace aura

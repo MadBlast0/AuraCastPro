@@ -1,6 +1,7 @@
 // =============================================================================
 // HubModel.cpp — QML bridge: backend state → QML property bindings
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "HubModel.h"
 #include "DeviceManager.h"
 #include "../licensing/LicenseManager.h"

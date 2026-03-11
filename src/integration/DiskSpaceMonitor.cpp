@@ -1,4 +1,5 @@
 // DiskSpaceMonitor.cpp
+#include "../pch.h"  // PCH
 #include "DiskSpaceMonitor.h"
 #include "../utils/Logger.h"
 #include <filesystem>

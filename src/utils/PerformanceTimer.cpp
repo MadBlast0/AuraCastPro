@@ -2,6 +2,7 @@
 // PerformanceTimer.cpp — Windows QPC-based sub-microsecond timer
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "PerformanceTimer.h"
 #include "Logger.h"
 

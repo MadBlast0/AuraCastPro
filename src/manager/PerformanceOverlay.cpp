@@ -4,6 +4,7 @@
 // Toggled by Ctrl+Shift+O. Data pulled from NetworkStatsModel at 10 Hz.
 // CPU% tracked via GetSystemTimes() delta. Memory via GetProcessMemoryInfo().
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "PerformanceOverlay.h"
 #include "NetworkStatsModel.h"
 #include "../utils/Logger.h"

@@ -3,6 +3,7 @@
 // Task 212: Adjusts encoder bitrate, resolution, and FEC strength in response
 //           to real-time network measurements from NetworkPredictor + BitratePID.
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "NetworkAdaptation.h"
 #include "../utils/Logger.h"
 #include <algorithm>

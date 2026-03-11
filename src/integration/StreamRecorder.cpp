@@ -17,6 +17,7 @@
 //   → av_write_trailer / avio_closep
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "StreamRecorder.h"
 #include "../utils/Logger.h"
 

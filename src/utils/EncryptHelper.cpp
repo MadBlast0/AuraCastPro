@@ -2,6 +2,7 @@
 // EncryptHelper.cpp — AES-256-GCM via OpenSSL EVP API
 // =============================================================================
 
+#include "../pch.h"  // PCH
 #include "EncryptHelper.h"
 #include "Logger.h"
 

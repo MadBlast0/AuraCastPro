@@ -1,6 +1,7 @@
 // =============================================================================
 // WindowsEventLog.cpp — Task 159: Windows Event Log integration
 // =============================================================================
+#include "../pch.h"  // PCH
 #include "WindowsEventLog.h"
 #include "Logger.h"
 

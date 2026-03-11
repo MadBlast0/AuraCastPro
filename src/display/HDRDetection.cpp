@@ -1,3 +1,4 @@
+#include "../pch.h"  // PCH
 #include "HDRDetection.h"
 #include "../utils/Logger.h"
 
