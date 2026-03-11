@@ -46,8 +46,9 @@ private:
 // Convenience macros — prepend the subsystem name automatically.
 // Using macros preserves __FILE__ / __LINE__ source location.
 // =============================================================================
-#define AURA_LOG_TRACE(subsystem, ...) \
-    SPDLOG_LOGGER_TRACE(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_TRACE(subsystem, fmt_str, ...) \
+    ::aura::Logger::get()->log(spdlog::level::trace, \
+        fmt::runtime(std::string("[") + subsystem + "] " + fmt_str), ##__VA_ARGS__)
 
 #define AURA_LOG_DEBUG(subsystem, fmt_str, ...) \
     ::aura::Logger::get()->log(spdlog::level::debug, \
@@ -74,9 +75,9 @@ private:
 //   LOG_INFO("ReceiverSocket: Bound to port {}", port);
 // These are kept for files that predate the AURA_LOG_* naming convention.
 // =============================================================================
-#define LOG_TRACE(...)    SPDLOG_LOGGER_TRACE(::aura::Logger::get(), __VA_ARGS__)
-#define LOG_DEBUG(...)    SPDLOG_LOGGER_DEBUG(::aura::Logger::get(), __VA_ARGS__)
-#define LOG_INFO(...)     SPDLOG_LOGGER_INFO(::aura::Logger::get(), __VA_ARGS__)
-#define LOG_WARN(...)     SPDLOG_LOGGER_WARN(::aura::Logger::get(), __VA_ARGS__)
-#define LOG_ERROR(...)    SPDLOG_LOGGER_ERROR(::aura::Logger::get(), __VA_ARGS__)
-#define LOG_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(::aura::Logger::get(), __VA_ARGS__)
+#define LOG_TRACE(fmt_str, ...)    ::aura::Logger::get()->log(spdlog::level::trace,    fmt::runtime(fmt_str), ##__VA_ARGS__)
+#define LOG_DEBUG(fmt_str, ...)    ::aura::Logger::get()->log(spdlog::level::debug,    fmt::runtime(fmt_str), ##__VA_ARGS__)
+#define LOG_INFO(fmt_str, ...)     ::aura::Logger::get()->log(spdlog::level::info,     fmt::runtime(fmt_str), ##__VA_ARGS__)
+#define LOG_WARN(fmt_str, ...)     ::aura::Logger::get()->log(spdlog::level::warn,     fmt::runtime(fmt_str), ##__VA_ARGS__)
+#define LOG_ERROR(fmt_str, ...)    ::aura::Logger::get()->log(spdlog::level::err,      fmt::runtime(fmt_str), ##__VA_ARGS__)
+#define LOG_CRITICAL(fmt_str, ...) ::aura::Logger::get()->log(spdlog::level::critical, fmt::runtime(fmt_str), ##__VA_ARGS__)
