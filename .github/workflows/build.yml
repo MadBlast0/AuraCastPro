@@ -22,7 +22,7 @@ jobs:
           arch: x64
 
       - name: Install ccache
-        shell: pwsh
+        shell: powershell
         run: |
           choco install ccache --no-progress -y
           echo "CCACHE_DIR=C:\ccache" >> $env:GITHUB_ENV
@@ -56,7 +56,7 @@ jobs:
           save-always: true
 
       - name: Bootstrap vcpkg
-        shell: pwsh
+        shell: powershell
         run: |
           if (!(Test-Path "C:\vcpkg\vcpkg.exe")) {
             git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
@@ -66,14 +66,14 @@ jobs:
           echo "VCPKG_BINARY_SOURCES=clear;files,C:\vcpkg\packages,readwrite" >> $env:GITHUB_ENV
 
       - name: Find dxc.exe
-        shell: pwsh
+        shell: powershell
         run: |
           $dxc = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "dxc.exe" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match "x64" } | Select-Object -First 1 -ExpandProperty FullName
           if (!$dxc) { $dxc = "dxc.exe" }
           echo "DXC_PATH=$dxc" >> $env:GITHUB_ENV
 
       - name: Bonjour stub
-        shell: pwsh
+        shell: powershell
         run: |
           New-Item -Force -ItemType Directory "C:\BonjourSDK\include" | Out-Null
           New-Item -Force -ItemType Directory "C:\BonjourSDK\lib\x64" | Out-Null
@@ -93,12 +93,12 @@ jobs:
           echo "BONJOUR_SDK_DIR=C:\BonjourSDK" >> $env:GITHUB_ENV
 
       - name: Generate test fixtures
-        shell: pwsh
+        shell: powershell
         continue-on-error: true
         run: python tests/generate_synthetic_fixtures.py
 
       - name: Configure
-        shell: pwsh
+        shell: powershell
         run: |
           $p = if ("${{ matrix.config }}" -eq "Debug") { "windows-debug" } else { "windows-release" }
           cmake --preset $p `
@@ -110,18 +110,18 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
-        shell: pwsh
+        shell: powershell
         run: |
           $p = if ("${{ matrix.config }}" -eq "Debug") { "build-debug" } else { "build-release" }
           cmake --build --preset $p --parallel
 
       - name: ccache stats
-        shell: pwsh
+        shell: powershell
         run: ccache --show-stats
 
       - name: Test
         if: matrix.config == 'Debug'
-        shell: pwsh
+        shell: powershell
         continue-on-error: true
         run: ctest --preset run-all-tests-debug --output-on-failure --timeout 120
 
