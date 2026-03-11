@@ -2,6 +2,7 @@
 #include "FirstRunAndSplash.h"
 #include "SettingsModel.h"
 #include "../utils/NetworkTools.h"
+#include "../utils/AppDataInit.h"
 #include "../utils/Logger.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>

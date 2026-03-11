@@ -43,7 +43,8 @@ public:
     void init();
     void shutdown();
 
-    Q_INVOKABLE bool activate(const QString& key, const QString& email);
+    Q_INVOKABLE bool activate(const std::string& key, const std::string& email);
+    Q_INVOKABLE void activateFromQml(const QString& key, const QString& email);
     Q_INVOKABLE void deactivate();
 
     LicenseTier currentTier() const;

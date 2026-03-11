@@ -18,8 +18,7 @@
 #include <QObject>
 #include <QString>
 
-// Forward declaration — SecurityVault is injected after vault init
-namespace aura { class SecurityVault; }
+#include "../manager/SecurityVault.h"
 
 namespace aura {
 

@@ -48,12 +48,11 @@ LicenseManager::LicenseManager(QObject* parent)
     : QObject(parent)
     , m_impl(std::make_unique<Impl>()) {}
 
-// QML-friendly QString overload
-bool LicenseManager::activate(const QString& key, const QString& email) {
+// QML activation slot - calls the main activate and emits signals
+void LicenseManager::activateFromQml(const QString& key, const QString& email) {
     const bool ok = activate(key.toStdString(), email.toStdString());
     if (ok) emit activationSucceeded(tierName());
     else    emit activationFailed("Invalid license key");
-    return ok;
 }
 
 QString LicenseManager::tierName() const {
