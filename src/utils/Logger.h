@@ -12,7 +12,6 @@
 // =============================================================================
 
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/std.h>  // enables std::string formatting with {}
 #include <memory>
 #include <string>
 
@@ -50,20 +49,20 @@ private:
 #define AURA_LOG_TRACE(subsystem, ...) \
     SPDLOG_LOGGER_TRACE(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
 
-#define AURA_LOG_DEBUG(subsystem, ...) \
-    SPDLOG_LOGGER_DEBUG(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_DEBUG(subsystem, fmt_str, ...) \
+    SPDLOG_LOGGER_DEBUG(::aura::Logger::get(), "[" subsystem "] " fmt_str, ##__VA_ARGS__)
 
-#define AURA_LOG_INFO(subsystem, ...) \
-    SPDLOG_LOGGER_INFO(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_INFO(subsystem, fmt_str, ...) \
+    SPDLOG_LOGGER_INFO(::aura::Logger::get(), "[" subsystem "] " fmt_str, ##__VA_ARGS__)
 
-#define AURA_LOG_WARN(subsystem, ...) \
-    SPDLOG_LOGGER_WARN(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_WARN(subsystem, fmt_str, ...) \
+    SPDLOG_LOGGER_WARN(::aura::Logger::get(), "[" subsystem "] " fmt_str, ##__VA_ARGS__)
 
-#define AURA_LOG_ERROR(subsystem, ...) \
-    SPDLOG_LOGGER_ERROR(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_ERROR(subsystem, fmt_str, ...) \
+    SPDLOG_LOGGER_ERROR(::aura::Logger::get(), "[" subsystem "] " fmt_str, ##__VA_ARGS__)
 
-#define AURA_LOG_CRITICAL(subsystem, ...) \
-    SPDLOG_LOGGER_CRITICAL(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_CRITICAL(subsystem, fmt_str, ...) \
+    SPDLOG_LOGGER_CRITICAL(::aura::Logger::get(), "[" subsystem "] " fmt_str, ##__VA_ARGS__)
 
 // =============================================================================
 // Backward-compatible shorthands (single-string form — component embedded):
