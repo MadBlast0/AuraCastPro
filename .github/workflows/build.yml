@@ -9,7 +9,7 @@ on:
 jobs:
   build-windows:
     name: Build & Test — Windows x64
-    runs-on: windows-2022
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
