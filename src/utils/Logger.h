@@ -49,20 +49,25 @@ private:
 #define AURA_LOG_TRACE(subsystem, ...) \
     SPDLOG_LOGGER_TRACE(::aura::Logger::get(), "[" subsystem "] " __VA_ARGS__)
 
-#define AURA_LOG_DEBUG(subsystem, ...) \
-    ::aura::Logger::get()->debug("[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_DEBUG(subsystem, fmt_str, ...) \
+    ::aura::Logger::get()->log(spdlog::level::debug, \
+        fmt::runtime(std::string("[") + subsystem + "] " + fmt_str), ##__VA_ARGS__)
 
-#define AURA_LOG_INFO(subsystem, ...) \
-    ::aura::Logger::get()->info("[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_INFO(subsystem, fmt_str, ...) \
+    ::aura::Logger::get()->log(spdlog::level::info, \
+        fmt::runtime(std::string("[") + subsystem + "] " + fmt_str), ##__VA_ARGS__)
 
-#define AURA_LOG_WARN(subsystem, ...) \
-    ::aura::Logger::get()->warn("[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_WARN(subsystem, fmt_str, ...) \
+    ::aura::Logger::get()->log(spdlog::level::warn, \
+        fmt::runtime(std::string("[") + subsystem + "] " + fmt_str), ##__VA_ARGS__)
 
-#define AURA_LOG_ERROR(subsystem, ...) \
-    ::aura::Logger::get()->error("[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_ERROR(subsystem, fmt_str, ...) \
+    ::aura::Logger::get()->log(spdlog::level::err, \
+        fmt::runtime(std::string("[") + subsystem + "] " + fmt_str), ##__VA_ARGS__)
 
-#define AURA_LOG_CRITICAL(subsystem, ...) \
-    ::aura::Logger::get()->critical("[" subsystem "] " __VA_ARGS__)
+#define AURA_LOG_CRITICAL(subsystem, fmt_str, ...) \
+    ::aura::Logger::get()->log(spdlog::level::critical, \
+        fmt::runtime(std::string("[") + subsystem + "] " + fmt_str), ##__VA_ARGS__)
 
 // =============================================================================
 // Backward-compatible shorthands (single-string form — component embedded):
