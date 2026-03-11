@@ -12,6 +12,7 @@
 // =============================================================================
 
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/std.h>  // enables std::string formatting with {}
 #include <memory>
 #include <string>
 
