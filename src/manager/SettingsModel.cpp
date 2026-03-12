@@ -338,15 +338,7 @@ void SettingsModel::setOsVersion(const QString& v)       { if (m_osVersion == v)
 
 
 QString SettingsModel::appVersion() const {
-    return QString(AURA_VERSION_STRING);
-}
-
-QString SettingsModel::buildDate() const {
-    return QString(AURA_BUILD_DATE);
-}
-
-QString SettingsModel::appVersion() const {
-    return QString::fromUtf8(aura::AppVersion::string());
+    return QString::fromUtf8(__DATE__ " " __TIME__);
 }
 
 QString SettingsModel::buildDate() const {

@@ -9,6 +9,7 @@
 #include "GlobalHotkey.h"
 #include "../integration/StreamRecorder.h"
 #include "HubModel.h"
+#include "PerformanceOverlay.h"
 #include "SettingsModel.h"
 #include "DeviceManager.h"
 #include "NetworkStatsModel.h"
