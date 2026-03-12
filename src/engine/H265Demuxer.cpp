@@ -51,7 +51,7 @@ void H265Demuxer::reset() {
 
 // -----------------------------------------------------------------------------
 void H265Demuxer::feedNAL(NalUnit nal, uint64_t presentationTimeUs) {
-    const uint8_t type = nal.nalType;
+    const uint8_t type = nal.type;
 
     // ── Cache parameter sets ─────────────────────────────────────────────────
     if (type == VPS_NUT) {
@@ -104,7 +104,7 @@ void H265Demuxer::emitAccessUnit() {
 
     // Check if this is a keyframe (IDR)
     for (const auto& nal : m_pending) {
-        if (nal.nalType == IDR_W_RADL || nal.nalType == IDR_N_LP) {
+        if (nal.type == NalUnitType::IDR_W_RADL || nal.type == NalUnitType::IDR_N_LP) {
             au.isKeyframe = true;
             break;
         }
