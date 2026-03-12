@@ -97,3 +97,5 @@ uint64_t PerformanceOverlay::ftToU64(const FILETIME& ft) const {
 }
 
 } // namespace aura
+
+#include "PerformanceOverlay.moc"

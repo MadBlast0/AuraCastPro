@@ -10,7 +10,7 @@
 #include <functional>
 #include <string>
 
-#include "SettingsModel.h"
+class SettingsModel;
 
 // ─── First Run Wizard ─────────────────────────────────────────────────────────
 

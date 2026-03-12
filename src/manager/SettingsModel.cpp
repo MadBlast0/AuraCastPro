@@ -354,3 +354,5 @@ QString SettingsModel::buildDate() const {
 }
 
 } // namespace aura
+
+#include "SettingsModel.moc"

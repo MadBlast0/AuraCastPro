@@ -9,6 +9,10 @@
 #include "GlobalHotkey.h"
 #include "../integration/StreamRecorder.h"
 #include "HubModel.h"
+#include "SettingsModel.h"
+#include "DeviceManager.h"
+#include "NetworkStatsModel.h"
+#include "../licensing/LicenseManager.h"
 #include "../utils/Logger.h"
 
 #include <QQmlEngine>
@@ -330,3 +334,5 @@ bool HubWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr*
 }
 
 } // namespace aura
+
+#include "HubWindow.moc"

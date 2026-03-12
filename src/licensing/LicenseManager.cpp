@@ -252,3 +252,5 @@ LicenseTier LicenseManager::currentTier() const { return m_license.tier; }
 void LicenseManager::shutdown() {}
 
 } // namespace aura
+
+#include "LicenseManager.moc"

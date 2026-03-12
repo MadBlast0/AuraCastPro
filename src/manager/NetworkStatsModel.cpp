@@ -112,3 +112,5 @@ void NetworkStatsModel::onUiRefreshTimer() {
 }
 
 } // namespace aura
+
+#include "NetworkStatsModel.moc"

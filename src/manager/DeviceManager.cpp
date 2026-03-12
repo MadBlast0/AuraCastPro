@@ -185,3 +185,5 @@ void DeviceManager::startMirror() {
 }
 
 } // namespace aura
+
+#include "DeviceManager.moc"
