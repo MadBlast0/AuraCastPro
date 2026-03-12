@@ -12,10 +12,9 @@
 #include <functional>
 #include <vector>
 #include <memory>
+#include "NALParser.h"
 
 namespace aura {
-
-// NalUnit is defined in NALParser.h (included below)
 
 struct AccessUnit {
     std::vector<uint8_t> annexBData;  // Complete access unit in Annex B format
