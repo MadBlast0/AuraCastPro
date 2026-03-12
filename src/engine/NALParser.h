@@ -40,6 +40,7 @@ enum class NalUnitType : uint8_t {
 
 struct NalUnit {
     NalUnitType          type{NalUnitType::Unknown};
+    int                  nalType{0};       // int alias (tests use this)
     bool                 isKeyframe{};
     bool                 isParameterSet{}; // VPS, SPS, or PPS
     std::vector<uint8_t> data;             // Complete NAL, Annex B format
@@ -50,7 +51,17 @@ public:
     // Called for each complete, reassembled NAL unit
     using NalCallback = std::function<void(NalUnit nal)>;
 
-    explicit NALParser(NalCallback callback);
+    explicit NALParser(NalCallback callback = nullptr);
+
+    // Compatibility API used by tests
+    void init() {}
+    void setNALCallback(std::function<void(std::vector<uint8_t>&&, bool, bool)> cb) {
+        m_compatCb = std::move(cb);
+    }
+    void feedRTPPayload(const uint8_t* data, size_t len, uint16_t /*seq*/, bool /*marker*/) {
+        feedPacket(std::span<const uint8_t>(data, len));
+    }
+
 
     // Feed a raw packet payload (after reorder and before demux)
     // May emit zero, one, or multiple NAL units via the callback.
@@ -65,6 +76,7 @@ public:
 
 private:
     NalCallback m_callback;
+    std::function<void(std::vector<uint8_t>&&, bool, bool)> m_compatCb;
 
     // FU-A reassembly state
     bool                 m_fuInProgress{false};

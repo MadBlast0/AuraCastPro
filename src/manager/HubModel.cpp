@@ -144,7 +144,7 @@ void HubModel::activateLicense(const QString& key, const QString& email) {
     if (m_licenseManager) {
         // LicenseManager::activate(QString, QString) emits activationSucceeded
         // or activationFailed, which are connected in main.cpp to update SettingsModel
-        m_licenseManager->activate(key, email);
+        m_licenseManager->activate(key.toStdString(), email.toStdString());
     } else {
         AURA_LOG_WARN("HubModel", "activateLicense called but m_licenseManager is null");
     }

@@ -11,8 +11,10 @@ namespace AKEYCODE {
     constexpr uint32_t HOME        = 3;
     constexpr uint32_t VOLUME_UP   = 24;
     constexpr uint32_t VOLUME_DOWN = 25;
+    constexpr uint32_t VOLUME_MUTE = 164;
     constexpr uint32_t ENTER       = 66;
     constexpr uint32_t DEL         = 67;  // Backspace
+    constexpr uint32_t FORWARD_DEL = 112; // Delete key
     constexpr uint32_t SPACE       = 62;
     constexpr uint32_t TAB         = 61;
     constexpr uint32_t ESCAPE      = 111;
@@ -20,6 +22,16 @@ namespace AKEYCODE {
     constexpr uint32_t DPAD_DOWN   = 20;
     constexpr uint32_t DPAD_LEFT   = 21;
     constexpr uint32_t DPAD_RIGHT  = 22;
+    constexpr uint32_t MOVE_HOME   = 122;
+    constexpr uint32_t MOVE_END    = 123;
+    constexpr uint32_t PAGE_UP     = 92;
+    constexpr uint32_t PAGE_DOWN   = 93;
+    constexpr uint32_t F1  = 131; constexpr uint32_t F2  = 132;
+    constexpr uint32_t F3  = 133; constexpr uint32_t F4  = 134;
+    constexpr uint32_t F5  = 135; constexpr uint32_t F6  = 136;
+    constexpr uint32_t F7  = 137; constexpr uint32_t F8  = 138;
+    constexpr uint32_t F9  = 139; constexpr uint32_t F10 = 140;
+    constexpr uint32_t F11 = 141; constexpr uint32_t F12 = 142;
 }
 
 namespace aura {

@@ -10,7 +10,8 @@
 #include <atomic>
 #include <string>
 
-struct HWND__;\nusing HWND = HWND__*;
+struct HWND__;
+using HWND = HWND__*;
 struct IDXGISwapChain4;
 struct IDXGISwapChain4;
 struct ID3D12CommandQueue;

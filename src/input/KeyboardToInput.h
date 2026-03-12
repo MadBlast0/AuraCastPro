@@ -12,6 +12,8 @@ enum class DeviceOS { iOS, Android };
 
 struct KeyEvent {
     uint32_t  deviceKeyCode; // Android KeyEvent keyCode or iOS HID usage
+    uint32_t  keycode{0};    // Alias used by AndroidControlBridge
+    int       action{0};     // 0=ACTION_DOWN, 1=ACTION_UP (Android)
     bool      isDown;        // true = key pressed, false = key released
     uint32_t  modifiers;     // Shift=1, Ctrl=2, Alt=4
     char      character{0};  // printable character (if any)

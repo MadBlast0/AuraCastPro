@@ -64,13 +64,13 @@ std::string DiagnosticsExporter::exportToDesktop() {
         "App Version:  0.1.0\n",
         now.toString("yyyy-MM-dd HH:mm:ss").toStdString(),
         os.displayName,
-        hw.cpuCores,
-        hw.ramGb,
-        hw.gpuName,
-        hw.vramMb,
-        hw.dxFeatureLevel,
-        hw.supportsHEVCHardware ? "Yes" : "No",
-        hw.supportsAV1Hardware  ? "Yes" : "No");
+        hw.cpuCoreCount,
+        static_cast<double>(hw.totalRamBytes) / (1024.0*1024.0*1024.0),
+        hw.primaryGpu ? hw.primaryGpu->name : std::string("N/A"),
+        hw.primaryGpu ? hw.primaryGpu->dedicatedVRAM / (1024*1024) : 0ULL,
+        hw.primaryGpu ? hw.primaryGpu->d3d12FeatureLevel : 0,
+        (hw.primaryGpu && hw.primaryGpu->supportsHWDecodeHEVC) ? "Yes" : "No",
+        (hw.primaryGpu && hw.primaryGpu->supportsHWDecodeAV1)  ? "Yes" : "No");
 
     const QString sysInfoPath = exportDir + "/system_info.txt";
     std::ofstream f(sysInfoPath.toStdString());

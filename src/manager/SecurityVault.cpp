@@ -28,6 +28,7 @@
 #include <windows.h>
 #include <bcrypt.h>
 #include <dpapi.h>
+#include <wincrypt.h>
 #pragma comment(lib, "Crypt32.lib")
 
 #include <nlohmann/json.hpp>
@@ -48,6 +49,7 @@ namespace aura {
 struct SecurityVault::Impl {
     json                     secrets;        // decrypted key-value store (in memory only)
     bool                     loaded{false};
+    std::string              masterKey;      // cached AES master key (32 bytes)
     std::vector<TrustedDevice> trustedDevices; // Task 154: loaded from trusted_devices.json
 };
 

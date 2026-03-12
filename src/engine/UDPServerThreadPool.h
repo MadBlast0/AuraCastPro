@@ -27,6 +27,7 @@ private:
     int m_numThreads{4};  // worker threads for packet I/O
     std::atomic<bool> m_running{false};
     std::vector<std::thread> m_threads;
+    std::atomic<uint64_t> m_totalPackets{0};
     void workerLoop(int threadId);
     int  detectOptimalThreadCount();
 };

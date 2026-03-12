@@ -25,7 +25,9 @@ namespace aura {
 struct MDNSRecord {
     std::string serviceType;   // e.g. "_airplay._tcp"
     std::string serviceName;   // e.g. "AuraCastPro"
-    uint16_t    port;
+    std::string name;          // Alias for serviceName (used in registerService)
+    std::string type;          // Alias for serviceType (used in registerService)
+    uint16_t    port{0};
     std::string txtRecord;     // Key=Value pairs separated by \n
 };
 

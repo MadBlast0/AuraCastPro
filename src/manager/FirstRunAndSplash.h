@@ -12,6 +12,8 @@
 
 #include "SettingsModel.h"
 
+using aura::SettingsModel;
+
 // ─── First Run Wizard ─────────────────────────────────────────────────────────
 
 class FirstRunWizard : public QDialog {

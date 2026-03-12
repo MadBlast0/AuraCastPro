@@ -534,7 +534,7 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
         else if (req.find("POST /pair-setup") != std::string::npos ||
                  req.find("POST /auth-setup") != std::string::npos) {
 
-            if (session.srp->srpStep == 0) {
+            if (session.srpStep == 0) {
                 // Step 1: client → {I (username)}
                 // Server → {B (public key), salt}
                 auto bBytes = session.srp->computeB();
@@ -553,13 +553,13 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
                 appendU32(static_cast<uint32_t>(bBytes.size()));
                 payload.insert(payload.end(), bBytes.begin(), bBytes.end());
 
-                session.srp->srpStep = 1;
+                session.srpStep = 1;
                 response = makeHTTP(200, "OK", "application/octet-stream", payload);
 
                 AURA_LOG_INFO("AirPlay2Host",
                     "SRP step 1: sent B ({} bytes) + salt to {}", bBytes.size(), clientIp);
             }
-            else if (session.srp->srpStep == 1) {
+            else if (session.srpStep == 1) {
                 // Step 2: client → {A (client public key), M1 (client proof)}
                 // We → verify M1, send M2 (server proof)
                 auto body = extractBody(req);
@@ -575,7 +575,7 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
                         session.srp->computeSessionKey(aBytes);
                         session.srp->deriveAESKey();
                         session.paired = true;
-                        session.srp->srpStep = 2;
+                        session.srpStep = 2;
 
                         // Notify UI — pairing succeeded
                         if (m_onPairingResult) m_onPairingResult(true);

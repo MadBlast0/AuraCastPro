@@ -65,6 +65,22 @@ public:
 
     explicit BitratePID(const Config& config = Config{});
 
+    // Compatibility API used by tests
+    void init(double maxBitrateMbps = 50.0) {
+        // no-op; config set via constructor
+        (void)maxBitrateMbps;
+    }
+    // 3-arg update(lossRate, jitterMs, bandwidthKbps)
+    float update(double lossRate, double jitterMs, double bandwidthKbps) {
+        PIDTelemetry t;
+        t.packetLossRate   = static_cast<float>(lossRate);
+        t.jitterMs         = static_cast<float>(jitterMs);
+        t.bandwidthEstBps  = static_cast<float>(bandwidthKbps * 1000.0);
+        return update(t);
+    }
+    float currentBitrate() const { return currentBitrateBps() / 1000.0f; } // Kbps
+
+
     // -----------------------------------------------------------------------
     // Update the controller with fresh telemetry.
     // Returns the new recommended bitrate in bits per second.
@@ -103,5 +119,8 @@ private:
     float clamp(float value, float lo, float hi) const;
     float computeError(const PIDTelemetry& t) const;
 };
+
+// Alias used by tests
+using NetworkTelemetry = PIDTelemetry;
 
 } // namespace aura

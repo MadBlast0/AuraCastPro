@@ -45,7 +45,7 @@ namespace aura::GPU {
 #define AURA_GPU_BEGIN(cmdList, colour, name)                         \
     do {                                                              \
         if (cmdList) {                                                \
-            const std::wstring _ws = [](){                           \
+            const std::wstring _ws = [&](){                           \
                 std::string _s(name);                                 \
                 return std::wstring(_s.begin(), _s.end());           \
             }();                                                      \
@@ -65,7 +65,7 @@ namespace aura::GPU {
 #define AURA_GPU_MARKER(cmdList, colour, name)                        \
     do {                                                              \
         if (cmdList) {                                                \
-            const std::wstring _wm = [](){                           \
+            const std::wstring _wm = [&](){                           \
                 std::string _s(name);                                 \
                 return std::wstring(_s.begin(), _s.end());           \
             }();                                                      \

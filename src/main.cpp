@@ -1,6 +1,7 @@
 // =============================================================================
 // main.cpp — AuraCastPro complete startup + shutdown sequence
 // =============================================================================
+#include "pch.h"  // PCH
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <winsock2.h>
@@ -135,6 +136,7 @@ static std::unique_ptr<aura::AudioLoopback>        g_audioLoopback;
 static std::unique_ptr<aura::AudioMixer>           g_audioMixer;
 static std::unique_ptr<aura::VirtualAudioDriver>   g_virtualAudio;
 static std::unique_ptr<aura::VCamBridge>           g_vcam;
+static std::unique_ptr<ReconnectManager>            g_reconnect;
 static std::unique_ptr<aura::StreamRecorder>       g_recorder;
 static std::unique_ptr<aura::DiskSpaceMonitor>     g_diskMonitor;  // low-disk auto-stop
 static std::unique_ptr<aura::RTMPOutput>           g_rtmp;
@@ -404,7 +406,7 @@ int main(int argc, char* argv[]) {
         // Populate read-only system info properties used by SettingsPage "ABOUT" section
         const auto& hw = aura::HardwareProfiler::profile();
         const auto& os = aura::OSVersionHelper::version();
-        g_settings->setGpuName(QString::fromStdString(hw.gpuName));
+        g_settings->setGpuName(QString::fromStdString(hw.primaryGpu ? hw.primaryGpu->name : std::string("Unknown")));
         g_settings->setOsVersion(QString::fromStdString(os.displayName));
     });
 
@@ -499,7 +501,7 @@ int main(int argc, char* argv[]) {
                 g_mirrorWindow->presentFrame(frame.width, frame.height);
             }
             if (g_vcam && frame.texture) {
-                g_vcam->feedFrame(frame.texture, frame.width, frame.height);
+                g_vcam->pushFrameGPU(frame.texture, frame.width, frame.height);
             }
             // Feed hardware encoder for streaming / recording output
             if (g_encoder && frame.texture) {

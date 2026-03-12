@@ -1,5 +1,6 @@
 #pragma once
 #include "HardwareEncoder.h"
+using aura::HardwareEncoder;
 
 // Intel QuickSync Video (QSV) hardware encoder using FFmpeg h264_qsv.
 // Works on Intel CPUs with integrated or discrete Xe graphics.

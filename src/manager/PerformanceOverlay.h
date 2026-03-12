@@ -10,12 +10,12 @@
 // GPU ms:   fed by DX12CommandQueue after each Present()
 // Other stats: read directly from NetworkStatsModel
 // =============================================================================
-#pragma once
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <QObject>
 #include <atomic>
 #include <cstdint>
 
-struct FILETIME;
 class QTimer;
 
 namespace aura { class NetworkStatsModel; }

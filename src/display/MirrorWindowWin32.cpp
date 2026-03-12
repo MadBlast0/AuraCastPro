@@ -40,7 +40,7 @@ void MirrorWindowWin32::init() {
     WNDCLASSEXW wc{};
     wc.cbSize        = sizeof(WNDCLASSEXW);
     wc.style         = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc   = WndProc;
+    wc.lpfnWndProc   = reinterpret_cast<WNDPROC>(WndProc);
     wc.hInstance     = GetModuleHandleW(nullptr);
     wc.hCursor       = LoadCursorW(nullptr, IDC_ARROW);
     wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOWFRAME);
@@ -139,7 +139,7 @@ void MirrorWindowWin32::applyPendingResize() {
 
     // SwapchainResize::execute() waits for GPU idle, calls ResizeBuffers,
     // then re-creates RTVs from m_rtvHeap.
-    const bool ok = aura::SwapchainResize::execute(
+    const bool ok = SwapchainResize::execute(
         reinterpret_cast<IDXGISwapChain4*>(m_swapchain),
         m_device,
         m_rtvHeap,

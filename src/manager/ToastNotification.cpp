@@ -4,7 +4,6 @@
 // Uses the Windows Runtime Shell notification API (IToastNotificationManagerStatics)
 // available on Windows 10+. Gracefully falls back to a no-op on older Windows.
 // =============================================================================
-#include "../pch.h"  // PCH
 #include "ToastNotification.h"
 #include "../utils/Logger.h"
 

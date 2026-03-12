@@ -64,8 +64,8 @@ int AudioResampler::convert(const float* const* inData,
     }
 
     int n = swr_convert(m_swr,
-                        reinterpret_cast<uint8_t**>(outData),  maxOutFrames,
-                        reinterpret_cast<const uint8_t**>(inData), numFrames);
+                        reinterpret_cast<uint8_t**>(outData), maxOutFrames,
+                        reinterpret_cast<const uint8_t**>(const_cast<float**>(inData)), numFrames);
     if (n < 0) {
         LOG_WARN("AudioResampler: swr_convert returned {}", n);
         return 0;

@@ -14,8 +14,9 @@ public:
     static void writeMiniDump(void* exceptionPointers);  // EXCEPTION_POINTERS*
     static void setAppVersion(const std::string& ver);
     static std::string lastCrashDumpPath();
-private:
+public:
     static std::string s_appVersion;
     static std::string s_lastDumpPath;
+private:
 };
 } // namespace aura

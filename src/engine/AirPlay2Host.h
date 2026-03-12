@@ -29,6 +29,7 @@ public:
     using SessionEndedCallback    = std::function<void(const std::string& deviceId)>;
     using PinRequestCallback      = std::function<void(const std::string& pin)>;
     // Fired after SRP-6a verify completes: true = paired, false = wrong PIN
+    using SessionPausedCallback   = std::function<void(const std::string& deviceId)>;
     using PairingResultCallback   = std::function<void(bool success)>;
 
     AirPlay2Host();

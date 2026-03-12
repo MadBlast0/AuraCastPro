@@ -63,7 +63,8 @@ private:
 
 // ─── Recording Controller ─────────────────────────────────────────────────────
 
-class StreamRecorder;
+namespace aura { class StreamRecorder; }
+using aura::StreamRecorder;
 
 class RecordingController {
 public:

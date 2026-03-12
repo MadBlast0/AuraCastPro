@@ -1,6 +1,8 @@
 #pragma once
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <shellapi.h>
+#include <shlobj.h>
 #include <string>
 #include <functional>
 #include <vector>
@@ -122,3 +124,34 @@ public:
 
 // Task 178: Alias used in main.cpp for clarity
 using WindowsAutoStart = StartupRegistry;
+
+// ─── Error Dialog ─────────────────────────────────────────────────────────────
+class ErrorDialog {
+public:
+    static void showWarning(const std::wstring& title, const std::wstring& msg);
+    static void showError(const std::wstring& title, const std::wstring& msg,
+                          const std::wstring& suggestion = {});
+    static void showFatal(const std::wstring& title, const std::wstring& msg);
+};
+
+// ─── Windows Event Log ────────────────────────────────────────────────────────
+class WindowsEventLog {
+public:
+    static void registerSource(const std::wstring& name);
+    static void deregisterSource();
+    static void logInfo(DWORD eventId, const std::wstring& msg);
+    static void logError(DWORD eventId, const std::wstring& msg);
+private:
+    static HANDLE s_hEventLog;
+};
+
+// ─── Crash Handler ────────────────────────────────────────────────────────────
+class CrashHandler {
+public:
+    static void install();
+    static void uninstall();
+    static std::wstring generateDumpPath();
+private:
+    static LONG CALLBACK exceptionFilter(PEXCEPTION_POINTERS ep);
+};
+

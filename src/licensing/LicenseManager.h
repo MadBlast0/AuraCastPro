@@ -43,7 +43,7 @@ public:
     void init();
     void shutdown();
 
-    Q_INVOKABLE bool activate(const std::string& key, const std::string& email);
+    bool activate(const std::string& key, const std::string& email);
     Q_INVOKABLE void activateFromQml(const QString& key, const QString& email);
     Q_INVOKABLE void deactivate();
 
@@ -53,7 +53,7 @@ public:
     // Task 156: Convenience aliases used by cloud/licensing modules that use
     // the task-spec method names directly.
     bool activateLicense(const std::string& key) {
-        return activate(QString::fromStdString(key), QString());
+        return activate(key, std::string());
     }
     LicenseTier getCurrentTier() const { return currentTier(); }
 

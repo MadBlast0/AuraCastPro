@@ -1,5 +1,6 @@
 #pragma once
 #include "HardwareEncoder.h"
+using aura::HardwareEncoder;
 #include <string>
 #include <vector>
 #include <functional>

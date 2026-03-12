@@ -39,6 +39,20 @@ public:
         int maxHoldMs = 50
     );
 
+    // Compatibility API used by tests
+    void init() {}
+    void insert(uint16_t seqNum, const std::vector<uint8_t>& payload) {
+        OrderedPacket p;
+        p.sequenceNumber = seqNum;
+        p.payload = payload;
+        insert(std::move(p));
+    }
+    std::vector<OrderedPacket> drain() {
+        std::vector<OrderedPacket> result;
+        drain([&](OrderedPacket pkt){ result.push_back(std::move(pkt)); });
+        return result;
+    }
+
     // Lock-free insert — called from the network IO thread.
     // Uses atomic store to the correct slot; no mutex taken.
     void insert(OrderedPacket packet);

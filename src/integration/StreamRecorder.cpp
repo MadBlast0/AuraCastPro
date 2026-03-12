@@ -26,6 +26,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
 #include <libavutil/timestamp.h>
+#include <libavutil/time.h>
 #include <libswresample/swresample.h>
 }
 

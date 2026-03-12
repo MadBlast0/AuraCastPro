@@ -334,11 +334,11 @@ void ADBBridge::stop() {
 // =============================================================================
 bool ADBBridge::pairWireless(const std::string& addressAndPort,
                               const std::string& pairingCode) {
-    if (m_impl->adbPath.empty()) {
+    if (m_adbExe.empty()) {
         AURA_LOG_WARN("ADBBridge", "pairWireless: adb not found — cannot pair.");
         return false;
     }
-    const std::string cmd = m_impl->adbPath
+    const std::string cmd = m_adbExe
                           + " pair " + addressAndPort
                           + " " + pairingCode;
 

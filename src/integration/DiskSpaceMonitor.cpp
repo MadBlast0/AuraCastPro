@@ -48,11 +48,11 @@ void DiskSpaceMonitor::monitorLoop() {
 
 void DiskSpaceMonitor::updateDiskSpace() {
     try {
-        const auto space = std::filesystem::space(m_watchPath);
+        const auto space = std::filesystem::space(std::filesystem::path(m_watchPath));
         m_freeBytes.store(space.available);
         m_totalBytes.store(space.capacity);
     } catch (const std::exception& ex) {
-        AURA_LOG_WARN("DiskSpaceMonitor", "filesystem::space() failed for '{}': {}", m_watchPath.string(), ex.what());
+        AURA_LOG_WARN("DiskSpaceMonitor", "filesystem::space() failed for '{}': {}", m_watchPath, ex.what());
     } catch (...) {
         AURA_LOG_WARN("DiskSpaceMonitor", "filesystem::space() threw unknown exception");
     }
