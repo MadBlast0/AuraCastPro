@@ -18,7 +18,7 @@
 #include <QObject>
 #include <QString>
 
-#include "../manager/SecurityVault.h"
+#include "SecurityVault.h"
 
 namespace aura {
 
