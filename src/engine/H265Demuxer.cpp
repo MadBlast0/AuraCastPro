@@ -51,7 +51,7 @@ void H265Demuxer::reset() {
 
 // -----------------------------------------------------------------------------
 void H265Demuxer::feedNAL(NalUnit nal, uint64_t presentationTimeUs) {
-    const uint8_t type = nal.type;
+    const uint8_t type = static_cast<uint8_t>(nal.type);
 
     // ── Cache parameter sets ─────────────────────────────────────────────────
     if (type == VPS_NUT) {

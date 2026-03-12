@@ -2,7 +2,9 @@
 
 // ── Windows & DirectX ────────────────────────────────────────────────────────
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 // Winsock2 MUST be included before windows.h to avoid macro conflicts
 #include <winsock2.h>
 #include <ws2tcpip.h>
