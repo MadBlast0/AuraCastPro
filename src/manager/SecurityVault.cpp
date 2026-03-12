@@ -218,9 +218,9 @@ bool SecurityVault::loadVault() {
 
         // Decrypt with derived key
         const std::string keyMaterial = deriveMasterKey();
-        EncryptHelper::AesKey key;
+        EncryptHelper::Key key;
         std::copy_n(keyMaterial.begin(),
-                    std::min(keyMaterial.size(), sizeof(key)), key.begin());
+                    std::min(keyMaterial.size(), size_t(32)), key.begin());
 
         const auto plaintext = EncryptHelper::decrypt(encBlob, key);
         const std::string plainStr(plaintext.begin(), plaintext.end());
@@ -245,9 +245,9 @@ bool SecurityVault::saveVault() const {
     const std::vector<uint8_t> plaintext(plainStr.begin(), plainStr.end());
 
     const std::string keyMaterial = deriveMasterKey();
-    EncryptHelper::AesKey key;
+    EncryptHelper::Key key(32, 0);
     std::copy_n(keyMaterial.begin(),
-                std::min(keyMaterial.size(), sizeof(key)), key.begin());
+                std::min(keyMaterial.size(), size_t(32)), key.begin());
 
     const auto encBlob = EncryptHelper::encrypt(plaintext, key);
 
