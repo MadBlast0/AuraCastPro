@@ -101,8 +101,8 @@ void FirstRunWizard::buildNetworkPage() {
     auto interfaces = NetworkTools::getNetworkInterfaces();
     for (auto& iface : interfaces) {
         m_networkCombo->addItem(
-            QString::fromStdString(iface.description + " (" + iface.ipv4Address + ")"),
-            QString::fromStdString(iface.ipv4Address));
+            QString::fromStdString(iface.name + " (" + iface.ipv4 + ")"),
+            QString::fromStdString(iface.ipv4));
     }
     if (m_networkCombo->count() == 0)
         m_networkCombo->addItem("Default (auto-detect)", "");
