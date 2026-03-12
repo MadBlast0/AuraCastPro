@@ -30,6 +30,8 @@ jobs:
           arch: win64_msvc2019_64
           modules: qtcharts
           cache: true
+          py7zrversion: none
+          aqtversion: none
 
       - uses: actions/cache@v4
         with:
