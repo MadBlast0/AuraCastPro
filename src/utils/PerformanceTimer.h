@@ -62,12 +62,13 @@ public:
         explicit ScopeGuard(const std::string& name);
         ~ScopeGuard();
 
+        ScopeGuard(ScopeGuard&&) = default;
         ScopeGuard(const ScopeGuard&) = delete;
         ScopeGuard& operator=(const ScopeGuard&) = delete;
 
     private:
         std::string  m_name;
-        PerformanceTimer m_timer;
+        std::chrono::high_resolution_clock::time_point m_start;
     };
 
     // Factory: auto guard = PerformanceTimer::scope("MySection");

@@ -65,12 +65,13 @@ double PerformanceTimer::restartMs() {
 // ScopeGuard
 // -----------------------------------------------------------------------------
 PerformanceTimer::ScopeGuard::ScopeGuard(const std::string& name)
-    : m_name(name) {
-    m_timer.start();
+    : m_name(name)
+    , m_start(std::chrono::high_resolution_clock::now()) {
 }
 
 PerformanceTimer::ScopeGuard::~ScopeGuard() {
-    const double ms = m_timer.elapsedMs();
+    auto end = std::chrono::high_resolution_clock::now();
+    const double ms = std::chrono::duration<double, std::milli>(end - m_start).count();
     AURA_LOG_DEBUG("PerformanceTimer", "[scope] {} took {:.3f} ms", m_name, ms);
 }
 
