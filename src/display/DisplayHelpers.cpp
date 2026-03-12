@@ -98,8 +98,15 @@ BOOL CALLBACK MultiMonitor::enumProc(HMONITOR hMon, HDC, LPRECT, LPARAM) {
     DISPLAY_DEVICEW dd = {};
     dd.cb = sizeof(dd);
     if (EnumDisplayDevicesW(mi.szDevice, 0, &dd, 0))
-        info.friendlyName = std::string(dd.DeviceString,
-                                        dd.DeviceString + wcslen(dd.DeviceString));
+        // Convert WCHAR wide string to std::string
+        int len = WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, nullptr, 0, nullptr, nullptr);
+        if (len > 0) {
+            std::string narrow(len - 1, '\0');
+            WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, &narrow[0], len, nullptr, nullptr);
+            info.friendlyName = narrow;
+        } else {
+            info.friendlyName = "Display";
+        }
     else
         info.friendlyName = "Display";
 
