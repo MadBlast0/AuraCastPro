@@ -71,6 +71,15 @@ private:
     struct alignas(64) Slot {  // cache-line aligned to prevent false sharing
         std::atomic<uint8_t> state{0};
         OrderedPacket        packet;
+
+        Slot() = default;
+        // Allow move so std::vector can resize
+        Slot(Slot&& o) noexcept
+            : state(o.state.load(std::memory_order_relaxed))
+            , packet(std::move(o.packet)) {}
+        Slot& operator=(Slot&&) = delete;
+        Slot(const Slot&) = delete;
+        Slot& operator=(const Slot&) = delete;
     };
     std::vector<Slot> m_slots;
 
