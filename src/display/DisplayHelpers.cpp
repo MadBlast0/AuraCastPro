@@ -97,18 +97,19 @@ BOOL CALLBACK MultiMonitor::enumProc(HMONITOR hMon, HDC, LPRECT, LPARAM) {
     // Friendly name via display device
     DISPLAY_DEVICEW dd = {};
     dd.cb = sizeof(dd);
-    if (EnumDisplayDevicesW(mi.szDevice, 0, &dd, 0))
-        // Convert WCHAR wide string to std::string
+    if (EnumDisplayDevicesW(mi.szDevice, 0, &dd, 0)) {
+        // Convert WCHAR wide string to std::string via WideCharToMultiByte
         int len = WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, nullptr, 0, nullptr, nullptr);
-        if (len > 0) {
-            std::string narrow(len - 1, '\0');
-            WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, &narrow[0], len, nullptr, nullptr);
-            info.friendlyName = narrow;
+        if (len > 1) {
+            std::vector<char> buf(len);
+            WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, buf.data(), len, nullptr, nullptr);
+            info.friendlyName = std::string(buf.data(), len - 1);
         } else {
             info.friendlyName = "Display";
         }
-    else
+    } else {
         info.friendlyName = "Display";
+    }
 
     g_enumResult->push_back(info);
     return TRUE;
