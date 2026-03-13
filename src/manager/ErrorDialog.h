@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// ErrorDialog.h — Task 177: User-facing error dialog system
+// ErrorDialog.h -- Task 177: User-facing error dialog system
 //
 // Provides a consistent, neo-brutalist styled error presentation layer
 // that maps internal error codes and exception messages to user-friendly
 // text with actionable advice (retry, open logs, contact support).
 //
 // Two display modes:
-//   1. Qt QML overlay — shown inside the main window (non-blocking)
-//   2. Win32 MessageBoxW — used for fatal errors before Qt is ready
+//   1. Qt QML overlay -- shown inside the main window (non-blocking)
+//   2. Win32 MessageBoxW -- used for fatal errors before Qt is ready
 //
 // Usage:
 //   ErrorDialog::show(ErrorDialog::Level::Fatal, "DX12 Init Failed",
@@ -25,10 +25,10 @@ namespace aura {
 class ErrorDialog {
 public:
     enum class Level {
-        Info,       // Informational — blue tint
-        Warning,    // Non-fatal — yellow tint
-        Error,      // Recoverable error — orange tint
-        Fatal,      // App must exit or subsystem restart required — red tint
+        Info,       // Informational -- blue tint
+        Warning,    // Non-fatal -- yellow tint
+        Error,      // Recoverable error -- orange tint
+        Fatal,      // App must exit or subsystem restart required -- red tint
     };
 
     enum Action : uint32_t {

@@ -1,7 +1,7 @@
-// =============================================================================
-// TelemetryClient.cpp — Privacy-first telemetry
+﻿// =============================================================================
+// TelemetryClient.cpp -- Privacy-first telemetry
 //
-// Disabled by default. User must opt-in via Settings → Privacy.
+// Disabled by default. User must opt-in via Settings -> Privacy.
 // Sends ONLY: app version, OS version, GPU model, session duration/codec/res,
 // and crash stack traces. NEVER sends screen content, IP, or user identity.
 // =============================================================================
@@ -27,7 +27,7 @@ TelemetryClient::~TelemetryClient() {}
 void TelemetryClient::init() {
     AURA_LOG_INFO("TelemetryClient",
         "Initialised. Telemetry disabled by default. "
-        "Enable via Settings → Privacy → Anonymous Diagnostics. "
+        "Enable via Settings -> Privacy -> Anonymous Diagnostics. "
         "Data sent: app version, OS, GPU model, session stats, crash reports. "
         "NEVER sends: screen content, IP address, or personal info.");
 }
@@ -66,7 +66,7 @@ void TelemetryClient::reportCrash(const std::string& stackTrace) {
 
 void TelemetryClient::sendAsync(const std::string& endpoint,
                                  const std::string& body) {
-    // Fire-and-forget HTTPS POST — Task 195: proxy-aware via WinHttpHelper
+    // Fire-and-forget HTTPS POST -- Task 195: proxy-aware via WinHttpHelper
     std::thread([endpoint, body]() {
         HINTERNET session = aura::WinHttpHelper::openSession(
             L"AuraCastPro-Telemetry/1.0");

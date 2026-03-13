@@ -1,11 +1,11 @@
-// =============================================================================
-// DeviceLostRecovery.cpp — D3D12 TDR / device-lost recovery
+﻿// =============================================================================
+// DeviceLostRecovery.cpp -- D3D12 TDR / device-lost recovery
 // =============================================================================
 // Called after every swapchain->Present():
 //
 //   HRESULT hr = swapchain->Present(1, 0);
 //   if (g_recovery->checkAndRecover(hr, device, swapchain)) {
-//       // recovery was triggered — current frame is discarded, next is fine
+//       // recovery was triggered -- current frame is discarded, next is fine
 //   }
 //
 // Recovery sequence (Task 108 spec):
@@ -39,11 +39,11 @@ bool DeviceLostRecovery::checkAndRecover(HRESULT presentResult,
     if (presentResult != DXGI_ERROR_DEVICE_REMOVED &&
         presentResult != DXGI_ERROR_DEVICE_RESET)
     {
-        return false; // Normal frame — nothing to do
+        return false; // Normal frame -- nothing to do
     }
 
     if (m_recovering.exchange(true)) {
-        // Already recovering on another thread — skip
+        // Already recovering on another thread -- skip
         return true;
     }
 
@@ -85,7 +85,7 @@ bool DeviceLostRecovery::doRecovery(HRESULT removeReason, ID3D12Device* /*device
         AURA_LOG_INFO("DeviceLostRecovery", "Network threads paused.");
     }
 
-    // Brief pause — let any in-flight work drain on the GPU side
+    // Brief pause -- let any in-flight work drain on the GPU side
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // ── Step 2: Re-create DX12 device, command queues, descriptor heaps ──────

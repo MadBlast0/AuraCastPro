@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// OSVersionHelper.h — Detects Windows version at runtime.
+// OSVersionHelper.h -- Detects Windows version at runtime.
 //
 // Windows deprecated GetVersionEx() in Windows 8.1. The correct modern
 // approach is RtlGetVersion() from ntdll.dll (always accurate, even in
@@ -25,7 +25,7 @@ struct WindowsVersion {
 
 class OSVersionHelper {
 public:
-    // Call once from main() — before UI is shown
+    // Call once from main() -- before UI is shown
     static void detect();
 
     // Returns cached WindowsVersion struct (valid after detect())

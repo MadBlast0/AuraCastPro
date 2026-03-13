@@ -1,5 +1,5 @@
 // =============================================================================
-// CrashReporter.cpp — Task 199: MiniDump on crash via MiniDumpWriteDump.
+// CrashReporter.cpp -- Task 199: MiniDump on crash via MiniDumpWriteDump.
 // BUILT: Was previously missing. Now writes full minidump on any unhandled
 // exception so crashes can be diagnosed from the .dmp file.
 // =============================================================================
@@ -33,7 +33,9 @@ static LONG WINAPI crashHandler(EXCEPTION_POINTERS* ep) {
 
     std::time_t t = std::time(nullptr);
     char timebuf[32]{};
-    std::strftime(timebuf, sizeof(timebuf), "%Y%m%d_%H%M%S", std::localtime(&t));
+    struct tm tmBuf{};
+    localtime_s(&tmBuf, &t);
+    std::strftime(timebuf, sizeof(timebuf), "%Y%m%d_%H%M%S", &tmBuf);
     const std::string dumpPath = crashDir + "/crash_" + timebuf + ".dmp";
 
     // Open dump file
@@ -76,7 +78,7 @@ static LONG WINAPI crashHandler(EXCEPTION_POINTERS* ep) {
         dumpPath);
 
     MessageBoxA(nullptr, msg.c_str(),
-                "AuraCastPro — Fatal Error", MB_ICONERROR | MB_OK);
+                "AuraCastPro -- Fatal Error", MB_ICONERROR | MB_OK);
 
     return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -113,7 +115,12 @@ void CrashReporter::writeMiniDump(void* rawEp) {
 void CrashReporter::install() {
     SetUnhandledExceptionFilter(crashHandler);
     AURA_LOG_INFO("CrashReporter",
-        "Installed. Dumps → %APPDATA%/AuraCastPro/crashes/*.dmp");
+        "Installed. Dumps -> %APPDATA%/AuraCastPro/crashes/*.dmp");
+}
+
+void CrashReporter::uninstall() {
+    SetUnhandledExceptionFilter(nullptr);
+    AURA_LOG_INFO("CrashReporter", "Uninstalled for normal shutdown.");
 }
 
 void CrashReporter::setAppVersion(const std::string& ver) {

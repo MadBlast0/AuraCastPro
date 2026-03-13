@@ -1,5 +1,5 @@
 // =============================================================================
-// DX12Manager.cpp — DirectX 12 device creation and PSO management
+// DX12Manager.cpp -- DirectX 12 device creation and PSO management
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -187,7 +187,7 @@ void DX12Manager::createRootSignatures() {
     srvRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
     D3D12_ROOT_PARAMETER params[2]{};
-    // CBV at register b0 — per-draw constants
+    // CBV at register b0 -- per-draw constants
     params[0].ParameterType             = D3D12_ROOT_PARAMETER_TYPE_CBV;
     params[0].Descriptor.ShaderRegister = 0;
     params[0].Descriptor.RegisterSpace  = 0;
@@ -268,22 +268,49 @@ void DX12Manager::createRootSignatures() {
             AURA_LOG_DEBUG("DX12Manager", "Compute root signature created.");
         } else {
             AURA_LOG_WARN("DX12Manager",
-                "Compute root signature serialization failed — temporal pacing PSO skipped.");
+                "Compute root signature serialization failed -- temporal pacing PSO skipped.");
         }
     }
 }
 
-// -----------------------------------------------------------------------------
 std::vector<uint8_t> DX12Manager::loadShaderBlob(const std::string& filename) {
-    // Shaders are compiled to .cso files by the CMake build step.
-    // They live next to the executable.
-    std::filesystem::path exeDir = std::filesystem::current_path();
-    const std::filesystem::path shaderPath = exeDir / "Shaders" / filename;
+    // Try multiple possible locations for shaders:
+    // 1. Next to the executable (Release builds)
+    // 2. In a 'Shaders' folder next to the executable
+    // 3. Fallback to current working directory paths
+    
+    std::vector<std::filesystem::path> searchPaths = {
+        std::filesystem::path("build/Release/Shaders") / filename,
+        std::filesystem::path("build/shaders") / filename,
+        std::filesystem::path("Shaders") / filename,
+        std::filesystem::path(filename)
+    };
 
-    std::ifstream f(shaderPath, std::ios::binary | std::ios::ate);
+    // Also look relative to where the .exe actually is, instead of just current_path()
+    char exePath[MAX_PATH];
+    if (GetModuleFileNameA(NULL, exePath, MAX_PATH)) {
+        std::filesystem::path exeDir = std::filesystem::path(exePath).parent_path();
+        searchPaths.insert(searchPaths.begin(), exeDir / "Shaders" / filename);
+        searchPaths.insert(searchPaths.begin(), exeDir / filename);
+    }
+
+    std::filesystem::path foundPath;
+    for (const auto& p : searchPaths) {
+        if (std::filesystem::exists(p)) {
+            foundPath = p;
+            break;
+        }
+    }
+
+    if (foundPath.empty()) {
+        throw std::runtime_error(std::format(
+            "DX12Manager: Cannot open shader: {}", filename));
+    }
+
+    std::ifstream f(foundPath, std::ios::binary | std::ios::ate);
     if (!f.is_open()) {
         throw std::runtime_error(std::format(
-            "DX12Manager: Cannot open shader: {}", shaderPath.string()));
+            "DX12Manager: Cannot open shader: {}", foundPath.string()));
     }
 
     const std::size_t size = static_cast<std::size_t>(f.tellg());
@@ -295,14 +322,14 @@ std::vector<uint8_t> DX12Manager::loadShaderBlob(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 void DX12Manager::loadShaderAndCreatePSOs() {
-    // Full-screen triangle input layout (no vertex buffer — position computed in VS)
+    // Full-screen triangle input layout (no vertex buffer -- position computed in VS)
     // For our rendering pipeline we use a vertex-less approach:
     // The vertex shader generates a full-screen triangle from SV_VertexID.
 
-    // Load the shared vertex shader once — all PSOs use the same fullscreen triangle VS
+    // Load the shared vertex shader once -- all PSOs use the same fullscreen triangle VS
     auto vs = loadShaderBlob("fullscreen_vs.cso");
 
-    // NV12 → RGB conversion PSO
+    // NV12 -> RGB conversion PSO
     {
         auto ps = loadShaderBlob("nv12_to_rgb.cso");
 
@@ -326,7 +353,7 @@ void DX12Manager::loadShaderAndCreatePSOs() {
         AURA_LOG_DEBUG("DX12Manager", "PSO created: nv12_to_rgb");
     }
 
-    // HDR tone-mapping PSO — similar structure, different pixel shader
+    // HDR tone-mapping PSO -- similar structure, different pixel shader
     {
         auto ps = loadShaderBlob("hdr10_tonemap.cso");
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
@@ -372,39 +399,29 @@ void DX12Manager::loadShaderAndCreatePSOs() {
         AURA_LOG_DEBUG("DX12Manager", "PSO created: lanczos8");
     }
 
-    // Chroma upsampling PSO (4:2:0 → 4:4:4 pixel shader)
-    {
-        auto ps = loadShaderBlob("chroma_upsample.cso");
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-        psoDesc.pRootSignature = m_renderRS.Get();
-        psoDesc.VS             = { vs.data(), vs.size() };
-        psoDesc.PS             = { ps.data(), ps.size() };
-        psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-        psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-        psoDesc.DepthStencilState.DepthEnable   = FALSE;
-        psoDesc.DepthStencilState.StencilEnable = FALSE;
-        psoDesc.SampleMask                      = UINT_MAX;
-        psoDesc.PrimitiveTopologyType           = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets                = 1;
-        psoDesc.RTVFormats[0]                   = DXGI_FORMAT_R8G8B8A8_UNORM;
-        psoDesc.SampleDesc.Count                = 1;
-        DX_CHECK(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_chromaUpsamplePSO)),
-                 "DX12Manager: CreateGraphicsPipelineState (chroma_upsample)");
-        AURA_LOG_DEBUG("DX12Manager", "PSO created: chroma_upsample");
-    }
-
     // Temporal frame pacing compute shader PSO
     if (m_computeRS) {
-    {
-        auto cs = loadShaderBlob("temporal_frame_pacing.cso");
-        D3D12_COMPUTE_PIPELINE_STATE_DESC cpsoDesc{};
-        cpsoDesc.pRootSignature = m_computeRS.Get();
-        cpsoDesc.CS             = { cs.data(), cs.size() };
-        DX_CHECK(m_device->CreateComputePipelineState(&cpsoDesc, IID_PPV_ARGS(&m_temporalPacingPSO)),
-                 "DX12Manager: CreateComputePipelineState (temporal_frame_pacing)");
-        AURA_LOG_DEBUG("DX12Manager", "PSO created: temporal_frame_pacing (compute)");
-    }
+        // Temporal frame pacing
+        {
+            auto cs = loadShaderBlob("temporal_frame_pacing.cso");
+            D3D12_COMPUTE_PIPELINE_STATE_DESC cpsoDesc{};
+            cpsoDesc.pRootSignature = m_computeRS.Get();
+            cpsoDesc.CS             = { cs.data(), cs.size() };
+            DX_CHECK(m_device->CreateComputePipelineState(&cpsoDesc, IID_PPV_ARGS(&m_temporalPacingPSO)),
+                     "DX12Manager: CreateComputePipelineState (temporal_frame_pacing)");
+            AURA_LOG_DEBUG("DX12Manager", "PSO created: temporal_frame_pacing (compute)");
+        }
+
+        // Chroma upsampling PSO (4:2:0 -> 4:4:4 compute shader)
+        {
+            auto cs = loadShaderBlob("chroma_upsample.cso");
+            D3D12_COMPUTE_PIPELINE_STATE_DESC cpsoDesc{};
+            cpsoDesc.pRootSignature = m_computeRS.Get(); // Requires the compute root signature
+            cpsoDesc.CS             = { cs.data(), cs.size() };
+            DX_CHECK(m_device->CreateComputePipelineState(&cpsoDesc, IID_PPV_ARGS(&m_chromaUpsamplePSO)),
+                     "DX12Manager: CreateComputePipelineState (chroma_upsample)");
+            AURA_LOG_DEBUG("DX12Manager", "PSO created: chroma_upsample (compute)");
+        }
     } // if (m_computeRS)
 }
 

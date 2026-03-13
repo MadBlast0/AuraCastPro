@@ -1,5 +1,5 @@
-// =============================================================================
-// H265Demuxer.cpp — H.265 access unit assembler
+﻿// =============================================================================
+// H265Demuxer.cpp -- H.265 access unit assembler
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "H265Demuxer.h"
@@ -37,7 +37,7 @@ H265Demuxer::~H265Demuxer() {}
 // -----------------------------------------------------------------------------
 void H265Demuxer::init() {
     AURA_LOG_INFO("H265Demuxer",
-        "Initialised. Assembles NAL units → complete access units. "
+        "Initialised. Assembles NAL units -> complete access units. "
         "Caches VPS/SPS/PPS. Prepends param sets to every IDR.");
 }
 
@@ -63,7 +63,7 @@ void H265Demuxer::feedNAL(NalUnit nal, uint64_t presentationTimeUs) {
     if (type == SPS_NUT) {
         m_sps = nal.data;
         m_hasSPS = true;
-        // Parse SPS to extract width/height (abbreviated — full parse in Phase 6)
+        // Parse SPS to extract width/height (abbreviated -- full parse in Phase 6)
         AURA_LOG_DEBUG("H265Demuxer", "SPS updated ({} bytes)", nal.data.size());
         return;
     }
@@ -94,7 +94,7 @@ void H265Demuxer::feedNAL(NalUnit nal, uint64_t presentationTimeUs) {
 void H265Demuxer::emitAccessUnit() {
     if (m_pending.empty()) return;
     if (!hasParameterSets()) {
-        AURA_LOG_WARN("H265Demuxer", "Dropping AU — no parameter sets yet.");
+        AURA_LOG_WARN("H265Demuxer", "Dropping AU -- no parameter sets yet.");
         m_pending.clear();
         return;
     }

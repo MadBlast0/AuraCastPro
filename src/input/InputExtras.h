@@ -1,3 +1,4 @@
+#include "AndroidControlBridge.h"
 #pragma once
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -5,7 +6,8 @@
 #include <functional>
 #include <map>
 
-class AndroidControlBridge;
+namespace aura { class AndroidControlBridge; }
+using aura::AndroidControlBridge;
 
 // ─── GesturePassthrough ───────────────────────────────────────────────────────
 // Translates Windows Pointer API (multi-touch) events into Android gestures.
@@ -112,3 +114,4 @@ private:
 
     std::function<void(std::string)> m_onChanged;
 };
+

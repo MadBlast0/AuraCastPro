@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// ProxySettings.h — Task 195: HTTPS proxy support for all cloud API calls
+// ProxySettings.h -- Task 195: HTTPS proxy support for all cloud API calls
 //
 // Reads proxy configuration from:
 //   1. SettingsModel (user-configured manual proxy)
@@ -30,7 +30,7 @@ struct ProxyConfig {
     std::string host;           // e.g. "proxy.corp.com"
     uint16_t    port{8080};
     std::string username;       // optional
-    std::string password;       // optional — stored encrypted in SecurityVault
+    std::string password;       // optional -- stored encrypted in SecurityVault
     std::string noProxyList;    // comma-separated bypass list, e.g. "localhost,192.168.*"
 };
 

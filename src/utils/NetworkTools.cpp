@@ -1,5 +1,5 @@
-// =============================================================================
-// NetworkTools.cpp — Network enumeration and port utilities (Windows)
+﻿// =============================================================================
+// NetworkTools.cpp -- Network enumeration and port utilities (Windows)
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -62,7 +62,7 @@ std::vector<NetworkInterface> NetworkTools::enumerateInterfaces(bool includeLoop
         NetworkInterface iface;
         iface.isLoopback  = (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK);
         iface.isWireless  = (adapter->IfType == IF_TYPE_IEEE80211);
-        iface.speed       = adapter->TransmitLinkSpeed / 8; // bits → bytes per sec
+        iface.speed       = adapter->TransmitLinkSpeed / 8; // bits -> bytes per sec
 
         // Adapter name (UTF-8)
         char nameBuf[256]{};

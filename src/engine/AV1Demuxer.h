@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// AV1Demuxer.h — AV1 OBU (Open Bitstream Unit) assembler
+// AV1Demuxer.h -- AV1 OBU (Open Bitstream Unit) assembler
 //
 // AV1 uses OBUs instead of NAL units. The structure is:
-//   Sequence Header OBU  (like SPS — describes codec config)
+//   Sequence Header OBU  (like SPS -- describes codec config)
 //   Frame Header OBU     (metadata for one frame)
 //   Tile Group OBU       (actual compressed frame data)
 //

@@ -1,5 +1,5 @@
-// =============================================================================
-// ProxySettings.cpp — Task 195: HTTPS proxy support for all cloud API calls
+﻿// =============================================================================
+// ProxySettings.cpp -- Task 195: HTTPS proxy support for all cloud API calls
 // =============================================================================
 #include "ProxySettings.h"
 #include "../src/utils/Logger.h"
@@ -88,7 +88,7 @@ void ProxySettings::loadFromSystem() {
     }
 
     if (ieProxy.fAutoDetect || ieProxy.lpszAutoConfigUrl) {
-        // PAC file / WPAD auto-detect — let Qt handle via ApplicationProxy
+        // PAC file / WPAD auto-detect -- let Qt handle via ApplicationProxy
         m_config.mode = ProxyMode::SystemDefault;
         AURA_LOG_INFO("ProxySettings", "System proxy: auto-detect / PAC");
     } else if (ieProxy.lpszProxy) {

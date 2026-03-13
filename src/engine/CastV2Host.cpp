@@ -1,5 +1,5 @@
-// =============================================================================
-// CastV2Host.cpp — Google Cast V2 receiver with TLS 1.3 + Protobuf routing
+﻿// =============================================================================
+// CastV2Host.cpp -- Google Cast V2 receiver with TLS 1.3 + Protobuf routing
 //
 // Cast protocol:
 //   TCP TLS 1.3 on port 8009
@@ -214,7 +214,7 @@ CastV2Host::CastV2Host() : m_impl(std::make_unique<Impl>()) {}
 CastV2Host::~CastV2Host() { shutdown(); }
 
 // =============================================================================
-// init — create SSL context + self-signed cert
+// init -- create SSL context + self-signed cert
 // =============================================================================
 void CastV2Host::init() {
     SSL_library_init();
@@ -303,7 +303,7 @@ void CastV2Host::acceptLoop() {
             if (clientSock == INVALID_SOCKET) continue;
 
             if (!m_mirroringActive.load(std::memory_order_relaxed)) {
-                AURA_LOG_DEBUG("CastV2Host", "Connection refused — mirroring inactive.");
+                AURA_LOG_DEBUG("CastV2Host", "Connection refused -- mirroring inactive.");
                 closesocket(clientSock);
                 continue;
             }
@@ -327,18 +327,18 @@ void CastV2Host::acceptLoop() {
             }).detach();
         } catch (const std::exception& e) {
             AURA_LOG_ERROR("CastV2Host",
-                "acceptLoop exception: {} — continuing.", e.what());
+                "acceptLoop exception: {} -- continuing.", e.what());
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         } catch (...) {
             AURA_LOG_ERROR("CastV2Host",
-                "acceptLoop unknown exception — continuing.");
+                "acceptLoop unknown exception -- continuing.");
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 }
 
 // =============================================================================
-// handleSession — TLS handshake + Protobuf message loop
+// handleSession -- TLS handshake + Protobuf message loop
 // =============================================================================
 void CastV2Host::handleSession(int clientSocketRaw, const std::string& clientIp) {
     SOCKET sock = static_cast<SOCKET>(clientSocketRaw);
@@ -405,7 +405,7 @@ void CastV2Host::handleSession(int clientSocketRaw, const std::string& clientIp)
         }
 
         AURA_LOG_DEBUG("CastV2Host",
-            "Cast[{}→{}] ns={} payload={:.60s}",
+            "Cast[{}->{}] ns={} payload={:.60s}",
             msg.sourceId, msg.destinationId, msg.ns,
             msg.payloadUtf8.empty() ? "(binary)" : msg.payloadUtf8);
 
@@ -419,7 +419,7 @@ void CastV2Host::handleSession(int clientSocketRaw, const std::string& clientIp)
             }
         }
         else if (msg.ns == "urn:x-cast:com.google.cast.tp.heartbeat") {
-            // PING → PONG
+            // PING -> PONG
             auto pong = encodeCastMessage(
                 msg.destinationId, msg.sourceId,
                 "urn:x-cast:com.google.cast.tp.heartbeat",
@@ -427,7 +427,7 @@ void CastV2Host::handleSession(int clientSocketRaw, const std::string& clientIp)
             sslWrite(ssl, pong);
         }
         else if (msg.ns == "urn:x-cast:com.google.cast.receiver") {
-            // GET_STATUS → send receiver status
+            // GET_STATUS -> send receiver status
             if (msg.payloadUtf8.find("GET_STATUS") != std::string::npos) {
                 const std::string status =
                     R"({"type":"RECEIVER_STATUS","status":{"applications":[)"
@@ -470,7 +470,7 @@ void CastV2Host::handleSession(int clientSocketRaw, const std::string& clientIp)
             // Screen mirroring WebRTC signalling (offer/answer/ice)
             if (msg.payloadUtf8.find("offer") != std::string::npos ||
                 msg.payloadUtf8.find("OFFER") != std::string::npos) {
-                // Acknowledge the WebRTC offer — actual WebRTC negotiation
+                // Acknowledge the WebRTC offer -- actual WebRTC negotiation
                 // happens in a future phase. For now we accept and signal the session.
                 AURA_LOG_INFO("CastV2Host", "Cast WebRTC OFFER received from {}", clientIp);
                 auto resp = encodeCastMessage(

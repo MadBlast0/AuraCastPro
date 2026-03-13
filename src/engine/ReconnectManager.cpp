@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "ReconnectManager.h"
 #include "../utils/Logger.h"
 #include <chrono>
@@ -58,8 +58,8 @@ void ReconnectManager::monitorLoop() {
         int64_t silenceMs = nowMs() - m_lastPacketMs.load();
 
         if (connected && silenceMs > m_cfg.silenceTimeoutSec * 1000LL) {
-            // Timeout — looks like connection dropped
-            LOG_WARN("ReconnectManager: No packets for {}ms — triggering reconnect",
+            // Timeout -- looks like connection dropped
+            LOG_WARN("ReconnectManager: No packets for {}ms -- triggering reconnect",
                      silenceMs);
             m_connected = false;
             retrying    = 0;
@@ -67,14 +67,14 @@ void ReconnectManager::monitorLoop() {
         }
 
         if (!connected && m_lastPacketMs.load() > 0) {
-            // We were previously connected — attempt reconnect with exponential backoff.
+            // We were previously connected -- attempt reconnect with exponential backoff.
             // Backoff: retryIntervalSec * 2^(attempt-1), capped at 60 s.
-            // Attempt 1 → base interval, 2 → 2×, 3 → 4×, ... max 60 s.
+            // Attempt 1 -> base interval, 2 -> 2x, 3 -> 4x, ... max 60 s.
             if (retrying < m_cfg.maxRetries) {
                 int64_t sinceLastAttempt = nowMs() - m_lastPacketMs.load();
                 int64_t backoffMs = static_cast<int64_t>(
                     m_cfg.retryIntervalSec * 1000LL *
-                    std::min(1 << retrying, 64)); // 2^retrying capped at 64×
+                    std::min(1 << retrying, 64)); // 2^retrying capped at 64x
                 if (sinceLastAttempt > backoffMs) {
                     retrying++;
                     m_retryCount.store(retrying);

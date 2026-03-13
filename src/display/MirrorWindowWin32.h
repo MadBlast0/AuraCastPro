@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// MirrorWindowWin32.h — Win32 window host for the DX12 mirror swapchain
-// Task 111: Swapchain resize wired — WM_SIZE triggers ResizeBuffers safely
-// Task 113: Rotation wired — landscape/portrait transitions handled
+// MirrorWindowWin32.h -- Win32 window host for the DX12 mirror swapchain
+// Task 111: Swapchain resize wired -- WM_SIZE triggers ResizeBuffers safely
+// Task 113: Rotation wired -- landscape/portrait transitions handled
 // Task 179: setAlwaysOnTop() wired to HWND_TOPMOST / HWND_NOTOPMOST
 // =============================================================================
 #include <cstdint>
@@ -47,7 +47,7 @@ public:
     void setAlwaysOnTop(bool onTop);
     bool isAlwaysOnTop() const { return m_alwaysOnTop.load(); }
 
-    // PerformanceOverlay — shown on top of the video frame (Ctrl+Shift+O)
+    // PerformanceOverlay -- shown on top of the video frame (Ctrl+Shift+O)
     // The overlay is rendered as a QML window child of the mirror HWND.
     void setOverlay(aura::PerformanceOverlay* overlay) { m_overlay = overlay; }
 

@@ -1,18 +1,18 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// ClipboardBridge.h — Task 150: Bidirectional clipboard sharing
+// ClipboardBridge.h -- Task 150: Bidirectional clipboard sharing
 //
 // Synchronises the Windows clipboard with the connected mobile device.
 //
 // Flow (iOS / AirPlay):
-//   PC→Device: User copies text on PC → AirPlay DACP "setProperty" sends it
-//   Device→PC: AirPlay "getProperty" clipboard callback → Windows SetClipboardData
+//   PC->Device: User copies text on PC -> AirPlay DACP "setProperty" sends it
+//   Device->PC: AirPlay "getProperty" clipboard callback -> Windows SetClipboardData
 //
 // Flow (Android / ADB):
-//   PC→Device:  adb shell am broadcast -a clipper.set --es text "..."
-//   Device→PC:  scrcpy clipboard synchronisation channel (MSG_TYPE_CLIPBOARD)
+//   PC->Device:  adb shell am broadcast -a clipper.set --es text "..."
+//   Device->PC:  scrcpy clipboard synchronisation channel (MSG_TYPE_CLIPBOARD)
 //
-// Only plain text is supported in v1.0 — images and rich text in a future release.
+// Only plain text is supported in v1.0 -- images and rich text in a future release.
 // =============================================================================
 #include <string>
 #include <functional>
@@ -42,7 +42,7 @@ public:
     // Manually push current Windows clipboard text to the connected device
     void pushToDevice();
 
-    // Receive text from device — writes it to Windows clipboard
+    // Receive text from device -- writes it to Windows clipboard
     void receiveFromDevice(const std::string& text);
 
     // Called by the Android/AirPlay protocol layer when device clipboard changes

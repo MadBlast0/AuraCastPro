@@ -1,5 +1,5 @@
-// =============================================================================
-// VideoDecoder.cpp — Windows Media Foundation hardware video decoder
+﻿// =============================================================================
+// VideoDecoder.cpp -- Windows Media Foundation hardware video decoder
 //
 // Uses MF H.265/AV1 hardware MFT with D3D12-aware mode for zero-copy output.
 // =============================================================================
@@ -30,7 +30,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace aura {
 
-// Internal MF state — hidden from the header to avoid polluting it with
+// Internal MF state -- hidden from the header to avoid polluting it with
 // heavy Windows Media Foundation headers.
 struct VideoDecoder::MFState {
     ComPtr<IMFTransform>     mft;          // Hardware decoder MFT
@@ -233,7 +233,7 @@ void VideoDecoder::processOutput() {
         const HRESULT hr = m_mf->mft->ProcessOutput(0, 1, &outputData, &status);
 
         if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT) {
-            // Decoder needs more input before it can produce output — normal
+            // Decoder needs more input before it can produce output -- normal
             break;
         }
 
@@ -284,7 +284,7 @@ void VideoDecoder::processOutput() {
                     // Fallback: non-DXGI buffer (software decoder output)
                     // Copy to a D3D12 upload texture if m_device is set.
                     // This path is hit for the software fallback decoder.
-                    AURA_LOG_TRACE("VideoDecoder", "Non-DXGI buffer — software decode path");
+                    AURA_LOG_TRACE("VideoDecoder", "Non-DXGI buffer -- software decode path");
                 }
             }
 

@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// FECRecovery.h — Reed-Solomon Forward Error Correction (RS(n,k) over GF(2^8))
+// FECRecovery.h -- Reed-Solomon Forward Error Correction (RS(n,k) over GF(2^8))
 //
 // For every k data packets, n-k parity packets are generated.
 // Any k of the n transmitted packets can reconstruct all k data packets.
 //
-// Default: k=10, n=12 → recovers up to 2 lost packets per group.
+// Default: k=10, n=12 -> recovers up to 2 lost packets per group.
 //
 // Usage (receiver side):
 //   FECRecovery fec(10, 12);

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// HardwareEncoder.h — GPU hardware encoder (NVENC/AMF/QuickSync)
+// HardwareEncoder.h -- GPU hardware encoder (NVENC/AMF/QuickSync)
 // Used for RTMP streaming when re-encoding is needed (e.g. bitrate shaping)
 // =============================================================================
 #include <string>

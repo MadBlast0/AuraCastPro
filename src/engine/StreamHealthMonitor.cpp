@@ -1,5 +1,5 @@
-// =============================================================================
-// StreamHealthMonitor.cpp — Real-time stream quality monitor
+﻿// =============================================================================
+// StreamHealthMonitor.cpp -- Real-time stream quality monitor
 // Task 210: Tracks packet loss, jitter, decode errors and fires callbacks
 //           when stream health degrades below thresholds.
 // =============================================================================

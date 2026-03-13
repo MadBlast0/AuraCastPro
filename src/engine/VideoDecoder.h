@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// VideoDecoder.h — Hardware video decoder (Windows Media Foundation / DXVA2)
+// VideoDecoder.h -- Hardware video decoder (Windows Media Foundation / DXVA2)
 //
 // Decodes H.265/HEVC and AV1 using GPU hardware decoders.
-// Output: NV12 texture in GPU memory — zero CPU copies.
+// Output: NV12 texture in GPU memory -- zero CPU copies.
 // =============================================================================
 
 #include <cstdint>

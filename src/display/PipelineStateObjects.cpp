@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "PipelineStateObjects.h"
 #include "../utils/Logger.h"
 #include <fstream>
@@ -56,7 +56,7 @@ bool PipelineStateObjects::init(ID3D12Device* device,
     auto vs = shaderDir + L"\\fullscreen_vs.cso";
 
     if (!loadShader(vs, vsBytes)) {
-        LOG_WARN("PSO: fullscreen_vs.cso not found — using empty VS (will fail at draw)");
+        LOG_WARN("PSO: fullscreen_vs.cso not found -- using empty VS (will fail at draw)");
         vsBytes = {}; // Will compile-fail gracefully
     }
 
@@ -75,7 +75,7 @@ bool PipelineStateObjects::init(ID3D12Device* device,
 
     for (auto& p : passes) {
         if (!loadShader(shaderDir + L"\\" + p.psCso, psBytes)) {
-            LOG_WARN("PSO: Shader {} not found — PSO will be null", (int)p.slot);
+            LOG_WARN("PSO: Shader {} not found -- PSO will be null", (int)p.slot);
             continue;
         }
         if (!createPSO(device, rootSigs->get(p.rs), vsBytes, psBytes, p.rtvFmt, p.slot)) {

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// PacketValidator.h — Task 072: 5-check security validation on every UDP packet
+// PacketValidator.h -- Task 072: 5-check security validation on every UDP packet
 // =============================================================================
 #include <cstdint>
 #include <string>

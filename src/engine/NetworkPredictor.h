@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// NetworkPredictor.h — Bandwidth, RTT & jitter estimator.
+// NetworkPredictor.h -- Bandwidth, RTT & jitter estimator.
 // FIXED (Task 070 gap): Added RTT self-measurement via timestamp embedding.
 //   sendProbe() embeds current timestamp into outgoing control messages.
 //   onProbeEcho() measures round-trip when the echo comes back.
@@ -28,11 +28,11 @@ public:
 
     void init();
 
-    // Feed a new measurement. Call every 100–500ms from the stats thread.
+    // Feed a new measurement. Call every 100-500ms from the stats thread.
     void feedSample(double lossRate, double jitterMs, double rttMs,
                     uint64_t bytesReceived, double intervalSec);
 
-    // ── RTT self-measurement [ADDED — Task 070 gap fix] ──────────────────────
+    // ── RTT self-measurement [ADDED -- Task 070 gap fix] ──────────────────────
     // Call sendProbe() when sending a control message to the device.
     // Returns a probe ID to embed in the message payload.
     uint32_t sendProbe();
@@ -58,7 +58,7 @@ private:
     std::atomic<double> m_emaBandwidthKbps{0};
     bool   m_firstSample{true};
 
-    // RTT probe table: probeId → send timestamp
+    // RTT probe table: probeId -> send timestamp
     std::mutex m_probeMutex;
     std::unordered_map<uint32_t,
         std::chrono::steady_clock::time_point> m_pendingProbes;

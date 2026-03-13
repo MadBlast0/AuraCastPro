@@ -1,15 +1,15 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// HubModel.h — QML-facing controller for the hub (main) window
+// HubModel.h -- QML-facing controller for the hub (main) window
 //
 // Exposes the core application state the QML UI needs:
-//   • isMirroring        — true when a device is actively streaming
-//   • connectionStatus   — "IDLE" / "CONNECTING" / "MIRRORING" / "ERROR"
-//   • recentLogLines     — last N log lines for DiagnosticsPanel
-//   • startMirroring()   — Q_INVOKABLE
-//   • stopMirroring()    — Q_INVOKABLE
-//   • exportLogs()       — Q_INVOKABLE (calls DiagnosticsExporter)
-//   • submitPairingPin() — Q_INVOKABLE
+//   • isMirroring        -- true when a device is actively streaming
+//   • connectionStatus   -- "IDLE" / "CONNECTING" / "MIRRORING" / "ERROR"
+//   • recentLogLines     -- last N log lines for DiagnosticsPanel
+//   • startMirroring()   -- Q_INVOKABLE
+//   • stopMirroring()    -- Q_INVOKABLE
+//   • exportLogs()       -- Q_INVOKABLE (calls DiagnosticsExporter)
+//   • submitPairingPin() -- Q_INVOKABLE
 // =============================================================================
 #include <QObject>
 #include <QString>
@@ -56,7 +56,7 @@ public slots:
     Q_INVOKABLE void exportLogs();
     Q_INVOKABLE void submitPairingPin(const QString& pin);
     Q_INVOKABLE void toggleRecording();
-    // License activation — called from QML SettingsPage
+    // License activation -- called from QML SettingsPage
     Q_INVOKABLE void activateLicense(const QString& key, const QString& email);
     Q_INVOKABLE bool isRecording() const;
 
@@ -70,7 +70,7 @@ signals:
     void recordingChanged();
 
     // Emitted by C++ (AirPlay2Host) after PIN verification completes.
-    // QML PairingDialog connects: hubModel.onPairingResult → showSuccess/showFailed
+    // QML PairingDialog connects: hubModel.onPairingResult -> showSuccess/showFailed
     void pairingResult(bool success);
 
 public slots:

@@ -1,5 +1,5 @@
-// =============================================================================
-// PerformanceOverlay.cpp — Task 172: In-mirror-window performance stats overlay
+﻿// =============================================================================
+// PerformanceOverlay.cpp -- Task 172: In-mirror-window performance stats overlay
 // Displays semi-transparent stats panel over the DX12 mirror window.
 // Toggled by Ctrl+Shift+O. Data pulled from NetworkStatsModel at 10 Hz.
 // CPU% tracked via GetSystemTimes() delta. Memory via GetProcessMemoryInfo().

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// UDPServerThreadPool.h — Thread pool driving the UDP receive socket.
+// UDPServerThreadPool.h -- Thread pool driving the UDP receive socket.
 //
 // Creates N worker threads that each call ReceiverSocket::receiveOnce()
 // in a tight loop. Having multiple threads prevents a single slow packet

@@ -1,10 +1,10 @@
-// =============================================================================
-// PluginManager.cpp — Task 163: Plugin lifecycle and frame-hook dispatch engine
+﻿// =============================================================================
+// PluginManager.cpp -- Task 163: Plugin lifecycle and frame-hook dispatch engine
 //
 // Delegates all DLL loading to PluginLoader (which handles SEM_FAILCRITICALERRORS,
 // API version checks, SEH-safe FreeLibrary, etc.). PluginManager's job is:
-//   • discoverAndLoad() — scan plugins directory, call PluginLoader::load()
-//   • per-frame dispatch — onVideoFrame / onAudioBuffer / onDeviceEvent
+//   • discoverAndLoad() -- scan plugins directory, call PluginLoader::load()
+//   • per-frame dispatch -- onVideoFrame / onAudioBuffer / onDeviceEvent
 //   • enable/disable individual plugins at runtime
 // =============================================================================
 #include "../pch.h"  // PCH
@@ -85,7 +85,7 @@ bool PluginManager::loadPlugin(const std::string& dllPath) {
         return false;
     }
 
-    // Initialise — plugin performs its own setup
+    // Initialise -- plugin performs its own setup
     if (!plugin->init()) {
         AURA_LOG_WARN("PluginManager",
             "Plugin '{}' init() returned false. Unloading.", plugin->name());
@@ -96,7 +96,7 @@ bool PluginManager::loadPlugin(const std::string& dllPath) {
     m_plugins.push_back({ dllPath, plugin, handle, true });
 
     AURA_LOG_INFO("PluginManager",
-        "Plugin active: '{}' v{} by {} — {}",
+        "Plugin active: '{}' v{} by {} -- {}",
         plugin->name(), plugin->version(),
         plugin->author(), plugin->description());
     return true;
@@ -128,7 +128,7 @@ void PluginManager::unloadPlugin(const std::string& name) {
     AURA_LOG_WARN("PluginManager", "unloadPlugin: '{}' not found.", name);
 }
 
-// ── Per-frame dispatch (hot path — called on video/audio threads) ─────────────
+// ── Per-frame dispatch (hot path -- called on video/audio threads) ─────────────
 
 void PluginManager::dispatchVideoFrame(VideoFrameInfo& frame) {
     for (auto& p : m_plugins) {

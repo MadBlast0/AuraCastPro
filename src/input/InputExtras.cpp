@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "InputExtras.h"
 #include "AndroidControlBridge.h"
 #include "../utils/Logger.h"
@@ -86,7 +86,7 @@ void GesturePassthrough::processGesture() {
                                     dcx + step, dcy + step,
                                     80); // 80ms duration
             } else {
-                // Scroll: two fingers moving together → vertical scroll
+                // Scroll: two fingers moving together -> vertical scroll
                 float scrollDy = (cy - m_prevTwoFingerCY);
                 if (std::abs(scrollDy) > 2.0f) {
                     int   dcx = (int)mapX(cx), dcy = (int)mapY(cy);
@@ -104,8 +104,8 @@ void GesturePassthrough::processGesture() {
 
     } else if (m_points.size() == 3) {
         // ── Three fingers: Android system gesture ─────────────────────────────
-        // Three-finger swipe up → recent apps (KEYCODE_APP_SWITCH = 187)
-        // Three-finger swipe down → notifications (not a standard keycode)
+        // Three-finger swipe up -> recent apps (KEYCODE_APP_SWITCH = 187)
+        // Three-finger swipe down -> notifications (not a standard keycode)
         // Detect direction from centroid movement
         float sumX = 0, sumY = 0;
         for (auto& [id, p] : m_points) { sumX += p.x; sumY += p.y; }
@@ -115,11 +115,11 @@ void GesturePassthrough::processGesture() {
         if (m_prevThreeFingerCY > 0.0f) {
             float moveDy = cy3 - m_prevThreeFingerCY;
             if (moveDy < -20.0f) {
-                // Swipe up → recent apps
+                // Swipe up -> recent apps
                 m_bridge->sendKeyEvent(187); // KEYCODE_APP_SWITCH
                 m_prevThreeFingerCY = 0; // suppress repeat
             } else if (moveDy > 20.0f) {
-                // Swipe down → home
+                // Swipe down -> home
                 m_bridge->sendKeyEvent(3); // KEYCODE_HOME
                 m_prevThreeFingerCY = 0;
             }
@@ -175,7 +175,7 @@ bool ScreenshotCapture::savePNG(const std::string& path,
         Gdiplus::Rect rect(0, 0, w, h);
         bmp.LockBits(&rect, Gdiplus::ImageLockModeWrite, PixelFormat32bppARGB, &bmpData);
 
-        // BGRA → ARGB row by row
+        // BGRA -> ARGB row by row
         for (uint32_t y = 0; y < h; y++) {
             const uint8_t* src = bgra + y * w * 4;
             uint8_t* dst = (uint8_t*)bmpData.Scan0 + y * bmpData.Stride;

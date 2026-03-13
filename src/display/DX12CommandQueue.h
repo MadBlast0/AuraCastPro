@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DX12CommandQueue.h — Task 105: Triple-buffered command queue manager
+// DX12CommandQueue.h -- Task 105: Triple-buffered command queue manager
 //
 // Owns:
 //   • Direct queue (rendering + present)
 //   • Copy queue (NV12 texture uploads from decoder thread)
-//   • kFrameCount (3) command allocators — rotated by frameIndex % 3
+//   • kFrameCount (3) command allocators -- rotated by frameIndex % 3
 //   • GPU timestamp query heap + readback buffer for per-pass timing
 // =============================================================================
 #define WIN32_LEAN_AND_MEAN
@@ -23,7 +23,7 @@ namespace aura {
 class DX12CommandQueue {
 public:
     static constexpr uint32_t kFrameCount = 3;   // triple-buffering
-    static constexpr uint32_t kMaxPasses  = 8;   // NV12→RGB, Scale, Tonemap, Pacing…
+    static constexpr uint32_t kMaxPasses  = 8;   // NV12->RGB, Scale, Tonemap, Pacing...
 
     explicit DX12CommandQueue(ID3D12Device* device);
     ~DX12CommandQueue();

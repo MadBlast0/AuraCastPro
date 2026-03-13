@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// WinHttpHelper.h — Task 195: WinHTTP session factory with proxy support
+// WinHttpHelper.h -- Task 195: WinHTTP session factory with proxy support
 //
 // All three cloud classes (LicenseClient, UpdateService, TelemetryClient) use
 // this helper to create their HINTERNET session so they all honour the same

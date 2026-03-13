@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// version_info.h — Auto-generated version constants
+// version_info.h -- Auto-generated version constants
 // In CI/CD builds, CMake generates this from Git tag / build number.
 // This fallback is used for local development builds.
 // =============================================================================

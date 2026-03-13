@@ -1,6 +1,6 @@
 #pragma once
 // =============================================================================
-// MirrorWindow.h — Mirror window combining Win32 HWND + DX12 render loop
+// MirrorWindow.h -- Mirror window combining Win32 HWND + DX12 render loop
 // =============================================================================
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -38,6 +38,11 @@ public:
     void setTitle(const std::string& title);
     void setFullscreen(bool fs);
     void toggleOverlay();
+    
+    void show() { m_running = true; }
+    void hide() { m_running = false; }
+    bool isFullscreen() const { return false; }
+    void toggleFullscreen() { setFullscreen(!isFullscreen()); }
 
     bool     isVisible()     const;
     uint32_t clientWidth()   const;

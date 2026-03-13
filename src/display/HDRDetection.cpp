@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "HDRDetection.h"
 #include "../utils/Logger.h"
 
@@ -38,7 +38,7 @@ HDRCapabilities HDRDetection::query(HWND hwnd, IDXGIFactory6* factory) {
                              caps.supportsHDR10, caps.supportsWCG, caps.maxLuminanceNits);
                 }
             } else {
-                LOG_INFO("HDRDetection: IDXGIOutput6 unavailable — assuming SDR");
+                LOG_INFO("HDRDetection: IDXGIOutput6 unavailable -- assuming SDR");
             }
             return caps;
         }

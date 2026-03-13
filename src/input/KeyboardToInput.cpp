@@ -1,5 +1,5 @@
-// =============================================================================
-// KeyboardToInput.cpp — Win32 VK codes → Android/iOS key events
+﻿// =============================================================================
+// KeyboardToInput.cpp -- Win32 VK codes -> Android/iOS key events
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "KeyboardToInput.h"
@@ -40,8 +40,8 @@ KeyboardToInput::KeyboardToInput() {}
 
 void KeyboardToInput::init() {
     AURA_LOG_INFO("KeyboardToInput",
-        "Initialised. VK code mapping: Win32 → Android KeyEvent / iOS HID. "
-        "Special keys: Backspace→DEL, Enter→ENTER, Escape→BACK.");
+        "Initialised. VK code mapping: Win32 -> Android KeyEvent / iOS HID. "
+        "Special keys: Backspace->DEL, Enter->ENTER, Escape->BACK.");
 }
 void KeyboardToInput::start()    { m_enabled.store(true); }
 void KeyboardToInput::stop()     { m_enabled.store(false); }
@@ -64,9 +64,9 @@ void KeyboardToInput::onWin32Key(uint32_t vkCode, bool isDown, uint32_t modifier
 }
 
 uint32_t KeyboardToInput::win32ToAndroid(uint32_t vk) const {
-    // VK_A..VK_Z (0x41..0x5A) → AKEYCODE_A..Z (29..54)
+    // VK_A..VK_Z (0x41..0x5A) -> AKEYCODE_A..Z (29..54)
     if (vk >= 0x41 && vk <= 0x5A) return vk - 0x41 + 29;
-    // VK_0..VK_9 (0x30..0x39) → AKEYCODE_0..9 (7..16)
+    // VK_0..VK_9 (0x30..0x39) -> AKEYCODE_0..9 (7..16)
     if (vk >= 0x30 && vk <= 0x39) return vk - 0x30 + 7;
 
     switch (vk) {
@@ -85,7 +85,7 @@ uint32_t KeyboardToInput::win32ToAndroid(uint32_t vk) const {
         case 0x23: return AKEYCODE::MOVE_END;       // VK_END
         case 0x21: return AKEYCODE::PAGE_UP;        // VK_PRIOR
         case 0x22: return AKEYCODE::PAGE_DOWN;      // VK_NEXT
-        // Function keys (F1–F12)
+        // Function keys (F1-F12)
         case 0x70: return AKEYCODE::F1;   case 0x71: return AKEYCODE::F2;
         case 0x72: return AKEYCODE::F3;   case 0x73: return AKEYCODE::F4;
         case 0x74: return AKEYCODE::F5;   case 0x75: return AKEYCODE::F6;

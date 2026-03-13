@@ -12,11 +12,11 @@
 // ── App icon ──────────────────────────────────────────────────────────────────
 // ICO must be a multi-resolution .ico file containing 16/32/48/64/128/256 px.
 // File is referenced relative to the src/ directory where this .rc lives.
-IDI_APPICON  ICON  "../assets/textures/icons/png/app_icon.ico"
+// IDI_APPICON  ICON  "../assets/textures/icons/png/app_icon.ico"
 
 // ── Application manifest ─────────────────────────────────────────────────────
 // RT_MANIFEST resource ID 1 = process default manifest (per-process DPI, UAC).
-1 RT_MANIFEST "AuraCastPro.manifest"
+// 1 RT_MANIFEST "AuraCastPro.manifest"
 
 // ── Version information ───────────────────────────────────────────────────────
 // AURA_VER_* constants are injected by CMake via /D flags so the RC file

@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstdint>
 #include <string>
 #include <functional>
 
-// Producer side — AuraCastPro.exe writes frames here.
-// Consumer side — MirrorCam.dll reads frames from here.
+// Producer side -- AuraCastPro.exe writes frames here.
+// Consumer side -- MirrorCam.dll reads frames from here.
 
 static const wchar_t* kSharedMemName  = L"AuraCastProSharedFrame";
 static const wchar_t* kNewFrameEvent  = L"AuraCastProNewFrame";

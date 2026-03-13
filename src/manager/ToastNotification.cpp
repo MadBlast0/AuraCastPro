@@ -1,5 +1,5 @@
-// =============================================================================
-// ToastNotification.cpp — Task 176: Windows Toast notification infrastructure
+﻿// =============================================================================
+// ToastNotification.cpp -- Task 176: Windows Toast notification infrastructure
 //
 // Uses the Windows Runtime Shell notification API (IToastNotificationManagerStatics)
 // available on Windows 10+. Gracefully falls back to a no-op on older Windows.
@@ -17,7 +17,7 @@
 #include <string>
 #include <atomic>
 
-// WinRT COM headers — available in Windows SDK 10.0.17763+
+// WinRT COM headers -- available in Windows SDK 10.0.17763+
 // If not available, the entire implementation compiles to no-ops.
 #if defined(_WIN32) && defined(__has_include)
 #  if __has_include(<winrt/Windows.UI.Notifications.h>)
@@ -48,7 +48,7 @@ void ToastNotification::init(const std::string& appUserModelId) {
     }
 #else
     AURA_LOG_INFO("ToastNotification",
-        "WinRT headers not available — toast notifications disabled. "
+        "WinRT headers not available -- toast notifications disabled. "
         "Upgrade Windows SDK to 10.0.17763 or later to enable them.");
 #endif
 }
@@ -129,7 +129,7 @@ void ToastNotification::showWithAction(const std::string& title,
                                         ToastIcon icon)
 {
     // Note: for v1.0, action callbacks require a background COM activator.
-    // For now, show the toast without the callback — the notification still
+    // For now, show the toast without the callback -- the notification still
     // appears, the button is displayed, but clicking it brings the app to
     // the foreground via the registered app AUMID.
     show(title, body + (actionLabel.empty() ? "" : "\n(" + actionLabel + ")"), icon);

@@ -1,18 +1,18 @@
-// =============================================================================
-// DX12CommandQueue.cpp — Task 105: DX12 command queue with triple-buffering
+﻿// =============================================================================
+// DX12CommandQueue.cpp -- Task 105: DX12 command queue with triple-buffering
 //
 // Manages:
 //   • One D3D12_COMMAND_LIST_TYPE_DIRECT queue (render + present)
 //   • One D3D12_COMMAND_LIST_TYPE_COPY queue (NV12 texture upload)
 //   • Triple-buffered command allocator rotation (frame N uses allocator N%3)
-//   • GPU timestamp query heap (2 timestamps per pass × 8 passes × 3 frames)
-//     → feeds PerformanceOverlay with per-pass GPU time
+//   • GPU timestamp query heap (2 timestamps per pass x 8 passes x 3 frames)
+//     -> feeds PerformanceOverlay with per-pass GPU time
 //   • PIX/RenderDoc profiling markers (stripped in Release)
 //
 // Frame lifecycle:
-//   beginFrame(frameIndex)   → reset allocator[frameIndex%3], reset cmdList
-//   executeCommandList(list) → GPU executes all recorded draw calls
-//   signalAndPresent(fence)  → signal fence[frameIndex%3] + swapchain Present
+//   beginFrame(frameIndex)   -> reset allocator[frameIndex%3], reset cmdList
+//   executeCommandList(list) -> GPU executes all recorded draw calls
+//   signalAndPresent(fence)  -> signal fence[frameIndex%3] + swapchain Present
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "DX12CommandQueue.h"
@@ -76,7 +76,7 @@ void DX12CommandQueue::init() {
     }
 
     // ── GPU timestamp query heap ──────────────────────────────────────────────
-    // 2 timestamps (begin + end) × kMaxPasses × kFrameCount
+    // 2 timestamps (begin + end) x kMaxPasses x kFrameCount
     {
         D3D12_QUERY_HEAP_DESC qhDesc{};
         qhDesc.Type     = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
@@ -85,8 +85,8 @@ void DX12CommandQueue::init() {
         HRESULT hr = m_device->CreateQueryHeap(&qhDesc, IID_PPV_ARGS(&m_timestampHeap));
         if (FAILED(hr)) {
             AURA_LOG_WARN("DX12CommandQueue",
-                "CreateQueryHeap (timestamps) failed 0x{:08X} — GPU timing disabled.", (uint32_t)hr);
-            // Not fatal — just disable GPU timing
+                "CreateQueryHeap (timestamps) failed 0x{:08X} -- GPU timing disabled.", (uint32_t)hr);
+            // Not fatal -- just disable GPU timing
         } else {
             // Readback buffer: one UINT64 per query slot
             D3D12_HEAP_PROPERTIES hp{};
@@ -109,7 +109,7 @@ void DX12CommandQueue::init() {
     // ── Get GPU timestamp frequency for ms conversion ────────────────────────
     if (FAILED(m_directQueue->GetTimestampFrequency(&m_gpuTimestampFreq))) {
         AURA_LOG_WARN("DX12CommandQueue",
-            "GetTimestampFrequency failed — GPU timing metrics will be zero.");
+            "GetTimestampFrequency failed -- GPU timing metrics will be zero.");
         m_gpuTimestampFreq = 1;  // prevent divide-by-zero in timing calculations
     }
 

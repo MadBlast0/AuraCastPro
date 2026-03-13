@@ -1,5 +1,5 @@
-// =============================================================================
-// AudioDeviceEnumerator.cpp — Task 119: WASAPI audio output device selection
+﻿// =============================================================================
+// AudioDeviceEnumerator.cpp -- Task 119: WASAPI audio output device selection
 //
 // Uses IMMDeviceEnumerator (Windows Core Audio) to list all active render
 // endpoints and register for endpoint change notifications.
@@ -24,7 +24,7 @@ using Microsoft::WRL::ComPtr;
 namespace aura {
 
 // =============================================================================
-// IMMNotificationClient implementation — fires m_changeCallback on device change
+// IMMNotificationClient implementation -- fires m_changeCallback on device change
 // =============================================================================
 class DeviceNotificationClient : public IMMNotificationClient {
 public:
@@ -46,7 +46,7 @@ public:
         return E_NOINTERFACE;
     }
 
-    // IMMNotificationClient — only DefaultDeviceChanged matters
+    // IMMNotificationClient -- only DefaultDeviceChanged matters
     HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(
         EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId) override
     {
@@ -77,7 +77,7 @@ struct AudioDeviceEnumerator::Impl {
     bool                        comInitialised{false};
 
     bool init() {
-        // CoInitializeEx — safe to call multiple times in same apartment
+        // CoInitializeEx -- safe to call multiple times in same apartment
         HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
         comInitialised = SUCCEEDED(hr) || hr == RPC_E_CHANGED_MODE;
 
@@ -94,7 +94,7 @@ struct AudioDeviceEnumerator::Impl {
         notifClient->onDefaultChanged = [this](const std::string& newId) {
             std::lock_guard lock(mutex);
             AURA_LOG_INFO("AudioDeviceEnumerator",
-                "Default audio device changed → {}", newId);
+                "Default audio device changed -> {}", newId);
             if (changeCallback) changeCallback(newId);
         };
         enumerator->RegisterEndpointNotificationCallback(notifClient);

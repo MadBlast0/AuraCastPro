@@ -1,5 +1,5 @@
-// =============================================================================
-// WindowsEventLog.cpp — Task 159: Windows Event Log integration
+﻿// =============================================================================
+// WindowsEventLog.cpp -- Task 159: Windows Event Log integration
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "WindowsEventLog.h"
@@ -44,7 +44,7 @@ bool WindowsEventLog::registerSource() {
 
     if (rc != ERROR_SUCCESS) {
         AURA_LOG_WARN("WindowsEventLog",
-            "RegisterSource failed — insufficient permissions (rc={}). "
+            "RegisterSource failed -- insufficient permissions (rc={}). "
             "Run the installer as admin to enable Event Log integration.", rc);
         return false;
     }
@@ -73,9 +73,9 @@ bool WindowsEventLog::registerSource() {
 void WindowsEventLog::open() {
     m_handle = RegisterEventSourceW(nullptr, kSourceName);
     if (!m_handle) {
-        // Event source not registered — app will still work, just no Event Log
+        // Event source not registered -- app will still work, just no Event Log
         AURA_LOG_DEBUG("WindowsEventLog",
-            "RegisterEventSource failed (err={}) — Event Log writes disabled.",
+            "RegisterEventSource failed (err={}) -- Event Log writes disabled.",
             GetLastError());
     } else {
         AURA_LOG_DEBUG("WindowsEventLog", "Event Log source opened.");

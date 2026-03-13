@@ -1,4 +1,3 @@
-// SettingsPage.qml — Settings panel (neo-brutalist B/W/Grey)
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -7,178 +6,185 @@ import "."
 Item {
     RowLayout {
         anchors.fill: parent
-        anchors.margins: Theme.spacingLG
         spacing: Theme.spacingLG
 
-        // Left: category list
-        ColumnLayout {
-            width: 160
+        Rectangle {
+            width: 190
             Layout.fillHeight: true
-            spacing: 0
+            radius: Theme.radiusLG
+            color: Theme.bgCard
+            border.color: Theme.borderNormal
+            border.width: 1
 
-            Text {
-                text: qsTr("SETTINGS")
-                font.family:    Theme.fontMono
-                font.pixelSize: Theme.fontSizeH2
-                font.weight:    Font.Black
-                color:          Theme.textPrimary
-                letterSpacing:  4
-            }
-            Rectangle { height: 2; width: parent.width; color: Theme.borderActive }
-            Item { height: Theme.spacingMD }
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 18
+                spacing: 12
 
-            Repeater {
-                id: catRep
-                model: ["NETWORK","VIDEO","AUDIO","RECORDING","LICENSE","ABOUT"]
-                property int selected: 0
-                delegate: Rectangle {
-                    width: 160; height: 36
-                    color: catRep.selected === index ? Theme.borderActive : qsTr("transparent")
-                    border.color: catRep.selected === index ? Theme.borderActive : qsTr("transparent")
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.left: parent.left
-                        anchors.leftMargin: 8
-                        text:  modelData
-                        font.family:    Theme.fontMono
-                        font.pixelSize: Theme.fontSizeSM
-                        font.weight:    Font.Bold
-                        color: catRep.selected === index ? Theme.textInverse : Theme.textSecondary
-                        letterSpacing: 1
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: { catRep.selected = index; settingsStack.currentIndex = index }
+                Text {
+                    text: qsTr("Settings")
+                    font.family: Theme.fontSans
+                    font.pixelSize: Theme.fontSizeH2
+                    font.weight: Font.DemiBold
+                    color: Theme.textPrimary
+                }
+
+                Repeater {
+                    id: catRep
+                    model: ["Network", "Video", "Audio", "Recording", "License", "About"]
+                    property int selected: 0
+
+                    delegate: Rectangle {
+                        width: 154
+                        height: 38
+                        radius: 19
+                        color: catRep.selected === index ? Theme.bgElevated : "transparent"
+                        border.color: catRep.selected === index ? Theme.borderActive : "transparent"
+                        border.width: 1
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: parent.left
+                            anchors.leftMargin: 14
+                            text: modelData
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontSizeSM
+                            font.weight: catRep.selected === index ? Font.DemiBold : Font.Medium
+                            color: catRep.selected === index ? Theme.textPrimary : Theme.textSecondary
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                catRep.selected = index
+                                settingsStack.currentIndex = index
+                            }
+                        }
                     }
                 }
+
+                Item { Layout.fillHeight: true }
             }
-            Item { Layout.fillHeight: true }
         }
 
-        // Vertical divider
-        Rectangle { width: 2; Layout.fillHeight: true; color: Theme.borderActive }
-
-        // Right: content
         StackLayout {
             id: settingsStack
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            // NETWORK
             SettingsSection {
-                title: qsTr("NETWORK")
+                title: qsTr("Network")
                 rows: [
-                    { label: qsTr("Network Interface"), type: qsTr("combo"), key: qsTr("networkInterface") },
-                    { label: qsTr("AirPlay Port"),       type: qsTr("number"), key: qsTr("airplayPort")    },
-                    { label: qsTr("Cast Port"),          type: qsTr("number"), key: qsTr("castPort")       },
-                    { label: qsTr("Max Bitrate (Mbps)"), type: qsTr("number"), key: qsTr("maxBitrateMbps") },
+                    { label: qsTr("Network Interface"), key: qsTr("networkInterface") },
+                    { label: qsTr("AirPlay Port"), key: qsTr("airplayPort") },
+                    { label: qsTr("Cast Port"), key: qsTr("castPort") },
+                    { label: qsTr("Max Bitrate (Mbps)"), key: qsTr("maxBitrateMbps") }
                 ]
             }
-            // VIDEO
             SettingsSection {
-                title: qsTr("VIDEO")
+                title: qsTr("Video")
                 rows: [
-                    { label: qsTr("Target FPS"),     type: qsTr("combo"),  key: qsTr("targetFps")    },
-                    { label: qsTr("Quality Preset"), type: qsTr("combo"),  key: qsTr("qualityPreset")},
-                    { label: qsTr("Hardware Accel"), type: qsTr("toggle"), key: qsTr("hwAccel")      },
-                    { label: qsTr("HDR Output"),     type: qsTr("toggle"), key: qsTr("hdrOutput")    },
+                    { label: qsTr("Target FPS"), key: qsTr("targetFps") },
+                    { label: qsTr("Quality Preset"), key: qsTr("qualityPreset") },
+                    { label: qsTr("Hardware Accel"), key: qsTr("hwAccel") },
+                    { label: qsTr("HDR Output"), key: qsTr("hdrOutput") }
                 ]
             }
-            // AUDIO
             SettingsSection {
-                title: qsTr("AUDIO")
+                title: qsTr("Audio")
                 rows: [
-                    { label: qsTr("Audio Output Device"),  type: qsTr("combo"),  key: qsTr("audioDevice")  },
-                    { label: qsTr("Virtual Audio Cable"),  type: qsTr("toggle"), key: qsTr("virtualAudio") },
-                    { label: qsTr("A/V Sync Offset (ms)"), type: qsTr("number"), key: qsTr("avSyncOffsetMs")},
+                    { label: qsTr("Audio Output Device"), key: qsTr("audioDevice") },
+                    { label: qsTr("Virtual Audio Cable"), key: qsTr("virtualAudio") },
+                    { label: qsTr("A/V Sync Offset (ms)"), key: qsTr("avSyncOffsetMs") }
                 ]
             }
-            // RECORDING
             SettingsSection {
-                title: qsTr("RECORDING")
+                title: qsTr("Recording")
                 rows: [
-                    { label: qsTr("Output Folder"),   type: qsTr("path"),   key: qsTr("outputFolder") },
-                    { label: qsTr("Format"),          type: qsTr("combo"),  key: qsTr("recordFormat") },
-                    { label: qsTr("Disk Warn (GB)"),  type: qsTr("number"), key: qsTr("diskWarnGb")   },
+                    { label: qsTr("Output Folder"), key: qsTr("outputFolder") },
+                    { label: qsTr("Format"), key: qsTr("recordFormat") },
+                    { label: qsTr("Disk Warn (GB)"), key: qsTr("diskWarnGb") }
                 ]
             }
-            // LICENSE
             SettingsSection {
-                title: qsTr("LICENSE")
+                title: qsTr("License")
                 rows: [
-                    { label: qsTr("License Key"),  type: qsTr("text"),   key: qsTr("licenseKey")  },
-                    { label: qsTr("Edition"),      type: qsTr("label"),  key: qsTr("edition")     },
-                    { label: qsTr("Status"),       type: qsTr("label"),  key: qsTr("licenseStatus")},
+                    { label: qsTr("License Key"), key: qsTr("licenseKey") },
+                    { label: qsTr("Edition"), key: qsTr("edition") },
+                    { label: qsTr("Status"), key: qsTr("licenseStatus") }
                 ]
             }
-            // ABOUT
             SettingsSection {
-                title: qsTr("ABOUT")
+                title: qsTr("About")
                 rows: [
-                    { label: qsTr("Version"),  type: qsTr("label"), key: qsTr("appVersion")  },
-                    { label: qsTr("Build"),    type: qsTr("label"), key: qsTr("buildDate")   },
-                    { label: qsTr("GPU"),      type: qsTr("label"), key: qsTr("gpuName")     },
-                    { label: qsTr("OS"),       type: qsTr("label"), key: qsTr("osVersion")   },
+                    { label: qsTr("Version"), key: qsTr("appVersion") },
+                    { label: qsTr("Build"), key: qsTr("buildDate") },
+                    { label: qsTr("GPU"), key: qsTr("gpuName") },
+                    { label: qsTr("OS"), key: qsTr("osVersion") }
                 ]
             }
         }
     }
-component SettingsSection: Item {
-    property string title: ""
-    property var rows: []
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 0
+    component SettingsSection: Rectangle {
+        property string title: ""
+        property var rows: []
 
-        Text {
-            text: title
-            font.family:    Theme.fontMono
-            font.pixelSize: Theme.fontSizeLG
-            font.weight:    Font.Black
-            color:          Theme.textPrimary
-            letterSpacing:  3
-        }
-        Rectangle { height: 2; Layout.fillWidth: true; color: Theme.borderSubtle }
-        Item { height: Theme.spacingMD }
+        radius: Theme.radiusLG
+        color: Theme.bgCard
+        border.color: Theme.borderNormal
+        border.width: 1
 
-        Repeater {
-            model: rows
-            delegate: Rectangle {
-                Layout.fillWidth: true
-                height: 44
-                color: index % 2 === 0 ? Theme.bgCard : Theme.bgPanel
-                border.color: Theme.borderSubtle
-                border.width: 1
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 12
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.spacingMD
+            Text {
+                text: title
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontSizeH2
+                font.weight: Font.DemiBold
+                color: Theme.textPrimary
+            }
 
-                    Text {
-                        text:  modelData.label
-                        font.family:    Theme.fontMono
-                        font.pixelSize: Theme.fontSizeSM
-                        color:          Theme.textSecondary
-                        Layout.preferredWidth: 180
-                    }
+            Repeater {
+                model: rows
 
-                    // Value display — simplified for prototype
-                    Text {
-                        text: settingsModel
-                            ? (settingsModel[modelData.key] || "—")
-                            : "—"
-                        font.family:    Theme.fontMono
-                        font.pixelSize: Theme.fontSizeSM
-                        font.weight:    Font.Bold
-                        color:          Theme.textPrimary
-                        Layout.fillWidth: true
+                delegate: Rectangle {
+                    Layout.fillWidth: true
+                    height: 52
+                    radius: Theme.radiusMD
+                    color: index % 2 === 0 ? Theme.bgInput : Theme.bgPanel
+                    border.color: Theme.borderSubtle
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 14
+
+                        Text {
+                            text: modelData.label
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontSizeSM
+                            color: Theme.textSecondary
+                            Layout.preferredWidth: 190
+                        }
+
+                        Text {
+                            text: settingsModel ? (settingsModel[modelData.key] || "--") : "--"
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontSizeSM
+                            font.weight: Font.Medium
+                            color: Theme.textPrimary
+                            Layout.fillWidth: true
+                        }
                     }
                 }
             }
+
+            Item { Layout.fillHeight: true }
         }
-        Item { Layout.fillHeight: true }
     }
-}
 }

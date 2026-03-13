@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// UpdateService.h — Background update checker
+// UpdateService.h -- Background update checker
 // =============================================================================
 #include <string>
 #include <functional>
@@ -34,7 +34,7 @@ public:
     void checkNow(const std::string& currentVersion, UpdateCallback cb);
 
     // Set persistent callback fired when an update is found by the auto-check thread.
-    // Called on the background check thread — caller must marshal to UI thread if needed.
+    // Called on the background check thread -- caller must marshal to UI thread if needed.
     void setUpdateAvailableCallback(UpdateCallback cb);
 
     static int compareVersions(const std::string& v1, const std::string& v2);

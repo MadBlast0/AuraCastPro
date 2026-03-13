@@ -10,7 +10,7 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <wrl/client.h>
-#include <d3d12.h>
+#include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <dxgidebug.h>
@@ -50,6 +50,9 @@
 #include <nlohmann/json.hpp>
 
 // ── OpenSSL ──────────────────────────────────────────────────────────────────
+// Suppress OpenSSL 3.x deprecation warnings (HMAC_CTX_*, SHA1 etc.)
+// We use the legacy API intentionally for AirPlay2 protocol compatibility.
+#define OPENSSL_SUPPRESS_DEPRECATED
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/sha.h>

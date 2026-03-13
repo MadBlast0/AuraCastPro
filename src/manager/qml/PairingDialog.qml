@@ -71,7 +71,6 @@ Dialog {
             font.pixelSize: Theme.fontSizeXL
             font.weight:    Font.Black
             color:          Theme.textPrimary
-            letterSpacing:  4
             elide: Text.ElideRight
             Layout.fillWidth: true
         }
@@ -149,7 +148,6 @@ Dialog {
                 font.pixelSize: Theme.fontSizeLG
                 font.weight:    Font.Black
                 color:          Theme.textPrimary
-                letterSpacing:  2
                 Layout.alignment: Qt.AlignHCenter
             }
             // Animated dots
@@ -194,7 +192,6 @@ Dialog {
                 font.pixelSize: Theme.fontSizeXL
                 font.weight:    Font.Black
                 color:          Theme.accentGreen
-                letterSpacing:  4
                 Layout.alignment: Qt.AlignHCenter
             }
             Item { Layout.fillHeight: true }
@@ -254,7 +251,7 @@ Dialog {
                     anchors.centerIn: parent
                     text: qsTr("CANCEL")
                     font.family:  Theme.fontMono; font.pixelSize: Theme.fontSizeSM
-                    font.weight:  Font.Bold; color: Theme.textSecondary; letterSpacing: 2
+                    font.weight:  Font.Bold; color: Theme.textSecondary
                 }
                 MouseArea {
                     anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -279,7 +276,7 @@ Dialog {
                     anchors.centerIn: parent
                     text: stateMachine.state === "Failed" ? qsTr("TRY AGAIN") : qsTr("PAIR")
                     font.family:  Theme.fontMono; font.pixelSize: Theme.fontSizeSM
-                    font.weight:  Font.Black; color: Theme.textInverse; letterSpacing: 2
+                    font.weight:  Font.Black; color: Theme.textInverse
                 }
                 MouseArea {
                     anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -310,7 +307,7 @@ Dialog {
                 anchors.centerIn: parent
                 text: qsTr("CLOSE")
                 font.family:  Theme.fontMono; font.pixelSize: Theme.fontSizeSM
-                font.weight:  Font.Bold; color: Theme.textSecondary; letterSpacing: 2
+                font.weight:  Font.Bold; color: Theme.textSecondary
             }
             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.reject() }
         }
@@ -325,7 +322,7 @@ Dialog {
                 anchors.centerIn: parent
                 text: qsTr("CANCEL")
                 font.family:  Theme.fontMono; font.pixelSize: Theme.fontSizeSM
-                font.weight:  Font.Bold; color: Theme.textSecondary; letterSpacing: 2
+                font.weight:  Font.Bold; color: Theme.textSecondary
             }
             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.reject() }
         }

@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "RecordingSystem.h"
 #include "StreamRecorder.h"
 #include "../utils/Logger.h"
@@ -124,7 +124,7 @@ std::string RecordingController::startRecording() {
     m_startTime = std::chrono::steady_clock::now();
     m_pausedDuration = {};
 
-    LOG_INFO("RecordingController: Started → {}", m_currentPath);
+    LOG_INFO("RecordingController: Started -> {}", m_currentPath);
     if (m_onState) m_onState(m_state);
     return "";
 }
@@ -154,7 +154,7 @@ void RecordingController::stopRecording() {
     auto sz = std::filesystem::file_size(m_currentPath, ec);
     if (!ec) size = sz;
 
-    LOG_INFO("RecordingController: Stopped → {} ({} bytes)", m_currentPath, size);
+    LOG_INFO("RecordingController: Stopped -> {} ({} bytes)", m_currentPath, size);
     if (m_onState)   m_onState(m_state);
     if (m_onComplete) m_onComplete(m_currentPath, size);
 }

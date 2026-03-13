@@ -209,6 +209,8 @@ TEST(LatencyMonitor, NetworkPredictorConvergence) {
     EXPECT_LT(telemetry.packetLossPct, 5.0)
         << "EMA should recover after 20 normal samples";
 
-    printf("\n[NetworkPredictor] After recovery: loss=%.2f%%  jitter=%.1fms  bw=%.0fKbps\n",
-           telemetry.packetLossPct, telemetry.jitterMs, telemetry.bandwidthEstKbps);
+    printf("\n[NetworkPredictor] After recovery: loss=%.2f%%  jitter=%.1fms\n",
+           telemetry.packetLossPct, telemetry.jitterMs);
 }
+
+

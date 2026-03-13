@@ -1,20 +1,20 @@
-// =============================================================================
-// StreamRecorder.cpp — Fragmented MP4 recording via FFmpeg libavformat
+﻿// =============================================================================
+// StreamRecorder.cpp -- Fragmented MP4 recording via FFmpeg libavformat
 //
 // Uses fragmented MP4 (frag_keyframe+empty_moov) so the file is playable
 // even if the app crashes mid-recording.
 //
-// Video: stream copy (no re-encode) — H.265 in → H.265 out. Zero CPU cost.
-// Audio: PCM float 48kHz → AAC-LC 192kbps (FFmpeg AAC encoder).
+// Video: stream copy (no re-encode) -- H.265 in -> H.265 out. Zero CPU cost.
+// Audio: PCM float 48kHz -> AAC-LC 192kbps (FFmpeg AAC encoder).
 //
 // FFmpeg API flow:
 //   avformat_alloc_output_context2 ("mp4")
-//   → add video stream (copy codec params from input)
-//   → add audio stream (AAC encoder)
-//   → av_opt_set movflags "frag_keyframe+empty_moov+default_base_moof"
-//   → avio_open / avformat_write_header
-//   → av_interleaved_write_frame (per packet/frame)
-//   → av_write_trailer / avio_closep
+//   -> add video stream (copy codec params from input)
+//   -> add audio stream (AAC encoder)
+//   -> av_opt_set movflags "frag_keyframe+empty_moov+default_base_moof"
+//   -> avio_open / avformat_write_header
+//   -> av_interleaved_write_frame (per packet/frame)
+//   -> av_write_trailer / avio_closep
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -46,7 +46,7 @@ struct StreamRecorder::FFmpegState {
 
     // Audio encoder
     AVCodecContext*  audioEncCtx{nullptr};
-    SwrContext*      swrCtx{nullptr};    // PCM float → AACencoder format
+    SwrContext*      swrCtx{nullptr};    // PCM float -> AACencoder format
     AVFrame*         audioFrame{nullptr};
     int64_t          audioPts{0};
 
@@ -63,7 +63,7 @@ StreamRecorder::~StreamRecorder() { shutdown(); }
 void StreamRecorder::init() {
     AURA_LOG_INFO("StreamRecorder",
         "Initialised. FFmpeg fragmented MP4. "
-        "Video: stream copy (zero CPU). Audio: PCM→AAC-LC 192kbps.");
+        "Video: stream copy (zero CPU). Audio: PCM->AAC-LC 192kbps.");
 }
 
 // -----------------------------------------------------------------------------
@@ -86,7 +86,7 @@ bool StreamRecorder::startRecording(const std::string& outputPath,
         }
     } catch (const std::exception& e) {
         AURA_LOG_WARN("StreamRecorder", "Disk space check failed: {}", e.what());
-        // Non-fatal — continue recording attempt
+        // Non-fatal -- continue recording attempt
     }
 
     AURA_LOG_INFO("StreamRecorder", "Starting recording: {}", outputPath);
@@ -137,7 +137,7 @@ bool StreamRecorder::startRecording(const std::string& outputPath,
     m_recording.store(true);
     m_paused.store(false);
 
-    AURA_LOG_INFO("StreamRecorder", "Recording started: {}×{} {} @{}fps → {}",
+    AURA_LOG_INFO("StreamRecorder", "Recording started: {}x{} {} @{}fps -> {}",
                   videoWidth, videoHeight, videoCodec, fps, outputPath);
     return true;
 }
@@ -167,7 +167,7 @@ bool StreamRecorder::initAudioStream(uint32_t sampleRate, uint32_t channels) {
     const AVCodec* aacEncoder = avcodec_find_encoder(AV_CODEC_ID_AAC);
     if (!aacEncoder) {
         AURA_LOG_WARN("StreamRecorder", "AAC encoder not found. Audio will not be recorded.");
-        return true; // Non-fatal — record video only
+        return true; // Non-fatal -- record video only
     }
 
     m_ffmpeg->audioEncCtx = avcodec_alloc_context3(aacEncoder);
@@ -234,7 +234,7 @@ void StreamRecorder::onAudioSamples(const float* samples, uint32_t numFrames,
     if (!m_ffmpeg->audioEncCtx || !m_ffmpeg->audioFrame) return;
 
     // Copy samples into AVFrame and encode
-    // (simplified — full implementation uses SwrContext for format conversion)
+    // (simplified -- full implementation uses SwrContext for format conversion)
     AVFrame* frame = m_ffmpeg->audioFrame;
     av_frame_make_writable(frame);
 

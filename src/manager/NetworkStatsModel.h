@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// NetworkStatsModel.h — Live network statistics for QML binding.
+// NetworkStatsModel.h -- Live network statistics for QML binding.
 // FIXED: Added 9 missing Q_PROPERTYs + expanded history to 300 samples.
 //   Added: averageBitrateKbps, peakBitrateKbps, averageLatencyMs,
 //          minLatencyMs, maxLatencyMs, jitterMs, droppedFrames,
@@ -50,7 +50,7 @@ public:
     void stop();
     void shutdown();
 
-    // Thread-safe update — called from network/decoder threads
+    // Thread-safe update -- called from network/decoder threads
     void updateStats(double latencyMs, double bitrateKbps,
                      double fps, double packetLossPct, double gpuFrameMs);
     void incrementDroppedFrames();
@@ -61,7 +61,7 @@ public:
     // Allows individual subsystems to update just their own metric.
     void setCurrentBitrateBps(double bps) {
         updateStats(m_latencyMs.load(),
-                    bps / 1000.0,           // convert bps → kbps
+                    bps / 1000.0,           // convert bps -> kbps
                     m_fps.load(),
                     m_packetLossPct.load(),
                     m_gpuFrameMs.load());
@@ -117,7 +117,7 @@ private slots:
     void onUiRefreshTimer();
 
 private:
-    // Current (atomics — written from any thread)
+    // Current (atomics -- written from any thread)
     std::atomic<double> m_latencyMs{0};
     std::atomic<double> m_bitrateKbps{0};
     std::atomic<double> m_fps{0};
@@ -138,7 +138,7 @@ private:
     std::atomic<qint64> m_droppedFrames{0};
     std::atomic<qint64> m_totalFrames{0};
 
-    // History ring buffers (mutex-protected — read from QML/UI thread)
+    // History ring buffers (mutex-protected -- read from QML/UI thread)
     static constexpr int kHistoryLength = 300; // 30s at 10Hz
     mutable std::mutex   m_historyMutex;
     QList<double>        m_bitrateHistory;

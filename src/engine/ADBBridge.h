@@ -1,6 +1,6 @@
 #pragma once
 // =============================================================================
-// ADBBridge.h — Android Debug Bridge wired/wireless mirroring
+// ADBBridge.h -- Android Debug Bridge wired/wireless mirroring
 // =============================================================================
 #include <string>
 #include <vector>
@@ -27,7 +27,7 @@ public:
     using DeviceLostCallback       = std::function<void(const std::string& serial)>;
     using StreamCallback           = std::function<void(const uint8_t* data, size_t len,
                                                          uint64_t pts)>;
-    // Fired when a device moves from unauthorized → authorized (USB debug dialog accepted)
+    // Fired when a device moves from unauthorized -> authorized (USB debug dialog accepted)
     // or when adb wireless pairing completes.  success=true on authorize, false on rejection.
     using PairingResultCallback    = std::function<void(const std::string& serial, bool success)>;
     ADBBridge();
@@ -40,6 +40,7 @@ public:
 
     // Scan for connected devices
     std::vector<AndroidDevice> enumerateDevices();
+    void scanForDevices() { enumerateDevices(); }
 
     // Start mirroring a specific device
     bool startMirroring(const std::string& serial, StreamCallback videoCallback);
@@ -73,6 +74,7 @@ private:
     std::vector<std::unique_ptr<MirrorSession>> m_sessions;
 
     std::string runADB(const std::string& args) const;
+    bool runADBDetached(const std::string& args) const;
     bool findADB();
     void scanLoop();
 };

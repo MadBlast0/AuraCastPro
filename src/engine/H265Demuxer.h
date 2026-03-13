@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// H265Demuxer.h — H.265/HEVC access unit assembler
+// H265Demuxer.h -- H.265/HEVC access unit assembler
 //
 // Receives NAL units from NALParser and assembles them into complete
 // access units (one complete video frame) ready for the VideoDecoder.

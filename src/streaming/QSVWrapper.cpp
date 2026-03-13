@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "QSVWrapper.h"
 #include "../utils/Logger.h"
 extern "C" {
@@ -18,7 +18,7 @@ bool QSVWrapper::isAvailable() {
     ctx->width  = 1280; ctx->height = 720;
     ctx->time_base = { 1, 30 };
     ctx->pix_fmt   = AV_PIX_FMT_QSV;
-    // Probe open — will fail without Intel GPU but won't crash
+    // Probe open -- will fail without Intel GPU but won't crash
     bool ok = (avcodec_open2(ctx, c, nullptr) >= 0);
     avcodec_free_context(&ctx);
     return ok;
@@ -31,7 +31,7 @@ bool QSVWrapper::init(int width, int height, int bitrateMbps, int fps) {
 
     const AVCodec* codec = avcodec_find_encoder_by_name("h264_qsv");
     if (!codec) {
-        LOG_WARN("QSVWrapper: h264_qsv not available — QSV unavailable");
+        LOG_WARN("QSVWrapper: h264_qsv not available -- QSV unavailable");
         return false;
     }
 
@@ -75,7 +75,7 @@ bool QSVWrapper::init(int width, int height, int bitrateMbps, int fps) {
 
 bool QSVWrapper::encodeFrame(ID3D12Resource* /*frame*/) {
     if (!m_codecCtx || !m_frame) return false;
-    // In production: GPU readback → fill m_frame->data planes
+    // In production: GPU readback -> fill m_frame->data planes
     // For now: zero frame (black) to verify pipeline compiles
     av_frame_make_writable(m_frame);
     int ret = avcodec_send_frame(m_codecCtx, m_frame);

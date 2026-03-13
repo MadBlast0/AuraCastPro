@@ -1,5 +1,5 @@
-// =============================================================================
-// StreamBroadcaster.cpp — Multi-sink frame distribution
+﻿// =============================================================================
+// StreamBroadcaster.cpp -- Multi-sink frame distribution
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "StreamBroadcaster.h"
@@ -20,7 +20,7 @@ StreamBroadcaster::~StreamBroadcaster() {}
 void StreamBroadcaster::init() {
     AURA_LOG_INFO("StreamBroadcaster",
         "Initialised. Sinks: VirtualCamera + Recorder + RTMP. "
-        "Zero-copy fan-out — same compressed packet sent to all active sinks.");
+        "Zero-copy fan-out -- same compressed packet sent to all active sinks.");
 }
 
 void StreamBroadcaster::start() {

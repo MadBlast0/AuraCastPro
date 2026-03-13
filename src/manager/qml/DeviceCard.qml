@@ -110,7 +110,7 @@ Rectangle {
                 visible: deviceState !== "Idle"
                 text: qsTr("✕")
                 flat: true
-                background: Rectangle { color: qsTr("transparent") }
+                background: Rectangle { color: "transparent" }
                 contentItem: Text { text: parent.text; color: "#8B949E"; font.pixelSize: 12; horizontalAlignment: Text.AlignHCenter }
                 height: 28; width: 28
                 onClicked: card.disconnectRequested(deviceId)

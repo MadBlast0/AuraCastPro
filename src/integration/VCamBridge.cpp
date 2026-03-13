@@ -1,10 +1,10 @@
-// =============================================================================
-// VCamBridge.cpp — Shared memory bridge to MirrorCam.dll virtual camera
+﻿// =============================================================================
+// VCamBridge.cpp -- Shared memory bridge to MirrorCam.dll virtual camera
 //
 // Shared memory layout: "Global\\AuraCastPro_VCam_v1"
 //
 // struct VCamSharedFrame {
-//   uint32_t magic;         // 0xAC570001 — sanity check
+//   uint32_t magic;         // 0xAC570001 -- sanity check
 //   uint32_t width, height; // current frame dimensions
 //   uint32_t frameIndex;    // incremented each new frame
 //   uint32_t format;        // 0=BGRA32, 1=NV12
@@ -135,10 +135,10 @@ void VCamBridge::pushFrame(const uint8_t* bgraPixels, uint32_t width,
 void VCamBridge::pushFrameGPU(ID3D12Resource* /*renderTarget*/,
                                uint32_t /*width*/, uint32_t /*height*/) {
     // Full implementation: GPU readback via staging texture + GPU fence
-    // ID3D12Device::CreateCommittedResource (staging) →
-    // CopyTextureRegion → ExecuteCommandLists → fence wait →
-    // Map staging → pushFrame(pixels, ...)
-    AURA_LOG_TRACE("VCamBridge", "GPU readback path — Phase 9.");
+    // ID3D12Device::CreateCommittedResource (staging) ->
+    // CopyTextureRegion -> ExecuteCommandLists -> fence wait ->
+    // Map staging -> pushFrame(pixels, ...)
+    AURA_LOG_TRACE("VCamBridge", "GPU readback path -- Phase 9.");
 }
 
 void VCamBridge::shutdown() {

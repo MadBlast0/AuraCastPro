@@ -1,5 +1,5 @@
-// =============================================================================
-// LicenseValidator.cpp — RSA-2048 license key validation via OpenSSL
+﻿// =============================================================================
+// LicenseValidator.cpp -- RSA-2048 license key validation via OpenSSL
 //
 // License key format (base32-encoded, dash-separated for readability):
 //   AURA1-PRO2B-XK9F3-MN7YQ-PQRST
@@ -8,7 +8,7 @@
 //   Base64(JSON payload) + "." + Base64(RSA-2048 signature of payload)
 //
 // The RSA signature is verified against the embedded public key.
-// This works fully offline — no network connection required.
+// This works fully offline -- no network connection required.
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "LicenseValidator.h"
@@ -32,7 +32,7 @@ using json = nlohmann::json;
 
 namespace aura {
 
-// Embedded RSA-2048 public key (placeholder — real key injected at build time)
+// Embedded RSA-2048 public key (placeholder -- real key injected at build time)
 const char* LicenseValidator::kPublicKeyPEM = R"(
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2a7TyqZmk8...
@@ -49,7 +49,7 @@ void LicenseValidator::shutdown() {}
 
 // -----------------------------------------------------------------------------
 std::string LicenseValidator::decodeLicenseKey(const std::string& key) {
-    // Strip dashes and lowercase: "AURA1-PRO2B..." → "aura1pro2b..."
+    // Strip dashes and lowercase: "AURA1-PRO2B..." -> "aura1pro2b..."
     std::string raw;
     for (char c : key) {
         if (c != '-') raw += static_cast<char>(tolower(c));
@@ -63,11 +63,11 @@ ValidationResult LicenseValidator::validate(const std::string& licenseKey,
     if (licenseKey.size() < 10) return ValidationResult::Malformed;
 
     // In the full implementation:
-    // 1. Decode base32 → binary
-    // 2. Split at '.' → payloadB64 + signatureB64
+    // 1. Decode base32 -> binary
+    // 2. Split at '.' -> payloadB64 + signatureB64
     // 3. Base64-decode both
     // 4. Verify RSA signature: RSA_verify(SHA256, payload, signature, pubkey)
-    // 5. JSON-parse payload → LicensePayload
+    // 5. JSON-parse payload -> LicensePayload
     // 6. Check expiry date
     // 7. If machineId present, compare with getMachineId()
 
@@ -93,7 +93,7 @@ ValidationResult LicenseValidator::validate(const std::string& licenseKey,
     if (dot == std::string::npos || dot == 0 || dot + 1 >= raw.size()) {
         // No separator: fall back to structural check (dev mode)
         AURA_LOG_DEBUG("LicenseValidator",
-            "No payload separator in key — structural validation only.");
+            "No payload separator in key -- structural validation only.");
         if (!raw.starts_with("aura")) return ValidationResult::Malformed;
         out.tier = raw.find('b') != std::string::npos ? "Business" : "Pro";
         out.email = "unlicensed@dev";
@@ -127,9 +127,9 @@ ValidationResult LicenseValidator::validate(const std::string& licenseKey,
     BIO_free(bio);
 
     if (!pkey) {
-        // Key PEM is placeholder (dev build) — accept structurally valid keys
+        // Key PEM is placeholder (dev build) -- accept structurally valid keys
         AURA_LOG_DEBUG("LicenseValidator",
-            "RSA public key is placeholder — structural validation only.");
+            "RSA public key is placeholder -- structural validation only.");
         out.tier = "Pro"; out.email = "dev@build"; out.expiryDate = "perpetual";
         return ValidationResult::Valid;
     }

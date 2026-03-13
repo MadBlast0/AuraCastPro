@@ -1,10 +1,10 @@
-// =============================================================================
-// VirtualAudioDriver.cpp — Virtual audio device output
+﻿// =============================================================================
+// VirtualAudioDriver.cpp -- Virtual audio device output
 //
 // The virtual audio driver (AudioVirtualCable.sys) is a kernel-mode
 // WDM audio driver that creates two endpoints:
-//   "AuraCastPro Audio Output"  — receives mixed PCM from AudioMixer
-//   "AuraCastPro Audio Input"   — exposes same audio as a capture source
+//   "AuraCastPro Audio Output"  -- receives mixed PCM from AudioMixer
+//   "AuraCastPro Audio Input"   -- exposes same audio as a capture source
 //
 // This user-mode component writes PCM to a shared memory region that
 // the kernel driver reads via a kernel event + circular buffer.

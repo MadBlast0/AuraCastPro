@@ -1,5 +1,5 @@
-// =============================================================================
-// WinHttpHelper.cpp — Task 195: WinHTTP session factory with proxy support
+﻿// =============================================================================
+// WinHttpHelper.cpp -- Task 195: WinHTTP session factory with proxy support
 // =============================================================================
 #include "WinHttpHelper.h"
 #include "../src/utils/Logger.h"

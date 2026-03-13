@@ -1,8 +1,8 @@
-// =============================================================================
-// PluginLoader.cpp — Task 162: Low-level DLL loading with full error handling
+﻿// =============================================================================
+// PluginLoader.cpp -- Task 162: Low-level DLL loading with full error handling
 //
 // Wraps LoadLibraryW / FreeLibrary with:
-//   • SEM_FAILCRITICALERRORS  — prevents OS modal error dialogs on bad DLLs
+//   • SEM_FAILCRITICALERRORS  -- prevents OS modal error dialogs on bad DLLs
 //   • Structured error messages via GetLastError / FormatMessage
 //   • SEH try/catch around FreeLibrary (plugins that crash on unload)
 //   • Detailed logging for every load/unload attempt
@@ -49,7 +49,7 @@ void PluginLoader::init() {
     AURA_LOG_INFO("PluginLoader", "Initialised. DLL error dialogs suppressed.");
 }
 
-void PluginLoader::start()    { /* nothing — plugins loaded on demand */ }
+void PluginLoader::start()    { /* nothing -- plugins loaded on demand */ }
 void PluginLoader::stop()     { /* nothing */ }
 void PluginLoader::shutdown() { AURA_LOG_DEBUG("PluginLoader", "Shutdown."); }
 
@@ -72,7 +72,7 @@ IPlugin* PluginLoader::load(const std::string& dllPath, void** outHandle) {
     if (!hDll) {
         DWORD err = GetLastError();
         AURA_LOG_ERROR("PluginLoader",
-            "Failed to load plugin '{}': 0x{:08X} — {}",
+            "Failed to load plugin '{}': 0x{:08X} -- {}",
             dllPath, err, winErrorMsg(err));
         return nullptr;
     }
@@ -91,7 +91,7 @@ IPlugin* PluginLoader::load(const std::string& dllPath, void** outHandle) {
         return nullptr;
     }
 
-    // API version check — guard against ABI mismatches
+    // API version check -- guard against ABI mismatches
     if (versionFn) {
         const char* ver = versionFn();
         if (ver && std::string(ver) != AURA_PLUGIN_API_VERSION) {
@@ -166,7 +166,7 @@ void PluginLoader::unload(IPlugin* plugin, void* handle) {
         try { delete plugin; } catch (...) {}
     }
 
-    // FreeLibrary — SEH cannot be mixed with C++ unwinding in the same function
+    // FreeLibrary -- SEH cannot be mixed with C++ unwinding in the same function
     FreeLibrary(static_cast<HMODULE>(handle));
 
     AURA_LOG_INFO("PluginLoader", "Unloaded plugin '{}'.", name);

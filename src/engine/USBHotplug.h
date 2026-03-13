@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// USBHotplug.h — Task 062: WM_DEVICECHANGE listener for Android USB detection
+// USBHotplug.h -- Task 062: WM_DEVICECHANGE listener for Android USB detection
 // =============================================================================
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -14,7 +14,7 @@ namespace aura {
 
 // Listens for Windows WM_DEVICECHANGE messages on a hidden message-only window.
 // Fires onDeviceArrived / onDeviceRemoved callbacks on the listener thread.
-// Thread-safe: callbacks may be invoked from the listener thread — callers
+// Thread-safe: callbacks may be invoked from the listener thread -- callers
 // must marshal to their own thread if needed.
 class USBHotplug {
 public:

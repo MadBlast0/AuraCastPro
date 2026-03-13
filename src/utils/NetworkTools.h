@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// NetworkTools.h — Network utility functions used across multiple subsystems.
+// NetworkTools.h -- Network utility functions used across multiple subsystems.
 //
 // Includes:
 //   - Local IP address enumeration

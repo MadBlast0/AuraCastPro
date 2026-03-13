@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// MouseToTouch.h — Translates PC mouse/trackpad events into device touch events
+// MouseToTouch.h -- Translates PC mouse/trackpad events into device touch events
 // =============================================================================
 #include <functional>
 #include <cstdint>
@@ -12,7 +12,7 @@ enum class TouchEventType { Down, Move, Up, Scroll, LongPress };
 
 struct TouchEvent {
     TouchEventType type;
-    float x{0};     // Normalized [0,1] — scaled to device resolution
+    float x{0};     // Normalized [0,1] -- scaled to device resolution
     float y{0};
     float dx{0};    // Delta for scroll
     float dy{0};
@@ -36,7 +36,7 @@ public:
     void onMouseMove(int x, int y, int windowW, int windowH);
     void onMouseUp(int x, int y, int windowW, int windowH);
     void onMouseScroll(int x, int y, int delta, int windowW, int windowH);
-    void onRightClick(int x, int y, int windowW, int windowH); // → long press
+    void onRightClick(int x, int y, int windowW, int windowH); // -> long press
 
     void setCallback(TouchCallback cb) { m_callback = std::move(cb); }
     void setEnabled(bool v)            { m_enabled.store(v); }

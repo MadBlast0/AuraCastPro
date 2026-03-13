@@ -1,5 +1,5 @@
-// =============================================================================
-// DiagnosticsExporter.cpp — Task 200: Export diagnostics bundle to Desktop.
+﻿// =============================================================================
+// DiagnosticsExporter.cpp -- Task 200: Export diagnostics bundle to Desktop.
 // BUILT: Was missing. Copies logs + crash dump + sysinfo into a zip.
 // Uses minizip (bundled with zlib via vcpkg) or falls back to plain folder.
 // =============================================================================
@@ -51,7 +51,7 @@ std::string DiagnosticsExporter::exportToDesktop() {
     const auto& os = OSVersionHelper::version();
 
     const std::string sysInfo = std::format(
-        "AuraCastPro Diagnostics — {}\n"
+        "AuraCastPro Diagnostics -- {}\n"
         "===========================================\n"
         "OS:           {}\n"
         "CPU Cores:    {}\n"

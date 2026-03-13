@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// VCamBridge.h — Virtual camera output (phone screen → OBS/Zoom camera source)
+// VCamBridge.h -- Virtual camera output (phone screen -> OBS/Zoom camera source)
 //
 // Copies rendered frames from the DX12 render target into a shared memory
 // region read by MirrorCam.dll (the virtual DirectShow/MF camera filter).
@@ -33,7 +33,7 @@ public:
     void pushFrame(const uint8_t* bgraPixels, uint32_t width, uint32_t height,
                    uint64_t timestampUs);
 
-    // GPU readback variant — reads NV12 texture from GPU, converts, pushes
+    // GPU readback variant -- reads NV12 texture from GPU, converts, pushes
     void pushFrameGPU(ID3D12Resource* renderTarget, uint32_t width, uint32_t height);
 
     bool isRunning()     const { return m_running.load(); }

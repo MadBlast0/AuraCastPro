@@ -6,7 +6,7 @@
 //   Plane 1 (UV): Half-resolution chroma   — 2 bytes per 2x2 pixel block
 //                  interleaved as U,V,U,V,...
 //
-// This shader implements BT.709 YCbCr → RGB conversion, the standard
+// This shader implements BT.709 YCbCr -> RGB conversion, the standard
 // colour space used by AirPlay and most modern mobile devices.
 //
 // BT.709 coefficients (studio swing, 16-235 luma, 16-240 chroma):
@@ -60,7 +60,7 @@ float4 PSMain(VS_OUTPUT input) : SV_Target {
     float u = UV.r * 255.0f;
     float v = UV.g * 255.0f;
 
-    // BT.709 YCbCr (studio swing) → linear RGB
+    // BT.709 YCbCr (studio swing) -> linear RGB
     float R = 1.164f * (y - 16.0f)                         + 1.793f * (v - 128.0f);
     float G = 1.164f * (y - 16.0f) - 0.213f * (u - 128.0f) - 0.534f * (v - 128.0f);
     float B = 1.164f * (y - 16.0f) + 2.115f * (u - 128.0f);

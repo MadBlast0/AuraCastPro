@@ -1,5 +1,5 @@
-// =============================================================================
-// DeviceManager.cpp — Device lifecycle management
+﻿// =============================================================================
+// DeviceManager.cpp -- Device lifecycle management
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -16,7 +16,7 @@ DeviceManager::DeviceManager(QObject* parent) : QObject(parent) {
 }
 
 void DeviceManager::init() {
-    AURA_LOG_INFO("DeviceManager", "Initialised. Device list empty — waiting for discovery.");
+    AURA_LOG_INFO("DeviceManager", "Initialised. Device list empty -- waiting for discovery.");
 }
 
 void DeviceManager::shutdown() {
@@ -74,7 +74,7 @@ void DeviceManager::onDeviceStateChanged(const QString& deviceId, DeviceState ne
         device->lastConnected = QDateTime::currentDateTime();
     }
 
-    AURA_LOG_INFO("DeviceManager", "Device '{}': {} → {}",
+    AURA_LOG_INFO("DeviceManager", "Device '{}': {} -> {}",
                   device->name.toStdString(),
                   stateToString(oldState).toStdString(),
                   stateToString(newState).toStdString());
@@ -164,7 +164,7 @@ QString DeviceManager::typeToString(DeviceType type) {
     }
 }
 
-// ── startScan() — trigger mDNS re-scan ───────────────────────────────────────
+// ── startScan() -- trigger mDNS re-scan ───────────────────────────────────────
 // The actual scan is owned by MDNSService; DeviceManager just signals the intent.
 // MDNSService connects to this signal in main.cpp.
 void DeviceManager::startScan() {
@@ -172,11 +172,11 @@ void DeviceManager::startScan() {
     emit scanRequested();
 }
 
-// ── startMirror() — begin mirroring from first connected device ───────────────
+// ── startMirror() -- begin mirroring from first connected device ───────────────
 void DeviceManager::startMirror() {
     for (const auto& d : m_devices) {
         if (d.state == DeviceState::Connected || d.state == DeviceState::Streaming) {
-            AURA_LOG_INFO("DeviceManager", "startMirror → device {}", d.id.toStdString());
+            AURA_LOG_INFO("DeviceManager", "startMirror -> device {}", d.id.toStdString());
             emit mirrorRequested(d.id);
             return;
         }

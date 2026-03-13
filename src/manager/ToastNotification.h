@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// ToastNotification.h — Task 176: Windows Toast notification infrastructure
+// ToastNotification.h -- Task 176: Windows Toast notification infrastructure
 //
 // Shows native Windows 10/11 toast notifications (Action Center) for events
 // like device connected, recording started, license expiry, etc.
@@ -60,7 +60,7 @@ public:
     static void notifyLicenseExpiringSoon(int daysLeft);
     static void notifyError(const std::string& title, const std::string& message);
 
-    // Task: Update badge — shown when UpdateService finds a newer version
+    // Task: Update badge -- shown when UpdateService finds a newer version
     static void showUpdateAvailable(const std::string& version,
                                     const std::string& downloadUrl);
 };

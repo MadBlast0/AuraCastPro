@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// RTMPOutput.h — RTMP/RTMPS live streaming output
+// RTMPOutput.h -- RTMP/RTMPS live streaming output
 // =============================================================================
 #include <string>
 #include <memory>

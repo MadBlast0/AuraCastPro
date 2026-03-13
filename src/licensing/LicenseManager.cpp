@@ -1,5 +1,5 @@
-// =============================================================================
-// LicenseManager.cpp — RSA-2048 license key validation
+﻿// =============================================================================
+// LicenseManager.cpp -- RSA-2048 license key validation
 //
 // License key format: 4 groups of 6 alphanumeric chars, dash-separated
 //   e.g. AURA1-PRO2B-XK9F3-MN7YQ
@@ -31,7 +31,7 @@
 
 using json = nlohmann::json;
 
-// Embedded RSA-2048 public key (placeholder — real key embedded at build time)
+// Embedded RSA-2048 public key (placeholder -- real key embedded at build time)
 static const char kPublicKey[] = R"(
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA... (placeholder)
@@ -125,10 +125,10 @@ bool LicenseManager::activate(const std::string& key, const std::string& email) 
     m_license.isValid = true;
 
     // Decode tier from key prefix:
-    //   AURA-P-...  → Pro
-    //   AURA-B-...  → Business
-    //   AURAP...    → Pro  (legacy format)
-    //   AURAB...    → Business (legacy format)
+    //   AURA-P-...  -> Pro
+    //   AURA-B-...  -> Business
+    //   AURAP...    -> Pro  (legacy format)
+    //   AURAB...    -> Business (legacy format)
     if (key.size() >= 7 &&
         (key[4] == '-' ? key[5] == 'B' : key[4] == 'B'))
         m_license.tier = LicenseTier::Business;
@@ -157,7 +157,7 @@ bool LicenseManager::validateSignature(const std::string& key) const {
     // Fast structural check: must start with "AURA" prefix
     if (key.substr(0, 4) != "AURA") return false;
 
-    // ── RSA-2048 public key (PEM — real key injected at build time via CMake) ──
+    // ── RSA-2048 public key (PEM -- real key injected at build time via CMake) ──
     // During development/testing: accept any structurally valid AURA key.
     // Production build: replace kPublicKeyPEM with the real signing key.
     static const char* kPublicKeyPEM =
@@ -178,10 +178,10 @@ bool LicenseManager::validateSignature(const std::string& key) const {
     BIO_free(bio);
 
     if (!pkey) {
-        // Public key failed to parse (placeholder key during dev) →
+        // Public key failed to parse (placeholder key during dev) ->
         // fall back to structural validation only
         AURA_LOG_DEBUG("LicenseManager",
-            "RSA public key parse failed — using structural validation (dev mode).");
+            "RSA public key parse failed -- using structural validation (dev mode).");
         // Accept: AURA[tier][version]-[5 alphanum]-[5 alphanum]-[5 alphanum]
         // e.g. AURA1-PRO2B-XK9F3-MN7YQ
         if (key.size() < 16) return false;
@@ -204,7 +204,7 @@ bool LicenseManager::validateSignature(const std::string& key) const {
 
     // The payload being verified is the key prefix (tier + version bytes)
     // Real production: the payload is a JSON ticket with email+tier+expiry
-    const std::string payload = key.substr(0, 9); // "AURA1-PRO" — first segment
+    const std::string payload = key.substr(0, 9); // "AURA1-PRO" -- first segment
 
     std::vector<unsigned char> sig(stripped.begin(), stripped.end());
     // Decode base64

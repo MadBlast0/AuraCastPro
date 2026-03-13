@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// AudioMixer.h — Mixes device audio + optional mic input, outputs to sinks
+// AudioMixer.h -- Mixes device audio + optional mic input, outputs to sinks
 // =============================================================================
 #include <functional>
 #include <memory>
@@ -29,7 +29,7 @@ public:
     // Feed device audio (from AudioLoopback)
     void feedDeviceAudio(const AudioBuffer& buf);
 
-    // Feed microphone audio (optional — for commentary)
+    // Feed microphone audio (optional -- for commentary)
     void feedMicAudio(const float* samples, uint32_t numFrames,
                       uint32_t sampleRate, uint32_t channels);
 
@@ -40,7 +40,7 @@ public:
     void setMicVolume(float v)    { m_micVolume.store(v); }
     void setMicEnabled(bool v)    { m_micEnabled.store(v); }
 
-    // Task 121: A/V sync offset — positive = delay audio relative to video (ms)
+    // Task 121: A/V sync offset -- positive = delay audio relative to video (ms)
     // Range: -200ms to +200ms. Updated every second via EMA.
     void   setAvSyncOffsetMs(int ms)  { m_avSyncOffsetMs.store(ms); }
     int    avSyncOffsetMs()     const { return m_avSyncOffsetMs.load(); }

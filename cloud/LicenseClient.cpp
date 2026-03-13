@@ -1,5 +1,5 @@
-// =============================================================================
-// LicenseClient.cpp — HTTPS license activation via auracastpro.com API
+﻿// =============================================================================
+// LicenseClient.cpp -- HTTPS license activation via auracastpro.com API
 // =============================================================================
 #include "LicenseClient.h"
 #include "WinHttpHelper.h"
@@ -29,7 +29,7 @@ void LicenseClient::init() {
     AURA_LOG_INFO("LicenseClient",
         "Initialised. Activation endpoint: https://auracastpro.com/api/activate. "
         "Heartbeat: every 7 days for subscription licenses. "
-        "Fully offline-capable — RSA validation works without internet.");
+        "Fully offline-capable -- RSA validation works without internet.");
 }
 
 void LicenseClient::activate(const std::string& key, const std::string& email,
@@ -44,7 +44,7 @@ void LicenseClient::activate(const std::string& key, const std::string& email,
         body["machine_id"]  = mid;
         body["app_version"] = "0.1.0";
 
-        // Inline HTTPS POST to /api/activate — avoids capturing 'this'
+        // Inline HTTPS POST to /api/activate -- avoids capturing 'this'
         std::string response;
         HINTERNET session = aura::WinHttpHelper::openSession(L"AuraCastPro-License/1.0");
         if (session) {
@@ -64,7 +64,7 @@ void LicenseClient::activate(const std::string& key, const std::string& email,
                     constexpr size_t kMaxResponseBytes = 64 * 1024; // 64 KB limit
                     while (WinHttpReadData(request, buf, sizeof(buf)-1, &bytesRead) && bytesRead) {
                         if (response.size() + bytesRead > kMaxResponseBytes) {
-                            AURA_LOG_WARN("LicenseClient", "Response too large (>{} bytes) — truncating", kMaxResponseBytes);
+                            AURA_LOG_WARN("LicenseClient", "Response too large (>{} bytes) -- truncating", kMaxResponseBytes);
                             break;
                         }
                         response.append(buf, bytesRead);
@@ -79,7 +79,7 @@ void LicenseClient::activate(const std::string& key, const std::string& email,
         ActivationResponse resp;
         if (response.empty()) {
             resp.result  = ActivationResult::NetworkError;
-            resp.message = "Network error — check your internet connection.";
+            resp.message = "Network error -- check your internet connection.";
         } else {
             try {
                 const json r = json::parse(response);
@@ -103,7 +103,7 @@ void LicenseClient::activate(const std::string& key, const std::string& email,
             }
         }
 
-        AURA_LOG_INFO("LicenseClient", "Activation result: {} — {}",
+        AURA_LOG_INFO("LicenseClient", "Activation result: {} -- {}",
             resp.result == ActivationResult::Success ? "SUCCESS" : "FAILED",
             resp.message);
 
@@ -121,7 +121,7 @@ bool LicenseClient::deactivate(const std::string& key) {
 }
 
 void LicenseClient::sendHeartbeat(const std::string& key) {
-    // Capture by value — no 'this' capture in detached thread to avoid use-after-free.
+    // Capture by value -- no 'this' capture in detached thread to avoid use-after-free.
     const std::string mid = machineId();
     std::thread([key, mid]() {
         json body;
@@ -186,7 +186,7 @@ std::string LicenseClient::httpsPost(const std::string& path,
         return ok; // NOTE: In production, compare hashBuf against kExpectedThumbprint
                    // For now validates cert chain only (WinHTTP default behaviour)
     };
-    (void)certValidation; // suppress unused warning in dev build — enable in production
+    (void)certValidation; // suppress unused warning in dev build -- enable in production
 
     std::string result;
     if (request) {

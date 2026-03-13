@@ -7,7 +7,7 @@
 // on sharp edges.
 //
 // This shader applies a higher-quality Lanczos-2 chroma upsample pass
-// BEFORE the YUV→RGB conversion. The result is passed to nv12_to_rgb.hlsl.
+// BEFORE the YUV->RGB conversion. The result is passed to nv12_to_rgb.hlsl.
 //
 // This is an optional quality enhancement for 4K content. At 1080p the
 // improvement is subtle. At 4K it is clearly visible on fine text.

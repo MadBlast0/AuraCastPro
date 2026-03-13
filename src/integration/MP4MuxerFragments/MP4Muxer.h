@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// MP4Muxer.h — Fragmented MP4 muxer (frag_keyframe + empty_moov)
+// MP4Muxer.h -- Fragmented MP4 muxer (frag_keyframe + empty_moov)
 //
 // Wraps FFmpeg libavformat for fragmented MP4 output.
 // Used by StreamRecorder for crash-safe recordings.
-// Each keyframe starts a new fragment — playable even if app crashes.
+// Each keyframe starts a new fragment -- playable even if app crashes.
 // =============================================================================
 #include <string>
 #include <cstdint>

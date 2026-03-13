@@ -1,6 +1,6 @@
 #pragma once
 // =============================================================================
-// BitratePID.h — Adaptive bitrate controller using a PID (Proportional-
+// BitratePID.h -- Adaptive bitrate controller using a PID (Proportional-
 //                Integral-Derivative) controller.
 //
 // The PID controller continuously adjusts the target encoding bitrate based
@@ -28,7 +28,7 @@ namespace aura {
 
 // Input signal structure for BitratePID controller
 struct PIDTelemetry {
-    float packetLossRate{};   // 0.0 – 1.0 (fraction of lost packets)
+    float packetLossRate{};   // 0.0 - 1.0 (fraction of lost packets)
     float jitterMs{};         // Packet arrival jitter in milliseconds
     float rttMs{};            // Round-trip time in milliseconds
     float bandwidthEstBps{};  // Estimated available bandwidth in bits/sec
@@ -37,7 +37,7 @@ struct PIDTelemetry {
 class BitratePID {
 public:
     // -----------------------------------------------------------------------
-    // Configuration — tunable without recompiling
+    // Configuration -- tunable without recompiling
     // -----------------------------------------------------------------------
     struct Config {
         // PID gains
@@ -50,8 +50,8 @@ public:
         float maxBitrateBps  = 50'000'000.0f; // 50 Mbps maximum
 
         // Loss thresholds
-        float targetLossRate  = 0.01f; // 1% — acceptable loss target
-        float criticalLossRate = 0.05f; // 5% — triggers emergency cut
+        float targetLossRate  = 0.01f; // 1% -- acceptable loss target
+        float criticalLossRate = 0.05f; // 5% -- triggers emergency cut
 
         // Update interval
         float updateIntervalMs = 100.0f; // Run controller every 100 ms
@@ -84,7 +84,7 @@ public:
     // -----------------------------------------------------------------------
     // Update the controller with fresh telemetry.
     // Returns the new recommended bitrate in bits per second.
-    // Call this on the network stats callback (every 100–500 ms).
+    // Call this on the network stats callback (every 100-500 ms).
     // -----------------------------------------------------------------------
     float update(const PIDTelemetry& telemetry);
 
@@ -121,6 +121,7 @@ private:
 };
 
 // Alias used by tests
-using NetworkTelemetry = PIDTelemetry;
+// using NetworkTelemetry = PIDTelemetry;
 
 } // namespace aura
+

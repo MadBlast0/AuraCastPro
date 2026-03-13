@@ -56,6 +56,37 @@ bool SwapchainResize::execute(IDXGISwapChain4*      swapchain,
     return true;
 }
 
+// Simple overload: no fence tracking. Caller must guarantee GPU idle.
+bool SwapchainResize::execute(IDXGISwapChain4*       swapchain,
+                               ID3D12Device*          device,
+                               ID3D12DescriptorHeap*  rtvHeap,
+                               UINT                   newWidth,
+                               UINT                   newHeight,
+                               UINT                   bufferCount) {
+    HRESULT hr = swapchain->ResizeBuffers(
+        bufferCount, newWidth, newHeight,
+        DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+    if (FAILED(hr)) {
+        LOG_ERROR("SwapchainResize: ResizeBuffers failed: 0x{:X}", (uint32_t)hr);
+        return false;
+    }
+    // Re-create RTVs from heap start
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+    UINT descSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    for (UINT i = 0; i < bufferCount; ++i) {
+        ComPtr<ID3D12Resource> buf;
+        hr = swapchain->GetBuffer(i, IID_PPV_ARGS(&buf));
+        if (FAILED(hr)) {
+            LOG_ERROR("SwapchainResize: GetBuffer({}) failed: 0x{:X}", i, (uint32_t)hr);
+            return false;
+        }
+        device->CreateRenderTargetView(buf.Get(), nullptr, rtvHandle);
+        rtvHandle.ptr += descSize;
+    }
+    LOG_INFO("SwapchainResize (simple): Resized to {}x{}", newWidth, newHeight);
+    return true;
+}
+
 // ─── RotationHandler ─────────────────────────────────────────────────────────
 
 void RotationHandler::onDimensionsChanged(uint32_t w, uint32_t h) {
@@ -63,7 +94,7 @@ void RotationHandler::onDimensionsChanged(uint32_t w, uint32_t h) {
     bool changed   = (w != m_current.width || h != m_current.height);
     if (!changed) return;
 
-    LOG_INFO("RotationHandler: {}x{} → {}x{} ({})",
+    LOG_INFO("RotationHandler: {}x{} -> {}x{} ({})",
              m_current.width, m_current.height, w, h,
              portrait ? "portrait" : "landscape");
 
@@ -144,7 +175,7 @@ std::string MultiMonitor::formatLabel(const MonitorInfo& mon) {
     int h = mon.bounds.bottom - mon.bounds.top;
     ss << mon.friendlyName;
     if (mon.isPrimary) ss << " (Primary)";
-    ss << " " << w << "×" << h;
+    ss << " " << w << "x" << h;
     if (mon.isHDR) ss << " HDR";
     return ss.str();
 }

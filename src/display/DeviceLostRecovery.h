@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DeviceLostRecovery.h — D3D12 GPU device-lost / TDR recovery manager
+// DeviceLostRecovery.h -- D3D12 GPU device-lost / TDR recovery manager
 // Task 108: Detects DXGI_ERROR_DEVICE_REMOVED after every Present() and
 //           fully re-initialises the DX12 stack without restarting the app.
 // =============================================================================
@@ -36,7 +36,7 @@ public:
                          ID3D12Device* device,
                          IDXGISwapChain3* swapchain);
 
-    // True while recovery is in progress — render loop must pause
+    // True while recovery is in progress -- render loop must pause
     bool isRecovering() const { return m_recovering.load(); }
 
     // Maximum consecutive recovery attempts before giving up

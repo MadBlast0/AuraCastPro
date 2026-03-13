@@ -1,13 +1,13 @@
-// =============================================================================
-// AMFWrapper.cpp — AMD Advanced Media Framework (AMF) GPU encoder
+﻿// =============================================================================
+// AMFWrapper.cpp -- AMD Advanced Media Framework (AMF) GPU encoder
 //
 // Strategy:
-//   isAvailable()  → probe amfrt64.dll with LOAD_LIBRARY_AS_DATAFILE
-//   init()         → open FFmpeg AVCodecContext for h264_amf or hevc_amf
+//   isAvailable()  -> probe amfrt64.dll with LOAD_LIBRARY_AS_DATAFILE
+//   init()         -> open FFmpeg AVCodecContext for h264_amf or hevc_amf
 //                    (FFmpeg ships its own amfrt64.dll bridge so we don't need
 //                     the full AMD Media SDK at compile time)
-//   encodeFrame()  → send AVFrame to codec, retrieve AVPackets via callback
-//   shutdown()     → flush codec, free context
+//   encodeFrame()  -> send AVFrame to codec, retrieve AVPackets via callback
+//   shutdown()     -> flush codec, free context
 //
 // Falls back transparently if amfrt64.dll is absent (e.g. Intel/NVIDIA only).
 // =============================================================================
@@ -35,7 +35,7 @@ static constexpr const char* kAmfDll = "amfrt64.dll";
 AMFWrapper::AMFWrapper()  = default;
 AMFWrapper::~AMFWrapper() { shutdown(); }
 
-// ── isAvailable — probe DLL without executing code ────────────────────────────
+// ── isAvailable -- probe DLL without executing code ────────────────────────────
 
 bool AMFWrapper::isAvailable() {
     HMODULE h = LoadLibraryExA(kAmfDll, nullptr, LOAD_LIBRARY_AS_DATAFILE);
@@ -48,7 +48,7 @@ bool AMFWrapper::isAvailable() {
 bool AMFWrapper::loadAMF() {
     m_hAmf = LoadLibraryA(kAmfDll);
     if (!m_hAmf) {
-        AURA_LOG_WARN("AMFWrapper", "{} not found — AMD AMF encoder unavailable.", kAmfDll);
+        AURA_LOG_WARN("AMFWrapper", "{} not found -- AMD AMF encoder unavailable.", kAmfDll);
         return false;
     }
     AURA_LOG_INFO("AMFWrapper", "amfrt64.dll loaded successfully.");
@@ -59,7 +59,7 @@ void AMFWrapper::unloadAMF() {
     if (m_hAmf) { FreeLibrary(static_cast<HMODULE>(m_hAmf)); m_hAmf = nullptr; }
 }
 
-// ── init — open FFmpeg AMF codec context ──────────────────────────────────────
+// ── init -- open FFmpeg AMF codec context ──────────────────────────────────────
 
 bool AMFWrapper::init(int width, int height, int bitrateMbps, int fps) {
     if (!loadAMF()) return false;
@@ -171,7 +171,7 @@ void AMFWrapper::getEncodedPacket(AVPacket* out) {
     if (ret < 0) out->size = 0;
 }
 
-// ── drain — flush remaining packets ──────────────────────────────────────────
+// ── drain -- flush remaining packets ──────────────────────────────────────────
 
 void AMFWrapper::drain() {
     if (!m_ctx) return;

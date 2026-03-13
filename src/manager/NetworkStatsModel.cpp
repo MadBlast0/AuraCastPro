@@ -1,5 +1,5 @@
-// =============================================================================
-// NetworkStatsModel.cpp — FIXED: Full implementation with 9 added properties.
+﻿// =============================================================================
+// NetworkStatsModel.cpp -- FIXED: Full implementation with 9 added properties.
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "NetworkStatsModel.h"
@@ -32,7 +32,7 @@ void NetworkStatsModel::shutdown() {
     stop();
 }
 
-// Called from network/decoder threads — all atomics, no locks needed
+// Called from network/decoder threads -- all atomics, no locks needed
 void NetworkStatsModel::updateStats(double latencyMs, double bitrateKbps,
                                      double fps, double packetLossPct,
                                      double gpuFrameMs) {
@@ -106,7 +106,7 @@ QList<double> NetworkStatsModel::latencyHistory() const {
     return m_latencyHistory;
 }
 
-// Called every 100ms on the UI thread — emit signal so QML updates graphs
+// Called every 100ms on the UI thread -- emit signal so QML updates graphs
 void NetworkStatsModel::onUiRefreshTimer() {
     emit statsUpdated();
 }

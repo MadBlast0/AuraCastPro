@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// AirPlay2Host.h — AirPlay 2 receiver: SRP-6a pairing + AES-128-CTR decrypt
+// AirPlay2Host.h -- AirPlay 2 receiver: SRP-6a pairing + AES-128-CTR decrypt
 // =============================================================================
 #include <functional>
 #include <string>

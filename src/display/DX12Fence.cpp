@@ -1,5 +1,5 @@
-// =============================================================================
-// DX12Fence.cpp — GPU/CPU synchronisation fence implementation
+﻿// =============================================================================
+// DX12Fence.cpp -- GPU/CPU synchronisation fence implementation
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -56,7 +56,7 @@ uint64_t DX12Fence::signal() {
 // -----------------------------------------------------------------------------
 void DX12Fence::waitForValue(uint64_t value, uint32_t timeoutMs) {
     if (m_fence->GetCompletedValue() >= value) {
-        return; // Already done — no wait needed
+        return; // Already done -- no wait needed
     }
 
     // Set event to fire when fence reaches our target value

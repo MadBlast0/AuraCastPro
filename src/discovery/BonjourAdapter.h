@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// BonjourAdapter.h — Apple Bonjour SDK wrapper for mDNS registration/browsing
+// BonjourAdapter.h -- Apple Bonjour SDK wrapper for mDNS registration/browsing
 // =============================================================================
 #include <string>
 #include <functional>

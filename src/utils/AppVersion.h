@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// AppVersion.h — Single source of truth for the application version string.
+// AppVersion.h -- Single source of truth for the application version string.
 //
 // The version is injected at CMake configure time via:
 //   target_compile_definitions(AuraCastPro PRIVATE
@@ -8,7 +8,7 @@
 //
 // Usage:
 //   #include "utils/AppVersion.h"
-//   const char* v = aura::AppVersion::string();  // → "1.0.0"
+//   const char* v = aura::AppVersion::string();  // -> "1.0.0"
 // =============================================================================
 
 #ifndef AURA_VERSION_STRING

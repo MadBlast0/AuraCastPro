@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "PortConflict.h"
 #include "../utils/Logger.h"
 #define WIN32_LEAN_AND_MEAN
@@ -120,7 +120,7 @@ std::string PortConflict::formatError(const PortConflictInfo& info) {
            << " is already in use by " << info.processName
            << " (PID " << info.pid << ").\n\n"
            << "Please close " << info.processName
-           << " or change the port in Settings → Network.";
+           << " or change the port in Settings -> Network.";
     } else if (info.status == PortStatus::CheckFailed) {
         ss << "Could not check " << info.protocol << " port " << info.port
            << ". Port may be unavailable. Check Windows Firewall settings.";

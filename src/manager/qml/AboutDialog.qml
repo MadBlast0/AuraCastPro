@@ -20,7 +20,7 @@ Dialog {
         Text {
             text: qsTr("AURACASTPRO")
             font.family:    Theme.fontMono; font.pixelSize: Theme.fontSizeH1
-            font.weight:    Font.Black; color: Theme.textPrimary; letterSpacing: 6
+            font.weight:    Font.Black; color: Theme.textPrimary
         }
         Rectangle { height: 2; Layout.fillWidth: true; color: Theme.borderActive }
 
@@ -54,7 +54,7 @@ Dialog {
             Text {
                 anchors.centerIn: parent; text: qsTr("CLOSE")
                 font.family:    Theme.fontMono; font.pixelSize: Theme.fontSizeSM
-                font.weight:    Font.Black; color: Theme.textInverse; letterSpacing: 2
+                font.weight:    Font.Black; color: Theme.textInverse
             }
             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.close() }
         }

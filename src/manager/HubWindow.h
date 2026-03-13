@@ -1,9 +1,9 @@
 #pragma once
 // =============================================================================
-// HubWindow.h — FIXED: Full HubWindow with signals, menu bar, tray icon.
+// HubWindow.h -- FIXED: Full HubWindow with signals, menu bar, tray icon.
 // =============================================================================
 #include <QMainWindow>
-#include <QQmlApplicationEngine>
+#include <QQuickWidget>
 #include <QSystemTrayIcon>
 #include <QString>
 
@@ -39,8 +39,12 @@ public:
 
     bool isVisible() const;
 
-    // Accessor for main.cpp to wire protocol callbacks → HubModel signals
+    // Accessor for main.cpp to wire protocol callbacks -> HubModel signals
     HubModel* hubModel() const { return m_hubModel; }
+
+    void setRecorder(aura::StreamRecorder* rec);
+    void triggerRecordingToggle();  // called from hotkey handler in main()
+    void requestQuit();
 
 protected:
     void closeEvent(QCloseEvent* event) override;
@@ -54,13 +58,12 @@ private:
     void setupQmlEngine();
     void setupHubModel();
     void wireSignals();
-    void setRecorder(aura::StreamRecorder* rec);
-    void triggerRecordingToggle();  // called from hotkey handler in main()
     void showAndRaise();
     void invokeQml(const char* method);
 
-    QQmlApplicationEngine* m_engine{nullptr};
+    QQuickWidget* m_view{nullptr};
     QSystemTrayIcon*        m_trayIcon{nullptr};
+    bool m_forceQuit{false};
 
     // Non-owning pointers to subsystems (owned by main.cpp)
     SettingsModel*      m_settings{nullptr};

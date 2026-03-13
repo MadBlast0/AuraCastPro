@@ -17,7 +17,7 @@
 
 ; ─── Installer metadata ───────────────────────────────────────────────────────
 Name "AuraCastPro"
-OutFile "AuraCastPro_Setup_${VERSION}.exe"
+OutFile "AuraCastPro_Setup.exe"
 InstallDir "$PROGRAMFILES64\AuraCastPro"
 InstallDirRegKey HKLM "Software\AuraCastPro" "InstallDir"
 RequestExecutionLevel admin
@@ -37,15 +37,15 @@ VIAddVersionKey "LegalCopyright"   "Copyright 2025 AuraCastPro"
 
 ; ─── MUI Interface settings ───────────────────────────────────────────────────
 !define MUI_ABORTWARNING
-!define MUI_ICON    "..\assets\textures\icons\png\app_icon.ico"
-!define MUI_UNICON  "..\assets\textures\icons\png\app_icon.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "..\assets\textures\8K_Splashes\installer_side.bmp"
-!define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP "..\assets\textures\8K_Splashes\installer_header.bmp"
+; !define MUI_ICON    "..\assets\textures\icons\png\app_icon.ico"
+; !define MUI_UNICON  "..\assets\textures\icons\png\app_icon.ico"
+; !define MUI_WELCOMEFINISHPAGE_BITMAP "..\assets\textures\8K_Splashes\installer_side.bmp"
+; !define MUI_HEADERIMAGE
+; !define MUI_HEADERIMAGE_BITMAP "..\assets\textures\8K_Splashes\installer_header.bmp"
 
 ; ─── Installer pages ─────────────────────────────────────────────────────────
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "..\LICENSE.txt"
+!insertmacro MUI_PAGE_LICENSE "EULA.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -65,47 +65,8 @@ Section "AuraCastPro Core" SecCore
 
     SetOutPath "$INSTDIR"
 
-    ; Main executable
-    File "..\build\release_x64\AuraCastPro.exe"
-
-    ; Qt runtime DLLs
-    File "..\build\release_x64\Qt6Core.dll"
-    File "..\build\release_x64\Qt6Quick.dll"
-    File "..\build\release_x64\Qt6QuickControls2.dll"
-    File "..\build\release_x64\Qt6QuickTemplates2.dll"
-    File "..\build\release_x64\Qt6QuickLayouts.dll"
-    File "..\build\release_x64\Qt6QmlWorkerScript.dll"
-    File "..\build\release_x64\Qt6Gui.dll"
-    File "..\build\release_x64\Qt6Charts.dll"
-    File "..\build\release_x64\Qt6Network.dll"
-    File "..\build\release_x64\Qt6Widgets.dll"
-    File "..\build\release_x64\Qt6Qml.dll"
-    File "..\build\release_x64\Qt6QmlModels.dll"
-
-    ; MSVC runtime
-    File "..\build\release_x64\vcruntime140.dll"
-    File "..\build\release_x64\msvcp140.dll"
-
-    ; OpenSSL
-    File "..\build\release_x64\libssl-3-x64.dll"
-    File "..\build\release_x64\libcrypto-3-x64.dll"
-
-    ; FFmpeg (LGPL — must be separate DLLs for compliance)
-    SetOutPath "$INSTDIR\ffmpeg"
-    File "..\build\release_x64\ffmpeg\avcodec-60.dll"
-    File "..\build\release_x64\ffmpeg\avformat-60.dll"
-    File "..\build\release_x64\ffmpeg\avutil-58.dll"
-    File "..\build\release_x64\ffmpeg\swscale-7.dll"
-    File "..\build\release_x64\ffmpeg\swresample-4.dll"
-
-    ; HLSL compiled shaders
-    SetOutPath "$INSTDIR\Shaders"
-    File "..\build\release_x64\Shaders\nv12_to_rgb.cso"
-    File "..\build\release_x64\Shaders\hdr10_tonemap.cso"
-    File "..\build\release_x64\Shaders\lanczos8.cso"
-    File "..\build\release_x64\Shaders\temporal_frame_pacing.cso"
-    File "..\build\release_x64\Shaders\chroma_upsample.cso"
-    File "..\build\release_x64\Shaders\fullscreen_vs.cso"
+    ; Recursive copy of everything in Release folder, excluding build artifacts
+    File /r /x *.exp /x *.lib /x *.pdb /x *.ilk "..\build\Release\*.*"
 
     ; Store install dir in registry
     WriteRegStr HKLM "Software\AuraCastPro" "InstallDir" "$INSTDIR"
@@ -155,9 +116,9 @@ Section "Virtual Audio Device" SecVAudio
 
     ; ADB tools — required for Android mirroring (Task 216)
     SetOutPath "$INSTDIR\adb"
-    File "adb_bundle\adb.exe"
-    File "adb_bundle\AdbWinApi.dll"
-    File "adb_bundle\AdbWinUsbApi.dll"
+    File "..\build\Release\adb\adb.exe"
+    File "..\build\Release\adb\AdbWinApi.dll"
+    File "..\build\Release\adb\AdbWinUsbApi.dll"
 
     ; Install the kernel driver via PnPUtil
     ExecWait 'pnputil.exe /add-driver "$INSTDIR\Audio_Installer.inf" /install'
@@ -198,18 +159,16 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${SecCore}      "AuraCastPro main application (required)"
     !insertmacro MUI_DESCRIPTION_TEXT ${SecVCam}      "Virtual camera for use in OBS Studio, Zoom, and Microsoft Teams"
     !insertmacro MUI_DESCRIPTION_TEXT ${SecVAudio}    "Virtual audio device for capturing device audio in streaming software"
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecFirewall}  "Windows Firewall rules to allow AirPlay and Cast connections"
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecDesktop}   "Create a desktop shortcut"
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecStartMenu} "Create a Start Menu folder and shortcuts"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
-; ─── Uninstaller ──────────────────────────────────────────────────────────────
+; ─── Uninstaller Logic ───────────────────────────────────────────────────────
 Section "Uninstall"
-    ; Unregister virtual camera
-    ExecWait 'regsvr32.exe /u /s "$INSTDIR\MirrorCam.dll"'
+    ; Remove files
+    RMDir /r "$INSTDIR"
 
-    ; Remove virtual audio driver
-    ExecWait 'pnputil.exe /delete-driver "$INSTDIR\Audio_Installer.inf" /uninstall'
+    ; Remove shortcuts
+    Delete "$DESKTOP\AuraCastPro.lnk"
+    RMDir /r "$SMPROGRAMS\AuraCastPro"
 
     ; Remove firewall rules
     ExecWait 'netsh advfirewall firewall delete rule name="AuraCastPro AirPlay TCP"'
@@ -217,22 +176,12 @@ Section "Uninstall"
     ExecWait 'netsh advfirewall firewall delete rule name="AuraCastPro Cast TCP"'
     ExecWait 'netsh advfirewall firewall delete rule name="AuraCastPro Cast UDP"'
 
-    ; Remove files
-    RMDir /r "$INSTDIR\Shaders"
-    RMDir /r "$INSTDIR\ffmpeg"
-    Delete "$INSTDIR\*.dll"
-    Delete "$INSTDIR\*.exe"
-    Delete "$INSTDIR\*.sys"
-    Delete "$INSTDIR\*.inf"
-    Delete "$INSTDIR\*.cat"
-    RMDir "$INSTDIR"
-
-    ; Remove shortcuts
-    Delete "$DESKTOP\AuraCastPro.lnk"
-    RMDir /r "$SMPROGRAMS\AuraCastPro"
+    ; Unregister virtual camera
+    ExecWait 'regsvr32.exe /u /s "$INSTDIR\MirrorCam.dll"'
 
     ; Remove registry keys
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AuraCastPro"
     DeleteRegKey HKLM "Software\AuraCastPro"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AuraCastPro"
 
+    SetAutoClose true
 SectionEnd

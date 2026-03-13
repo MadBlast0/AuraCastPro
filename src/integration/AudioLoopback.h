@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// AudioLoopback.h — WASAPI loopback audio capture
+// AudioLoopback.h -- WASAPI loopback audio capture
 //
 // Captures whatever the Windows audio engine is playing (device audio output)
-// using WASAPI shared-mode loopback. This is different from microphone input —
+// using WASAPI shared-mode loopback. This is different from microphone input --
 // it captures the decoded audio from the device as it would sound through speakers.
 //
 // Task 119: setOutputDevice(id) selects which render endpoint to capture.
@@ -11,7 +11,7 @@
 //
 // Device-change detection: registers an IMMNotificationClient so that when
 // the Windows default output device changes, capture automatically restarts
-// on the new device — no manual restart required.
+// on the new device -- no manual restart required.
 //
 // Output: 48kHz / 32-bit float / stereo PCM ring buffer
 // =============================================================================
@@ -73,7 +73,7 @@ private:
     struct WASAPIState;
     std::unique_ptr<WASAPIState> m_wasapi;
 
-    // IMMNotificationClient inner class — receives default-device-change callbacks
+    // IMMNotificationClient inner class -- receives default-device-change callbacks
     // from the Windows multimedia device API and forwards to onDefaultDeviceChanged().
     class DeviceNotifier : public IMMNotificationClient {
     public:
@@ -96,7 +96,7 @@ private:
             return E_NOINTERFACE;
         }
 
-        // IMMNotificationClient — only OnDefaultDeviceChanged matters for loopback
+        // IMMNotificationClient -- only OnDefaultDeviceChanged matters for loopback
         HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(
             EDataFlow flow, ERole role, LPCWSTR /*pwstrDeviceId*/) override
         {

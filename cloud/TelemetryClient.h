@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// TelemetryClient.h — Anonymous opt-in crash/usage telemetry
+// TelemetryClient.h -- Anonymous opt-in crash/usage telemetry
 // =============================================================================
 #include <string>
 #include <memory>
@@ -22,7 +22,7 @@ public:
     // Report app startup (OS version, GPU, app version)
     void reportStartup(const std::string& gpuName, const std::string& osVersion);
 
-    // Report session statistics (duration, codec, resolution — NO screen content)
+    // Report session statistics (duration, codec, resolution -- NO screen content)
     void reportSession(double durationSec, const std::string& codec,
                        uint32_t width, uint32_t height, double avgBitrateKbps);
 

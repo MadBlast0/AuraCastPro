@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DX12Manager.h — DirectX 12 top-level manager.
+// DX12Manager.h -- DirectX 12 top-level manager.
 //
 // Owns the DXGI factory, selects the best GPU adapter, creates the D3D12
 // device, and coordinates the initialisation of all DX12 subsystems:
-//   DX12DeviceContext → DX12CommandQueue → DX12Fence
+//   DX12DeviceContext -> DX12CommandQueue -> DX12Fence
 //
 // Also manages the root signatures and pipeline state objects (PSOs) used
 // by the rendering pipeline:
-//   - NV12→RGB conversion PSO
+//   - NV12->RGB conversion PSO
 //   - HDR tone-mapping PSO
 //   - Lanczos scaling PSO
 //
@@ -43,7 +43,7 @@ public:
     // Throws std::runtime_error on any DirectX initialisation failure.
     void init();
 
-    // Graceful shutdown — waits for GPU idle before releasing resources.
+    // Graceful shutdown -- waits for GPU idle before releasing resources.
     void shutdown();
 
     bool isInitialised() const { return m_initialised; }
@@ -94,7 +94,7 @@ private:
     // Pipeline state objects
     ComPtr<ID3D12PipelineState> m_nv12ToRgbPSO;
     ComPtr<ID3D12PipelineState> m_hdrTonemapPSO;
-    ComPtr<ID3D12PipelineState> m_chromaUpsamplePSO;  // chroma upsampling (4:2:0→4:4:4)
+    ComPtr<ID3D12PipelineState> m_chromaUpsamplePSO;  // chroma upsampling (4:2:0->4:4:4)
     ComPtr<ID3D12PipelineState> m_temporalPacingPSO;  // temporal frame pacing CS
     ComPtr<ID3D12RootSignature> m_computeRS;           // root sig for compute shaders
     ComPtr<ID3D12PipelineState> m_lanczosPSO;

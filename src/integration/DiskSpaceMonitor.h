@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DiskSpaceMonitor.h — Warns and stops recording when disk is nearly full
+// DiskSpaceMonitor.h -- Warns and stops recording when disk is nearly full
 // =============================================================================
 #include <string>
 #include <functional>

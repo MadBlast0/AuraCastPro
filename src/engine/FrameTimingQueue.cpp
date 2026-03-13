@@ -1,5 +1,5 @@
-// =============================================================================
-// FrameTimingQueue.cpp — Frame pacing for smooth 120fps playback
+﻿// =============================================================================
+// FrameTimingQueue.cpp -- Frame pacing for smooth 120fps playback
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "FrameTimingQueue.h"
@@ -12,7 +12,7 @@ FrameTimingQueue::FrameTimingQueue() {}
 
 void FrameTimingQueue::init() {
     AURA_LOG_INFO("FrameTimingQueue",
-        "Initialised. Manages decode→present timing. "
+        "Initialised. Manages decode->present timing. "
         "Works with temporal_frame_pacing.hlsl for micro-stutter elimination.");
 }
 
@@ -48,9 +48,9 @@ void FrameTimingQueue::pushFrame(uint32_t frameIndex, uint64_t decodedAtUs,
 
     m_queue.push_back({frameIndex, decodedAtUs, presentationTimeUs, blendWeight});
 
-    // Cap queue depth to 4 frames — beyond that we're falling behind
+    // Cap queue depth to 4 frames -- beyond that we're falling behind
     while (m_queue.size() > 4) {
-        AURA_LOG_WARN("FrameTimingQueue", "Dropping old frame — decoder ahead of renderer.");
+        AURA_LOG_WARN("FrameTimingQueue", "Dropping old frame -- decoder ahead of renderer.");
         m_queue.pop_front();
     }
 }

@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// SecurityVault.h — Encrypted secure key storage using Windows DPAPI
+// SecurityVault.h -- Encrypted secure key storage using Windows DPAPI
 //
 // Stores device pairing keys and secrets in an AES-256-GCM encrypted JSON file.
 // The encryption key itself is protected by Windows DPAPI (CryptProtectData),
 // which ties it to the current Windows user account.
 //
-// Task 154: Also manages trusted_devices.json — atomic write (tmp → rename),
+// Task 154: Also manages trusted_devices.json -- atomic write (tmp -> rename),
 //           loaded on startup and updated on each pair / connect / forget.
 // =============================================================================
 #include <string>

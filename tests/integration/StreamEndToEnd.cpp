@@ -105,8 +105,7 @@ TEST(StreamEndToEnd, ReorderCacheToNALParser) {
 
     // Feed to NAL parser in the correct order
     for (size_t i = 0; i < drained.size(); ++i) {
-        parser.feedRTPPayload(drained[i].data.data(), drained[i].data.size(),
-                              static_cast<uint16_t>(i), false);
+        parser.feedPacket(std::span<const uint8_t>(drained[i].payload));
     }
 
     // Each packet has a single NAL
@@ -406,3 +405,5 @@ TEST(StreamEndToEnd, PipelineThroughputSimulation) {
     EXPECT_GT(fps, 500.0)
         << "CPU pipeline (no GPU decode) should process > 500 fps";
 }
+
+

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// ProtocolHandshake.h — Shared protocol negotiation and auth utilities
+// ProtocolHandshake.h -- Shared protocol negotiation and auth utilities
 // =============================================================================
 #include <string>
 #include <vector>

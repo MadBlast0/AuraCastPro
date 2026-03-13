@@ -1,5 +1,5 @@
-// =============================================================================
-// EncryptHelper.cpp — AES-256-GCM via OpenSSL EVP API
+﻿// =============================================================================
+// EncryptHelper.cpp -- AES-256-GCM via OpenSSL EVP API
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -143,7 +143,7 @@ std::vector<uint8_t> EncryptHelper::decrypt(std::span<const uint8_t> blob,
     int finalLen = 0;
     if (EVP_DecryptFinal_ex(ctx, plaintext.data() + outLen, &finalLen) != 1) {
         // Tag mismatch = authentication failure = data tampered
-        throw std::runtime_error("EncryptHelper::decrypt: GCM authentication tag mismatch — "
+        throw std::runtime_error("EncryptHelper::decrypt: GCM authentication tag mismatch -- "
                                  "data may have been tampered with.");
     }
 
@@ -155,7 +155,7 @@ std::vector<uint8_t> EncryptHelper::decrypt(std::span<const uint8_t> blob,
 bool EncryptHelper::secureCompare(std::span<const uint8_t> a,
                                    std::span<const uint8_t> b) {
     if (a.size() != b.size()) return false;
-    // CRYPTO_memcmp is constant-time — prevents timing side-channel attacks
+    // CRYPTO_memcmp is constant-time -- prevents timing side-channel attacks
     return CRYPTO_memcmp(a.data(), b.data(), a.size()) == 0;
 }
 

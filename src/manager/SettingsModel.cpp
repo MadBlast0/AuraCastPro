@@ -1,5 +1,5 @@
-// =============================================================================
-// SettingsModel.cpp — Full implementation for all 45 settings properties.
+﻿// =============================================================================
+// SettingsModel.cpp -- Full implementation for all 45 settings properties.
 // FIXED: All missing properties added with load/save/reset/setters.
 // =============================================================================
 
@@ -40,7 +40,7 @@ void SettingsModel::load() {
     const std::string path = settingsFilePath();
     std::ifstream f(path);
     if (!f.is_open()) {
-        AURA_LOG_INFO("SettingsModel", "No settings file — using defaults. Path: {}", path);
+        AURA_LOG_INFO("SettingsModel", "No settings file -- using defaults. Path: {}", path);
         save();
         return;
     }
@@ -222,7 +222,7 @@ void SettingsModel::save() const {
         f << j.dump(2);
     }
     std::filesystem::rename(tmpPath, path);
-    AURA_LOG_DEBUG("SettingsModel", "Saved ({} properties) → {}", 45, path);
+    AURA_LOG_DEBUG("SettingsModel", "Saved ({} properties) -> {}", 45, path);
 }
 
 // ── Reset ─────────────────────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ void SettingsModel::resetToDefaults() {
     AURA_LOG_INFO("SettingsModel", "Reset to factory defaults.");
 }
 
-// ── Setters — all explicit (no macro) to avoid capitalization ambiguity ────────
+// ── Setters -- all explicit (no macro) to avoid capitalization ambiguity ────────
 
 // Identity
 void SettingsModel::setDisplayName(const QString& v)     { if (m_displayName == v) return; m_displayName = v; save(); emit identityChanged(); }
@@ -332,7 +332,7 @@ void SettingsModel::setTelemetryEnabled(bool v)          { if (m_telemetryEnable
 // License
 void SettingsModel::setLicenseKey(const QString& v)      { if (m_licenseKey == v) return; m_licenseKey = v; save(); emit licenseChanged(); }
 
-// System Info (read-only at runtime — set once during init from HardwareProfiler)
+// System Info (read-only at runtime -- set once during init from HardwareProfiler)
 void SettingsModel::setGpuName(const QString& v)         { if (m_gpuName == v) return; m_gpuName = v; emit systemInfoChanged(); }
 void SettingsModel::setOsVersion(const QString& v)       { if (m_osVersion == v) return; m_osVersion = v; emit systemInfoChanged(); }
 

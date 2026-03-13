@@ -1,5 +1,5 @@
-// =============================================================================
-// AV1Demuxer.cpp — AV1 OBU reassembly from RTP
+﻿// =============================================================================
+// AV1Demuxer.cpp -- AV1 OBU reassembly from RTP
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "AV1Demuxer.h"
@@ -71,12 +71,12 @@ void AV1Demuxer::feedRTPPayload(const uint8_t* data, size_t len, uint64_t pts) {
         m_inFragment = hasMore;
 
         if (!hasMore && !m_fragBuffer.empty()) {
-            // Fragment complete — parse the reassembled OBUs
+            // Fragment complete -- parse the reassembled OBUs
             parseOBUs(m_fragBuffer.data(), m_fragBuffer.size(), pts);
             m_fragBuffer.clear();
         }
     } else {
-        // Non-fragmented — parse directly
+        // Non-fragmented -- parse directly
         parseOBUs(payload, payloadLen, pts);
     }
 }

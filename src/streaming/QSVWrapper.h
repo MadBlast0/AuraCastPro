@@ -2,18 +2,25 @@
 #include "HardwareEncoder.h"
 using aura::HardwareEncoder;
 
+// FFmpeg forward declarations
+extern "C" {
+struct AVCodecContext;
+struct AVFrame;
+struct AVPacket;
+}
+
 // Intel QuickSync Video (QSV) hardware encoder using FFmpeg h264_qsv.
 // Works on Intel CPUs with integrated or discrete Xe graphics.
 class QSVWrapper : public HardwareEncoder {
 public:
     QSVWrapper();
-    ~QSVWrapper() override;
+    ~QSVWrapper();
 
-    bool init(int width, int height, int bitrateMbps, int fps) override;
-    bool encodeFrame(ID3D12Resource* frame) override;
-    void getEncodedPacket(AVPacket* out) override;
-    void drain() override;
-    void shutdown() override;
+    bool init(int width, int height, int bitrateMbps, int fps);
+    bool encodeFrame(ID3D12Resource* frame);
+    void getEncodedPacket(AVPacket* out);
+    void drain();
+    void shutdown();
 
     static bool isAvailable();
 

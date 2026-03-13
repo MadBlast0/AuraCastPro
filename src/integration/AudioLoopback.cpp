@@ -1,20 +1,20 @@
-// =============================================================================
-// AudioLoopback.cpp — WASAPI loopback audio capture
+﻿// =============================================================================
+// AudioLoopback.cpp -- WASAPI loopback audio capture
 //
 // Uses IAudioClient in shared loopback mode to capture the system audio mix.
 // The captured PCM is delivered via callback to the AudioMixer.
 //
 // WASAPI initialisation sequence:
-//   1. CoCreateInstance(CLSID_MMDeviceEnumerator) → IMMDeviceEnumerator
-//   2. GetDefaultAudioEndpoint(eRender, eConsole) → IMMDevice
+//   1. CoCreateInstance(CLSID_MMDeviceEnumerator) -> IMMDeviceEnumerator
+//   2. GetDefaultAudioEndpoint(eRender, eConsole) -> IMMDevice
 //      (eRender = output device; loopback captures what's going to speakers)
-//   3. device->Activate(IID_IAudioClient) → IAudioClient
-//   4. GetMixFormat() → WAVEFORMATEX (native format: 48kHz / 32-bit float / 2ch)
+//   3. device->Activate(IID_IAudioClient) -> IAudioClient
+//   4. GetMixFormat() -> WAVEFORMATEX (native format: 48kHz / 32-bit float / 2ch)
 //   5. Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK,
 //                 bufferDuration=200ms, ...)
-//   6. GetService(IID_IAudioCaptureClient) → IAudioCaptureClient
-//   7. Start() → begin capture
-//   8. Loop: GetBuffer() → process → ReleaseBuffer()
+//   6. GetService(IID_IAudioCaptureClient) -> IAudioCaptureClient
+//   7. Start() -> begin capture
+//   8. Loop: GetBuffer() -> process -> ReleaseBuffer()
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -82,7 +82,7 @@ void AudioLoopback::init() {
                         (uint32_t)hr));
     }
 
-    // 2. Get render endpoint — use selected device if set, else Windows default
+    // 2. Get render endpoint -- use selected device if set, else Windows default
     if (!m_deviceId.empty()) {
         // Activate a specific device by endpoint ID
         const std::wstring wid(m_deviceId.begin(), m_deviceId.end());
@@ -90,7 +90,7 @@ void AudioLoopback::init() {
             m_wasapi->device.GetAddressOf());
         if (FAILED(hr)) {
             AURA_LOG_WARN("AudioLoopback",
-                "GetDevice({}) failed: {:08X} — falling back to default",
+                "GetDevice({}) failed: {:08X} -- falling back to default",
                 m_deviceId, (uint32_t)hr);
             m_deviceId.clear();
         } else {
@@ -118,7 +118,7 @@ void AudioLoopback::init() {
             std::format("AudioLoopback: Activate IAudioClient failed: {:08X}", (uint32_t)hr));
     }
 
-    // 4. Get native mix format (do NOT change this — shared mode requires native format)
+    // 4. Get native mix format (do NOT change this -- shared mode requires native format)
     hr = m_wasapi->client->GetMixFormat(&m_wasapi->waveFormat);
     if (FAILED(hr)) {
         throw std::runtime_error("AudioLoopback: GetMixFormat failed");
@@ -204,7 +204,7 @@ void AudioLoopback::captureLoop() {
         AudioCallback localCb;
         {
             std::lock_guard<std::mutex> lk(m_callbackMu);
-            localCb = m_callback;  // copy under lock — avoids holding mutex during callback
+            localCb = m_callback;  // copy under lock -- avoids holding mutex during callback
         }
         if (!(flags & AUDCLNT_BUFFERFLAGS_SILENT) && localCb && data) {
             const WAVEFORMATEX& wf = *m_wasapi->waveFormat;
@@ -242,7 +242,7 @@ void AudioLoopback::setCallback(AudioCallback cb) {
 }
 
 // =============================================================================
-// Task 119 — Output device selection
+// Task 119 -- Output device selection
 // =============================================================================
 void AudioLoopback::setOutputDevice(const std::string& deviceId) {
     if (m_deviceId == deviceId) return;
@@ -257,7 +257,7 @@ void AudioLoopback::setOutputDevice(const std::string& deviceId) {
         AURA_LOG_INFO("AudioLoopback",
             "Restarting WASAPI capture on new device...");
         stop();
-        // Re-init with new device — init() reads m_deviceId
+        // Re-init with new device -- init() reads m_deviceId
         init();
         start();
     }
@@ -265,7 +265,7 @@ void AudioLoopback::setOutputDevice(const std::string& deviceId) {
 
 
 // -----------------------------------------------------------------------------
-// initWASAPI() — Re-opens the WASAPI capture session (called on device change)
+// initWASAPI() -- Re-opens the WASAPI capture session (called on device change)
 // The actual setup logic lives in init(). This private helper resets COM state
 // then delegates back so init() can re-enumerate from scratch.
 bool AudioLoopback::initWASAPI() {
@@ -288,7 +288,7 @@ bool AudioLoopback::initWASAPI() {
 }
 
 // -----------------------------------------------------------------------------
-// registerNotifier() — Subscribe to Windows default-device-change events.
+// registerNotifier() -- Subscribe to Windows default-device-change events.
 // The DeviceNotifier COM object calls onDefaultDeviceChanged() when the user
 // changes the default playback device in Windows Settings / Sound Control Panel.
 // We grab the IMMDeviceEnumerator (already created in init()) and register there.
@@ -297,7 +297,7 @@ void AudioLoopback::registerNotifier() {
 
     if (!m_wasapi || !m_wasapi->enumerator) {
         AURA_LOG_WARN("AudioLoopback",
-            "Cannot register device notifier — enumerator not ready.");
+            "Cannot register device notifier -- enumerator not ready.");
         return;
     }
 
@@ -316,7 +316,7 @@ void AudioLoopback::registerNotifier() {
 }
 
 // -----------------------------------------------------------------------------
-// unregisterNotifier() — Unsubscribe before shutdown to prevent stale callbacks.
+// unregisterNotifier() -- Unsubscribe before shutdown to prevent stale callbacks.
 void AudioLoopback::unregisterNotifier() {
     if (!m_notifier) return;
 
@@ -329,12 +329,12 @@ void AudioLoopback::unregisterNotifier() {
 }
 
 // -----------------------------------------------------------------------------
-// onDefaultDeviceChanged() — Called on the MMDevice notification thread when
+// onDefaultDeviceChanged() -- Called on the MMDevice notification thread when
 // the Windows default render endpoint changes.
 // We restart capture only if we were tracking the default device (m_deviceId=="").
 void AudioLoopback::onDefaultDeviceChanged() {
     if (!m_deviceId.empty()) {
-        // User pinned a specific device — ignore default-device changes
+        // User pinned a specific device -- ignore default-device changes
         return;
     }
 

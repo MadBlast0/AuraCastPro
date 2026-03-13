@@ -1,5 +1,5 @@
-// =============================================================================
-// RTMPOutput.cpp — Live RTMP streaming via FFmpeg libavformat
+﻿// =============================================================================
+// RTMPOutput.cpp -- Live RTMP streaming via FFmpeg libavformat
 //
 // Pushes the mirrored device screen to any RTMP endpoint.
 // Uses the same FFmpeg pipeline as StreamRecorder but with network output.
@@ -10,7 +10,7 @@
 //   Custom:  rtmp://your-server:1935/live/<key>
 //
 // Video: stream copy (H.265) or transcode to H.264 for compatibility.
-// Audio: PCM → AAC-LC 128kbps.
+// Audio: PCM -> AAC-LC 128kbps.
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "RTMPOutput.h"
@@ -73,7 +73,7 @@ bool RTMPOutput::connect(const RTMPConfig& cfg) {
                          AVIO_FLAG_WRITE, nullptr, nullptr);
         if (ret < 0) {
             AURA_LOG_ERROR("RTMPOutput",
-                "avio_open2 failed for {}: {} — check URL and stream key.", cfg.url, ret);
+                "avio_open2 failed for {}: {} -- check URL and stream key.", cfg.url, ret);
             return false;
         }
     }
@@ -146,7 +146,7 @@ void RTMPOutput::sendVideoPacket(const uint8_t* data, size_t size,
 
     AVPacket* pkt = av_packet_alloc();
     if (!pkt) {
-        AURA_LOG_WARN("RTMPOutput", "av_packet_alloc OOM — dropping video frame.");
+        AURA_LOG_WARN("RTMPOutput", "av_packet_alloc OOM -- dropping video frame.");
         return;
     }
     pkt->data = const_cast<uint8_t*>(data);
@@ -159,7 +159,7 @@ void RTMPOutput::sendVideoPacket(const uint8_t* data, size_t size,
     const int ret = av_interleaved_write_frame(m_rtmp->fmtCtx, pkt);
     if (ret < 0) {
         AURA_LOG_ERROR("RTMPOutput",
-            "av_interleaved_write_frame (video) failed: {} — disconnecting.", ret);
+            "av_interleaved_write_frame (video) failed: {} -- disconnecting.", ret);
         av_packet_free(&pkt);
         disconnect();
         return;
@@ -189,7 +189,7 @@ void RTMPOutput::sendAudioSamples(const float* samples, uint32_t numFrames,
         const int ret = av_interleaved_write_frame(m_rtmp->fmtCtx, pkt);
         if (ret < 0) {
             AURA_LOG_ERROR("RTMPOutput",
-                "av_interleaved_write_frame (audio) failed: {} — disconnecting.", ret);
+                "av_interleaved_write_frame (audio) failed: {} -- disconnecting.", ret);
             av_packet_free(&pkt);
             disconnect();
             return;

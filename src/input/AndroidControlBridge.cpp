@@ -1,5 +1,5 @@
-// =============================================================================
-// AndroidControlBridge.cpp — ADB-based Android touch/key injection
+﻿// =============================================================================
+// AndroidControlBridge.cpp -- ADB-based Android touch/key injection
 //
 // Uses the scrcpy control protocol over a TCP socket forwarded via ADB.
 // Protocol: github.com/Genymobile/scrcpy/blob/master/DEVELOP.md
@@ -73,7 +73,7 @@ bool AndroidControlBridge::connect(const std::string& serial,
     m_deviceHeight = h;
 
     AURA_LOG_INFO("AndroidControlBridge",
-        "Connecting control socket to device {} ({}×{})...", serial, w, h);
+        "Connecting control socket to device {} ({}x{})...", serial, w, h);
 
     // ADB forward: adb -s <serial> forward tcp:27184 localabstract:scrcpy
     // Use CreateProcess (not system()) to avoid console flash and get return code
@@ -145,7 +145,7 @@ void AndroidControlBridge::disconnect() {
 
 void AndroidControlBridge::sendControlMessage(const uint8_t* msg, size_t len) {
     if (m_ctrl->controlSocket == INVALID_SOCKET) return;
-    // TCP send may be partial — loop until all bytes sent or error
+    // TCP send may be partial -- loop until all bytes sent or error
     const char* ptr = reinterpret_cast<const char*>(msg);
     size_t remaining = len;
     while (remaining > 0) {
@@ -153,7 +153,7 @@ void AndroidControlBridge::sendControlMessage(const uint8_t* msg, size_t len) {
                               ptr, static_cast<int>(remaining), 0);
         if (sent == SOCKET_ERROR) {
             AURA_LOG_WARN("AndroidControlBridge",
-                "send() failed: {} — closing control socket.", WSAGetLastError());
+                "send() failed: {} -- closing control socket.", WSAGetLastError());
             closesocket(m_ctrl->controlSocket);
             m_ctrl->controlSocket = INVALID_SOCKET;
             m_connected.store(false);
@@ -247,7 +247,7 @@ void AndroidControlBridge::sendTap(int x, int y) {
 
 void AndroidControlBridge::sendSwipe(int x0, int y0, int x1, int y1, int durationMs) {
     if (!m_connected.load()) return;
-    // Simulate a swipe as DOWN → MOVE(s) → UP
+    // Simulate a swipe as DOWN -> MOVE(s) -> UP
     int steps = std::max(2, durationMs / 16); // ~60Hz steps
     for (int i = 0; i <= steps; i++) {
         float t = (float)i / steps;
@@ -261,7 +261,7 @@ void AndroidControlBridge::sendSwipe(int x0, int y0, int x1, int y1, int duratio
         sendTouch(e);
     }
     AURA_LOG_DEBUG("AndroidControlBridge",
-        "Swipe ({},{}) → ({},{}) {}ms", x0, y0, x1, y1, durationMs);
+        "Swipe ({},{}) -> ({},{}) {}ms", x0, y0, x1, y1, durationMs);
 }
 
 void AndroidControlBridge::sendKeyEvent(int keycode) {
@@ -276,7 +276,7 @@ void AndroidControlBridge::sendKeyEvent(int keycode) {
 }
 
 
-// openControlSocket() — extracted helper, called by connect()
+// openControlSocket() -- extracted helper, called by connect()
 // Opens a TCP socket to the scrcpy control port (27183) on the device
 bool AndroidControlBridge::openControlSocket() {
     if (!m_ctrl) return false;
@@ -298,7 +298,7 @@ bool AndroidControlBridge::openControlSocket() {
     if (::connect(m_ctrl->controlSocket,
                   reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) != 0) {
         AURA_LOG_WARN("AndroidControlBridge",
-            "openControlSocket: connect failed: {} — touch injection unavailable.",
+            "openControlSocket: connect failed: {} -- touch injection unavailable.",
             WSAGetLastError());
         closesocket(m_ctrl->controlSocket);
         m_ctrl->controlSocket = INVALID_SOCKET;

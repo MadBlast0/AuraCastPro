@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// LicenseValidator.h — RSA-2048 signature verification for license keys
+// LicenseValidator.h -- RSA-2048 signature verification for license keys
 // =============================================================================
 #include <string>
 #include <cstdint>

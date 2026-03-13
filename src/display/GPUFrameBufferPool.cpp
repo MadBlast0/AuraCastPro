@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "GPUFrameBufferPool.h"
 #include "../utils/Logger.h"
 #include <thread>
@@ -29,7 +29,7 @@ bool GPUFrameBufferPool::allocSlot(ID3D12Device* device,
                                     int idx,
                                     uint32_t w,
                                     uint32_t h) {
-    // NV12 texture (Y plane full res, UV plane half res — DX12 handles this as a single resource)
+    // NV12 texture (Y plane full res, UV plane half res -- DX12 handles this as a single resource)
     D3D12_RESOURCE_DESC texDesc = {};
     texDesc.Dimension        = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     texDesc.Width            = w;
@@ -91,8 +91,8 @@ FrameSlot* GPUFrameBufferPool::acquireSlot() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    // Pool exhausted — release oldest (inUse) slot by force
-    AURA_LOG_WARN("GPUFrameBufferPool", "Pool exhausted — dropping oldest frame");
+    // Pool exhausted -- release oldest (inUse) slot by force
+    AURA_LOG_WARN("GPUFrameBufferPool", "Pool exhausted -- dropping oldest frame");
     auto& oldest = m_slots[0];
     oldest.inUse = true;
     return &oldest;

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// GPUProfileMarkers.h — PIX / RenderDoc GPU profiling markers (Task 107)
+// GPUProfileMarkers.h -- PIX / RenderDoc GPU profiling markers (Task 107)
 //
 // Wraps PIX event macros so they:
 //   • Appear as named ranges in PIX for Windows and RenderDoc
@@ -38,7 +38,7 @@ namespace aura::GPU {
 
 // ── Macro definitions ─────────────────────────────────────────────────────────
 // In Release builds the compiler sees empty do-nothing expressions and removes
-// them entirely — confirmed zero overhead by MSVC /O2 and clang-O3.
+// them entirely -- confirmed zero overhead by MSVC /O2 and clang-O3.
 #ifndef NDEBUG
 
 // D3D12 command-list annotations understood by PIX and RenderDoc
@@ -76,7 +76,7 @@ namespace aura::GPU {
         }                                                             \
     } while(0)
 
-#else // NDEBUG — Release: strip all markers to zero cost
+#else // NDEBUG -- Release: strip all markers to zero cost
 
 #define AURA_GPU_BEGIN(cmdList, colour, name)  do {} while(0)
 #define AURA_GPU_END(cmdList)                  do {} while(0)

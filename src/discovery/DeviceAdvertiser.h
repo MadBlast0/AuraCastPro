@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DeviceAdvertiser.h — Broadcasts AuraCastPro on local network
+// DeviceAdvertiser.h -- Broadcasts AuraCastPro on local network
 // =============================================================================
 #include <string>
 #include <memory>
@@ -24,8 +24,5 @@ private:
     BonjourAdapter* m_bonjour;
     std::string     m_displayName{"AuraCastPro"};
     bool            m_running{false};
-
-    void buildAndRegisterAirPlay();
-    void buildAndRegisterCast();
 };
 } // namespace aura

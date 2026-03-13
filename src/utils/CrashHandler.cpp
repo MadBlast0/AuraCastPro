@@ -1,5 +1,5 @@
-// =============================================================================
-// CrashHandler.cpp — Windows structured exception + signal handler setup
+﻿// =============================================================================
+// CrashHandler.cpp -- Windows structured exception + signal handler setup
 // Task 208: Registers SEH and SIGABRT handlers so unhandled crashes write a
 //           minidump before the process dies.
 // =============================================================================
@@ -23,7 +23,7 @@ static LONG WINAPI sehHandler(EXCEPTION_POINTERS* ep) {
 }
 
 static void signalHandler(int sig) {
-    AURA_LOG_CRITICAL("CrashHandler", "Signal {} received — writing minidump", sig);
+    AURA_LOG_CRITICAL("CrashHandler", "Signal {} received -- writing minidump", sig);
     CrashReporter::writeMiniDump(nullptr);
     ::ExitProcess(static_cast<UINT>(sig));
 }

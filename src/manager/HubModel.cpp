@@ -1,5 +1,5 @@
-// =============================================================================
-// HubModel.cpp — QML bridge: backend state → QML property bindings
+﻿// =============================================================================
+// HubModel.cpp -- QML bridge: backend state -> QML property bindings
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "HubModel.h"

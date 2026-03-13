@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "WindowsServices.h"
 #include "../utils/Logger.h"
 #include <dbghelp.h>
@@ -158,7 +158,7 @@ void ToastNotifier::show(const std::wstring& title,
     // WinRT toast via COM activation
     // For simplicity and compatibility: use balloon notification fallback
     // Full WinRT implementation requires Windows.UI.Notifications COM headers
-    LOG_INFO("Toast: {} — {}", std::string(title.begin(), title.end()),
+    LOG_INFO("Toast: {} -- {}", std::string(title.begin(), title.end()),
              std::string(message.begin(), message.end()));
     // MessageBox as last resort (non-blocking alternative via tray balloon)
     // See showFallback() for actual implementation
@@ -190,7 +190,7 @@ void ToastNotifier::showFallback(HWND trayHwnd,
 // ─── ErrorDialog ─────────────────────────────────────────────────────────────
 
 void ErrorDialog::showWarning(const std::wstring& title, const std::wstring& msg) {
-    LOG_WARN("[ErrorDialog Warning] {} — {}", std::string(title.begin(),title.end()),
+    LOG_WARN("[ErrorDialog Warning] {} -- {}", std::string(title.begin(),title.end()),
              std::string(msg.begin(),msg.end()));
     MessageBoxW(nullptr, msg.c_str(), title.c_str(), MB_OK | MB_ICONWARNING);
 }
@@ -200,13 +200,13 @@ void ErrorDialog::showError(const std::wstring& title,
                              const std::wstring& suggestion) {
     std::wstring full = msg;
     if (!suggestion.empty()) full += L"\n\n" + suggestion;
-    LOG_ERROR("[ErrorDialog Error] {} — {}", std::string(title.begin(),title.end()),
+    LOG_ERROR("[ErrorDialog Error] {} -- {}", std::string(title.begin(),title.end()),
               std::string(full.begin(),full.end()));
     MessageBoxW(nullptr, full.c_str(), title.c_str(), MB_OK | MB_ICONERROR);
 }
 
 void ErrorDialog::showFatal(const std::wstring& title, const std::wstring& msg) {
-    LOG_CRITICAL("[ErrorDialog Fatal] {} — {}", std::string(title.begin(),title.end()),
+    LOG_CRITICAL("[ErrorDialog Fatal] {} -- {}", std::string(title.begin(),title.end()),
                  std::string(msg.begin(),msg.end()));
     MessageBoxW(nullptr, msg.c_str(), title.c_str(), MB_OK | MB_ICONERROR);
     ExitProcess(1);

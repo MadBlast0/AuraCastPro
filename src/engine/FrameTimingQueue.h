@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// FrameTimingQueue.h — Frame presentation timing + blend weight calculator
+// FrameTimingQueue.h -- Frame presentation timing + blend weight calculator
 // =============================================================================
 #include <cstdint>
 #include <deque>

@@ -1,10 +1,10 @@
-// =============================================================================
-// MirrorWindow.cpp — Mirror window: Win32 HWND + DX12 swapchain render loop
+﻿// =============================================================================
+// MirrorWindow.cpp -- Mirror window: Win32 HWND + DX12 swapchain render loop
 //
 // Render pipeline per frame:
 //   1. Bind NV12 decoded texture as SRV
-//   2. Execute nv12_to_rgb PSO (NV12 → RGBA8 back buffer)
-//   3. swapChain->Present(1, 0)        ← vsync-locked, tear-free
+//   2. Execute nv12_to_rgb PSO (NV12 -> RGBA8 back buffer)
+//   3. swapChain->Present(1, 0)        <- vsync-locked, tear-free
 //   4. Signal fence, advance buffer index
 // =============================================================================
 #include "../pch.h"  // PCH
@@ -35,7 +35,7 @@ namespace aura {
 
 static constexpr UINT kFrameCount = 2; // double-buffered swapchain
 
-// Internal render state — hidden behind a pimpl to keep the header clean
+// Internal render state -- hidden behind a pimpl to keep the header clean
 struct MirrorWindow::RenderState {
     ComPtr<IDXGISwapChain4>       swapChain;
     UINT                          frameIndex{0};
@@ -53,7 +53,7 @@ struct MirrorWindow::RenderState {
     ComPtr<ID3D12DescriptorHeap> srvHeap;
     UINT                         srvDescSize{0};
 
-    // CBV upload buffer — holds NV12Constants (16 bytes) for the pixel shader
+    // CBV upload buffer -- holds NV12Constants (16 bytes) for the pixel shader
     ComPtr<ID3D12Resource>       cbvUploadBuffer;
 
     // Per-frame fence values for CPU/GPU sync
@@ -78,17 +78,17 @@ void MirrorWindow::init() {
 // -----------------------------------------------------------------------------
 void MirrorWindow::start() {
     // Create the Win32 window
-    m_win32->create(m_width, m_height, "AuraCastPro — Mirror");
+    m_win32->create(m_width, m_height, "AuraCastPro -- Mirror");
 
-    // Wire close event → application exit
+    // Wire close event -> application exit
     m_win32->setCloseCallback([]() {
         PostQuitMessage(0);
     });
-    // Wire resize event → swapchain resize
+    // Wire resize event -> swapchain resize
     m_win32->setResizeCallback([this](uint32_t w, uint32_t h) {
         onResize(w, h);
     });
-    // Wire key events → fullscreen toggle / overlay
+    // Wire key events -> fullscreen toggle / overlay
     m_win32->setKeyCallback([this](uint32_t vk) {
         if (vk == 'F' || vk == VK_F11) m_win32->toggleFullscreen();
         if (vk == VK_TAB && m_overlay)  m_overlay->toggle();
@@ -100,7 +100,7 @@ void MirrorWindow::start() {
     m_running = true;
 
     AURA_LOG_INFO("MirrorWindow",
-        "Mirror window started: {}×{} (DX12 swapchain, {} buffers).",
+        "Mirror window started: {}x{} (DX12 swapchain, {} buffers).",
         m_width, m_height, kFrameCount);
 }
 
@@ -108,7 +108,7 @@ void MirrorWindow::start() {
 void MirrorWindow::createSwapchainAndResources() {
     if (!m_dx12 || !m_dx12->commandQueue()) {
         AURA_LOG_WARN("MirrorWindow",
-            "DX12Manager not ready — mirror window will be blank.");
+            "DX12Manager not ready -- mirror window will be blank.");
         return;
     }
 
@@ -158,7 +158,7 @@ void MirrorWindow::createSwapchainAndResources() {
         device->GetDescriptorHandleIncrementSize(
             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    // ── 3b. CBV upload buffer (16 bytes — NV12 shader constants) ────────
+    // ── 3b. CBV upload buffer (16 bytes -- NV12 shader constants) ────────
     {
         D3D12_HEAP_PROPERTIES uploadHeap{};
         uploadHeap.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -179,7 +179,7 @@ void MirrorWindow::createSwapchainAndResources() {
             IID_PPV_ARGS(&m_render->cbvUploadBuffer));
         if (FAILED(hr)) {
             AURA_LOG_WARN("MirrorWindow",
-                "CBV upload buffer creation failed ({:08X}) — shader constants will be zero.",
+                "CBV upload buffer creation failed ({:08X}) -- shader constants will be zero.",
                 (uint32_t)hr);
         }
     }
@@ -227,12 +227,12 @@ void MirrorWindow::createSwapchainAndResources() {
     m_render->cmdList->Close();
 
     AURA_LOG_INFO("MirrorWindow",
-        "DX12 render resources created: {} RTVs, swapchain {}×{}.",
+        "DX12 render resources created: {} RTVs, swapchain {}x{}.",
         kFrameCount, m_width, m_height);
 }
 
 // -----------------------------------------------------------------------------
-// presentFrame() — called from the decoder callback (video thread)
+// presentFrame() -- called from the decoder callback (video thread)
 // Records a GPU command list and calls swapChain->Present().
 // -----------------------------------------------------------------------------
 void MirrorWindow::presentFrame(uint32_t width, uint32_t height) {
@@ -258,7 +258,7 @@ void MirrorWindow::presentFrame(uint32_t width, uint32_t height) {
     m_render->cmdAllocators[fi]->Reset();
     cmd->Reset(m_render->cmdAllocators[fi].Get(), m_dx12->nv12ToRgbPSO());
 
-    // ── Transition RT: PRESENT → RENDER_TARGET ───────────────────────────
+    // ── Transition RT: PRESENT -> RENDER_TARGET ───────────────────────────
     D3D12_RESOURCE_BARRIER barrierToRT{};
     barrierToRT.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrierToRT.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -344,12 +344,12 @@ void MirrorWindow::presentFrame(uint32_t width, uint32_t height) {
         cmd->SetGraphicsRootDescriptorTable(
             1, m_render->srvHeap->GetGPUDescriptorHandleForHeapStart());
 
-        // Full-screen triangle (vertex-less — VS generates from SV_VertexID)
+        // Full-screen triangle (vertex-less -- VS generates from SV_VertexID)
         cmd->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         cmd->DrawInstanced(3, 1, 0, 0);
     }
 
-    // ── Transition RT: RENDER_TARGET → PRESENT ───────────────────────────
+    // ── Transition RT: RENDER_TARGET -> PRESENT ───────────────────────────
     D3D12_RESOURCE_BARRIER barrierToPresent{};
     barrierToPresent.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrierToPresent.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -425,7 +425,7 @@ void MirrorWindow::onResize(uint32_t w, uint32_t h) {
         m_render->fenceValues[i] = 0;
     }
 
-    AURA_LOG_INFO("MirrorWindow", "Swapchain resized to {}×{}", w, h);
+    AURA_LOG_INFO("MirrorWindow", "Swapchain resized to {}x{}", w, h);
 }
 
 // -----------------------------------------------------------------------------

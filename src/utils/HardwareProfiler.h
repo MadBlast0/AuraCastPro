@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// HardwareProfiler.h — Detects GPU capabilities, CPU core count, RAM, and
+// HardwareProfiler.h -- Detects GPU capabilities, CPU core count, RAM, and
 //                       DirectX 12 feature level at startup.
 //
 // Results are used to:

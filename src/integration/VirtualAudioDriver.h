@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// VirtualAudioDriver.h — Virtual audio output device driver interface
+// VirtualAudioDriver.h -- Virtual audio output device driver interface
 //
 // Exposes the mixed device audio as a virtual audio input device so
 // recording software (OBS, Audacity) can capture it separately from
 // the system audio mix.
 //
 // Uses a Windows kernel-mode audio driver (Audio_Installer.inf).
-// The driver creates a virtual loopback: AudioMixer output → virtual input.
+// The driver creates a virtual loopback: AudioMixer output -> virtual input.
 // =============================================================================
 #include <cstdint>
 #include <atomic>

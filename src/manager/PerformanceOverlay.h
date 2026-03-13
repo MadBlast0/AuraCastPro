@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// PerformanceOverlay.h — Task 172: On-screen stats overlay (Ctrl+Shift+O)
+// PerformanceOverlay.h -- Task 172: On-screen stats overlay (Ctrl+Shift+O)
 //
 // Bound into QML context as "performanceOverlay". QML StatsOverlay.qml
 // reads isVisible() and triggers repaints via overlayDataReady() signal.

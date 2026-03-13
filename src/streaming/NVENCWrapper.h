@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// NVENCWrapper.h — Direct NVENC SDK wrapper (bypasses FFmpeg for lowest latency)
+// NVENCWrapper.h -- Direct NVENC SDK wrapper (bypasses FFmpeg for lowest latency)
 //
 // Direct NVENC SDK gives ~2ms less encode latency vs going through FFmpeg.
 // Falls back to HardwareEncoder (FFmpeg h264_nvenc) if NVENC SDK not present.

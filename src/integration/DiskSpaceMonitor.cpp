@@ -19,6 +19,11 @@ void DiskSpaceMonitor::init() {
 
 void DiskSpaceMonitor::start(const std::string& watchPath) {
     m_watchPath = watchPath;
+    try {
+        std::filesystem::create_directories(std::filesystem::path(m_watchPath));
+    } catch (const std::exception& ex) {
+        AURA_LOG_WARN("DiskSpaceMonitor", "Failed to create watch path '{}': {}", m_watchPath, ex.what());
+    }
     m_running.store(true);
     updateDiskSpace();
     m_thread = std::thread([this]() { monitorLoop(); });

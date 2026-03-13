@@ -1,4 +1,3 @@
-// DeviceList.qml — Discovered devices list
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -7,101 +6,103 @@ import "."
 Item {
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: Theme.spacingLG
         spacing: Theme.spacingLG
 
-        Text {
-            text: qsTr("DEVICES")
-            font.family:    Theme.fontMono
-            font.pixelSize: Theme.fontSizeH2
-            font.weight:    Font.Black
-            color:          Theme.textPrimary
-            letterSpacing:  4
+        ColumnLayout {
+            spacing: 4
+
+            Text {
+                text: qsTr("Devices")
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontSizeH2
+                font.weight: Font.DemiBold
+                color: Theme.textPrimary
+            }
+
+            Text {
+                text: qsTr("Phones and tablets on your network will appear here.")
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontSizeSM
+                color: Theme.textSecondary
+            }
         }
 
-        // Divider
-        Rectangle { height: 2; Layout.fillWidth: true; color: Theme.borderActive }
-
         ListView {
+            id: deviceListView
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            id: deviceListView
-            // deviceManager is set as a context property in HubWindow::init()
-            // Its Q_PROPERTY 'devices' returns QList<DeviceInfo> which QML uses as model
-            model: deviceManager ? deviceManager.devices : []
             spacing: Theme.spacingMD
+            model: deviceManager ? deviceManager.devices : []
 
             delegate: Rectangle {
-                width:  ListView.view.width
-                height: 72
-                color:  Theme.bgCard
+                width: ListView.view.width
+                height: 84
+                radius: Theme.radiusMD
+                color: Theme.bgCard
                 border.color: Theme.borderNormal
-                border.width: Theme.borderWidthNormal
-
-                // Offset shadow
-                Rectangle {
-                    x: Theme.shadowOffX; y: Theme.shadowOffY
-                    width: parent.width; height: parent.height
-                    color: Theme.bgHover
-                    z: -1
-                }
+                border.width: 1
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: Theme.spacingMD
-                    spacing: Theme.spacingMD
+                    anchors.margins: 16
+                    spacing: 14
 
-                    // Protocol badge
                     Rectangle {
-                        width: 56; height: 28
-                        color: qsTr("transparent")
-                        border.color: Theme.borderActive
-                        border.width: 2
+                        width: 64
+                        height: 32
+                        radius: 16
+                        color: Theme.bgElevated
+                        border.color: Theme.borderSubtle
+                        border.width: 1
+
                         Text {
                             anchors.centerIn: parent
                             text: model.protocol ? model.protocol.toUpperCase() : "?"
-                            font.family:    Theme.fontMono
-                            font.pixelSize: 10
-                            font.weight:    Font.Bold
-                            color:          Theme.textPrimary
-                            letterSpacing:  1
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontSizeXS
+                            font.weight: Font.DemiBold
+                            color: Theme.textPrimary
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: 3
+
                         Text {
-                            text: model.name || "Unknown Device"
-                            font.family:    Theme.fontMono
+                            text: model.name || qsTr("Unknown Device")
+                            font.family: Theme.fontSans
                             font.pixelSize: Theme.fontSizeMD
-                            font.weight:    Font.Bold
-                            color:          Theme.textPrimary
+                            font.weight: Font.DemiBold
+                            color: Theme.textPrimary
                         }
+
                         Text {
-                            text: (model.ipAddress || "") + "  " + (model.modelIdentifier || "")
-                            font.family:    Theme.fontMono
+                            text: (model.ipAddress || "") + ((model.modelIdentifier || "") ? "  " + model.modelIdentifier : "")
+                            font.family: Theme.fontSans
                             font.pixelSize: Theme.fontSizeSM
-                            color:          Theme.textSecondary
+                            color: Theme.textSecondary
                         }
                     }
 
-                    // Connect button
                     Rectangle {
-                        width: 100; height: 36
-                        color: model.isConnected ? Theme.bgHover : Theme.textPrimary
-                        border.color: Theme.borderActive
-                        border.width: 2
+                        width: 112
+                        height: 38
+                        radius: 19
+                        color: model.isConnected ? Theme.bgElevated : Theme.accent
+                        border.color: model.isConnected ? Theme.borderNormal : "#9bc5ff"
+                        border.width: 1
+
                         Text {
                             anchors.centerIn: parent
-                            text: model.isConnected ? qsTr("CONNECTED") : qsTr("CONNECT")
-                            font.family:    Theme.fontMono
-                            font.pixelSize: 11
-                            font.weight:    Font.Bold
-                            color: model.isConnected ? Theme.textSecondary : Theme.textInverse
-                            letterSpacing: 1
+                            text: model.isConnected ? qsTr("Connected") : qsTr("Connect")
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontSizeSM
+                            font.weight: Font.DemiBold
+                            color: model.isConnected ? Theme.textPrimary : Theme.textInverse
                         }
+
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
@@ -114,16 +115,37 @@ Item {
                 }
             }
 
-            // Empty state
-            Text {
+            Rectangle {
                 anchors.centerIn: parent
                 visible: parent.count === 0
-                text: qsTr("NO DEVICES FOUND\n\nEnsure your phone is on the\nsame Wi-Fi network.")
-                font.family:    Theme.fontMono
-                font.pixelSize: Theme.fontSizeSM
-                color:          Theme.textDisabled
-                horizontalAlignment: Text.AlignHCenter
-                lineHeight: 1.6
+                width: 320
+                height: 150
+                radius: Theme.radiusLG
+                color: Theme.bgCard
+                border.color: Theme.borderSubtle
+                border.width: 1
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 10
+
+                    Text {
+                        text: qsTr("No devices found")
+                        font.family: Theme.fontSans
+                        font.pixelSize: Theme.fontSizeLG
+                        font.weight: Font.DemiBold
+                        color: Theme.textPrimary
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+
+                    Text {
+                        text: qsTr("Make sure your phone and this PC\nare on the same Wi-Fi network.")
+                        font.family: Theme.fontSans
+                        font.pixelSize: Theme.fontSizeSM
+                        color: Theme.textSecondary
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
             }
         }
     }

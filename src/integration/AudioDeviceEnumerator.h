@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// AudioDeviceEnumerator.h — Task 119: WASAPI audio output device selection
+// AudioDeviceEnumerator.h -- Task 119: WASAPI audio output device selection
 //
 // Enumerates all active Windows audio render endpoints (speakers, HDMI, etc.)
 // and allows selecting which device AudioLoopback should capture from.
@@ -8,7 +8,7 @@
 // Usage:
 //   auto& enumerator = AudioDeviceEnumerator::instance();
 //   auto devices = enumerator.listOutputDevices();
-//   // devices is vector of {id, name} — populate a combobox in SettingsPage
+//   // devices is vector of {id, name} -- populate a combobox in SettingsPage
 //
 //   enumerator.setActiveDevice(devices[0].id);
 //   // Now AudioLoopback.init() will capture from that device
@@ -47,7 +47,7 @@ public:
     using DeviceChangeCallback = std::function<void(const std::string& newDefaultId)>;
     void setDeviceChangeCallback(DeviceChangeCallback cb);
 
-    // Singleton — one enumerator per process
+    // Singleton -- one enumerator per process
     static AudioDeviceEnumerator& instance();
 
 private:

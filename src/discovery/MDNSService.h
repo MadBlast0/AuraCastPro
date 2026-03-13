@@ -1,16 +1,16 @@
-#pragma once
+﻿#pragma once
 #include <vector>
 #include <mutex>
 // =============================================================================
-// MDNSService.h — Zeroconf mDNS service registration via Apple Bonjour SDK
+// MDNSService.h -- Zeroconf mDNS service registration via Apple Bonjour SDK
 //
 // Registers AuraCastPro on the local network so iPhones and Android phones
-// can see it as a screen mirroring target — same way Apple TV appears on
+// can see it as a screen mirroring target -- same way Apple TV appears on
 // an iPhone's AirPlay list.
 //
 // Two registrations:
-//   _airplay._tcp   port 7236  → iPhones see "AuraCastPro" in Screen Mirroring
-//   _googlecast._tcp port 8009 → Android sees it in Cast targets
+//   _airplay._tcp   port 7236  -> iPhones see "AuraCastPro" in Screen Mirroring
+//   _googlecast._tcp port 8009 -> Android sees it in Cast targets
 // =============================================================================
 #pragma once
 #include <vector>
@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <atomic>
+#include <thread>
 
 namespace aura {
 
@@ -52,8 +53,8 @@ private:
     std::vector<MDNSRecord> m_extraRecords;
     mutable std::mutex m_mutex;
 
-    struct BonjourState;
-    std::unique_ptr<BonjourState> m_bonjour;
+    struct RuntimeState;
+    std::unique_ptr<RuntimeState> m_runtime;
 
     void registerService(const MDNSRecord& record);
     void buildAirPlayTxtRecord(std::string& out) const;

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// Logger.h — Centralised high-performance logging facade
+// Logger.h -- Centralised high-performance logging facade
 //
 // Wraps spdlog. All modules call Logger::get() to obtain the shared logger.
 // Thread-safe. Async queue backend so logging never blocks the hot path.
@@ -20,7 +20,7 @@ namespace aura {
 class Logger {
 public:
     // -------------------------------------------------------------------------
-    // init() — call once from main() before any other subsystem
+    // init() -- call once from main() before any other subsystem
     //   logDir   : directory where rotating log files are written
     //   maxSizeMB: rotate file when it exceeds this size
     //   maxFiles : keep this many rotated files before deleting the oldest
@@ -43,7 +43,7 @@ private:
 } // namespace aura
 
 // =============================================================================
-// Convenience macros — prepend the subsystem name automatically.
+// Convenience macros -- prepend the subsystem name automatically.
 // Using macros preserves __FILE__ / __LINE__ source location.
 // =============================================================================
 #define AURA_LOG_TRACE(subsystem, fmt_str, ...) \
@@ -71,7 +71,7 @@ private:
         fmt::runtime(std::string("[") + subsystem + "] " + fmt_str), ##__VA_ARGS__)
 
 // =============================================================================
-// Backward-compatible shorthands (single-string form — component embedded):
+// Backward-compatible shorthands (single-string form -- component embedded):
 //   LOG_INFO("ReceiverSocket: Bound to port {}", port);
 // These are kept for files that predate the AURA_LOG_* naming convention.
 // =============================================================================

@@ -1,21 +1,21 @@
-// =============================================================================
-// NVENCWrapper.cpp — Task 135: NVIDIA NVENC direct SDK interface
+﻿// =============================================================================
+// NVENCWrapper.cpp -- Task 135: NVIDIA NVENC direct SDK interface
 //
 // Strategy (compile-time):
-//   • If CUDA toolkit installed  → NVENC_SDK_AVAILABLE=1, use direct API
-//   • Otherwise                  → NVENC_SDK_AVAILABLE=0, route through FFmpeg
+//   • If CUDA toolkit installed  -> NVENC_SDK_AVAILABLE=1, use direct API
+//   • Otherwise                  -> NVENC_SDK_AVAILABLE=0, route through FFmpeg
 //     h264_nvenc / hevc_nvenc (which bundles its own nvEncodeAPI.dll at runtime)
 //
 // Runtime path (NVENC_SDK_AVAILABLE=1):
-//   open()         → NvEncOpenEncodeSessionEx (D3D12 device)
-//                  → NvEncInitializeEncoder (HEVC, CBR, P4 preset)
-//                  → NvEncCreateBitstreamBuffer (output bitstream)
-//   encodeFrame()  → NvEncRegisterResource (D3D12 texture)
-//                  → NvEncMapInputResource
-//                  → NvEncEncodePicture
-//                  → NvEncLockBitstream → callback(packet)
-//                  → NvEncUnlockBitstream → NvEncUnmapInputResource
-//   close()        → NvEncDestroyEncoder
+//   open()         -> NvEncOpenEncodeSessionEx (D3D12 device)
+//                  -> NvEncInitializeEncoder (HEVC, CBR, P4 preset)
+//                  -> NvEncCreateBitstreamBuffer (output bitstream)
+//   encodeFrame()  -> NvEncRegisterResource (D3D12 texture)
+//                  -> NvEncMapInputResource
+//                  -> NvEncEncodePicture
+//                  -> NvEncLockBitstream -> callback(packet)
+//                  -> NvEncUnlockBitstream -> NvEncUnmapInputResource
+//   close()        -> NvEncDestroyEncoder
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "NVENCWrapper.h"
@@ -38,7 +38,7 @@
 
 namespace aura {
 
-// ── Private state (pimpl — keeps NVENC SDK types out of the header) ──────────
+// ── Private state (pimpl -- keeps NVENC SDK types out of the header) ──────────
 
 struct NVENCWrapper::NVState {
 #if NVENC_SDK_AVAILABLE
@@ -58,7 +58,7 @@ struct NVENCWrapper::NVState {
 NVENCWrapper::NVENCWrapper() : m_nv(std::make_unique<NVState>()) {}
 NVENCWrapper::~NVENCWrapper() { shutdown(); }
 
-// ── isAvailable — probe DLL without executing code ───────────────────────────
+// ── isAvailable -- probe DLL without executing code ───────────────────────────
 
 bool NVENCWrapper::isAvailable() const {
     // Fast path: if already initialised, use cached result
@@ -79,14 +79,14 @@ bool NVENCWrapper::isAvailable() const {
     return false;
 }
 
-// ── init — probe DLL and populate function table ──────────────────────────────
+// ── init -- probe DLL and populate function table ──────────────────────────────
 
 void NVENCWrapper::init() {
 #if NVENC_SDK_AVAILABLE
     m_nv->hDll = LoadLibraryW(L"nvEncodeAPI64.dll");
     if (!m_nv->hDll) {
         AURA_LOG_INFO("NVENCWrapper",
-            "nvEncodeAPI64.dll not found — using FFmpeg h264_nvenc fallback.");
+            "nvEncodeAPI64.dll not found -- using FFmpeg h264_nvenc fallback.");
         return;
     }
 
@@ -116,14 +116,14 @@ void NVENCWrapper::init() {
 
     m_nv->available = true;
     AURA_LOG_INFO("NVENCWrapper",
-        "NVENC SDK initialised. Direct API available — zero-copy D3D12 encoding enabled.");
+        "NVENC SDK initialised. Direct API available -- zero-copy D3D12 encoding enabled.");
 #else
     AURA_LOG_INFO("NVENCWrapper",
         "Built without NVENC SDK headers. Using FFmpeg h264_nvenc / hevc_nvenc path.");
 #endif
 }
 
-// ── open — create encode session and configure for screen mirroring ───────────
+// ── open -- create encode session and configure for screen mirroring ───────────
 
 bool NVENCWrapper::open(ID3D12Device* device,
                          uint32_t w, uint32_t h,
@@ -200,7 +200,7 @@ bool NVENCWrapper::open(ID3D12Device* device,
     m_open.store(true);
 
     AURA_LOG_INFO("NVENCWrapper",
-        "NVENC session open: {}×{} {} @{}fps {}kbps ({}). D3D12 zero-copy active.",
+        "NVENC session open: {}x{} {} @{}fps {}kbps ({}). D3D12 zero-copy active.",
         w, h, useHEVC ? "HEVC" : "H.264", fps, bitrateKbps,
         NV_ENC_PRESET_P4_GUID == NV_ENC_PRESET_P4_GUID ? "P4 preset" : "");
     return true;
@@ -210,7 +210,7 @@ bool NVENCWrapper::open(ID3D12Device* device,
 #endif
 }
 
-// ── encodeFrame — register D3D12 texture, encode, deliver packet ──────────────
+// ── encodeFrame -- register D3D12 texture, encode, deliver packet ──────────────
 
 void NVENCWrapper::encodeFrame(ID3D12Resource* texture, int64_t ptsUs) {
     if (!m_open.load() || !m_callback) return;
@@ -218,7 +218,7 @@ void NVENCWrapper::encodeFrame(ID3D12Resource* texture, int64_t ptsUs) {
 #if NVENC_SDK_AVAILABLE
     if (!m_nv->sessionOpen || !m_nv->encoder || !texture) return;
 
-    // Register D3D12 resource (cached per texture — re-registration is a no-op if already done)
+    // Register D3D12 resource (cached per texture -- re-registration is a no-op if already done)
     NV_ENC_REGISTER_RESOURCE regParams{};
     regParams.version            = NV_ENC_REGISTER_RESOURCE_VER;
     regParams.resourceType       = NV_ENC_INPUT_RESOURCE_TYPE_DIRECTX;
@@ -274,7 +274,7 @@ void NVENCWrapper::encodeFrame(ID3D12Resource* texture, int64_t ptsUs) {
     NV_ENC_LOCK_BITSTREAM lockParams{};
     lockParams.version         = NV_ENC_LOCK_BITSTREAM_VER;
     lockParams.outputBitstream = m_nv->bitstreamBuffer;
-    lockParams.doNotWait       = 0;  // blocking — fine at 120fps (8.3ms budget)
+    lockParams.doNotWait       = 0;  // blocking -- fine at 120fps (8.3ms budget)
 
     st = m_nv->api.nvEncLockBitstream(m_nv->encoder, &lockParams);
     if (st == NV_ENC_SUCCESS) {

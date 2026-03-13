@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DX12DeviceContext.h — Task 103: GPU resource allocator
+// DX12DeviceContext.h -- Task 103: GPU resource allocator
 //
 // Manages descriptor heaps and provides helpers for creating GPU resources:
-//   • RTV heap  (32 slots)  — swapchain back buffers + intermediate RTs
-//   • SRV heap (256 slots)  — NV12 Y/UV planes, intermediate textures, etc.
-//   • allocateTexture2D()   — creates a GPU texture resource (VRAM)
-//   • allocateUploadBuffer() — creates a CPU-visible upload heap buffer
+//   • RTV heap  (32 slots)  -- swapchain back buffers + intermediate RTs
+//   • SRV heap (256 slots)  -- NV12 Y/UV planes, intermediate textures, etc.
+//   • allocateTexture2D()   -- creates a GPU texture resource (VRAM)
+//   • allocateUploadBuffer() -- creates a CPU-visible upload heap buffer
 // =============================================================================
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -59,7 +59,7 @@ public:
         const std::wstring& debugName = L"");
 
     // Create a CPU-visible readback buffer (D3D12_HEAP_TYPE_READBACK).
-    // Used for GPU → CPU downloads (screenshot, vcam readback).
+    // Used for GPU -> CPU downloads (screenshot, vcam readback).
     ComPtr<ID3D12Resource> allocateReadbackBuffer(
         uint64_t            byteSize,
         const std::wstring& debugName = L"");

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// StreamBroadcaster.h — Fan-out: sends frames to multiple sinks simultaneously
+// StreamBroadcaster.h -- Fan-out: sends frames to multiple sinks simultaneously
 // (VCamBridge, StreamRecorder, RTMPOutput) without extra encoding copies
 // =============================================================================
 #include <functional>

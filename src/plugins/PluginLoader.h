@@ -1,5 +1,5 @@
-#pragma once
-// PluginLoader.h — DLL load/unload utilities (used by PluginManager)
+﻿#pragma once
+// PluginLoader.h -- DLL load/unload utilities (used by PluginManager)
 #include <string>
 #include <memory>
 

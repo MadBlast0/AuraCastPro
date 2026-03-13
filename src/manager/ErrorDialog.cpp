@@ -1,5 +1,5 @@
-// =============================================================================
-// ErrorDialog.cpp — Task 177: User-facing error dialog system
+﻿// =============================================================================
+// ErrorDialog.cpp -- Task 177: User-facing error dialog system
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "ErrorDialog.h"
@@ -68,7 +68,7 @@ void ErrorDialog::show(const Options& opts) {
         opts.technical.empty() ? "(none)" : opts.technical);
 
     if (!g_qmlBridge) {
-        // Qt not ready yet — fall back to native dialog
+        // Qt not ready yet -- fall back to native dialog
         showNative(opts.level, opts.title, opts.message);
         return;
     }

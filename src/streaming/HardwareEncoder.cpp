@@ -1,5 +1,5 @@
-// =============================================================================
-// HardwareEncoder.cpp — GPU encoder selection and management
+﻿// =============================================================================
+// HardwareEncoder.cpp -- GPU encoder selection and management
 //
 // Priority: NVENC (NVIDIA) > AMF (AMD) > QuickSync (Intel) > Software (x264)
 //
@@ -35,7 +35,7 @@ HardwareEncoder::~HardwareEncoder() { shutdown(); }
 
 void HardwareEncoder::init() {
     AURA_LOG_INFO("HardwareEncoder",
-        "Initialised. Encoder priority: NVENC → AMF → QuickSync → Software (x264/x265).");
+        "Initialised. Encoder priority: NVENC -> AMF -> QuickSync -> Software (x264/x265).");
 }
 
 EncoderType HardwareEncoder::detectBestEncoder() const {
@@ -105,7 +105,7 @@ bool HardwareEncoder::open(const EncoderConfig& cfg) {
 
     m_open.store(true);
     AURA_LOG_INFO("HardwareEncoder",
-        "Encoder '{}' opened: {}×{} @{}fps {}kbps.",
+        "Encoder '{}' opened: {}x{} @{}fps {}kbps.",
         codecName, cfg.width, cfg.height, cfg.fps, cfg.bitrateKbps);
     return true;
 }
@@ -154,7 +154,7 @@ void HardwareEncoder::feedFrame(ID3D12Resource* nv12Texture, int64_t pts) {
         // ReadFromSubresource may fail if resource is not CPU-accessible.
         // In that case the frame will be all-black but the encoder won't crash.
         AURA_LOG_TRACE("HardwareEncoder",
-            "ReadFromSubresource Y-plane failed ({:08X}) — using blank frame.", (uint32_t)hr);
+            "ReadFromSubresource Y-plane failed ({:08X}) -- using blank frame.", (uint32_t)hr);
         // Zero the planes so we get a black frame rather than garbage
         memset(frame->data[0], 0x10, frame->linesize[0] * h);
         memset(frame->data[1], 0x80, frame->linesize[1] * (h / 2));

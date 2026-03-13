@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// AndroidControlBridge.h — Sends touch/key events to Android via ADB
+// AndroidControlBridge.h -- Sends touch/key events to Android via ADB
 // =============================================================================
 #include <functional>
 #include <string>

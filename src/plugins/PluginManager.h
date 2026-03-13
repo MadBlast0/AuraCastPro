@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// PluginManager.h — Task 163: Plugin discovery, lifecycle, and dispatch
+// PluginManager.h -- Task 163: Plugin discovery, lifecycle, and dispatch
 // =============================================================================
 #include "PluginInterface.h"
 #include <vector>

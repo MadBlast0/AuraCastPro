@@ -55,7 +55,7 @@ float3 PQ_to_Linear(float3 pq) {
 }
 
 // -----------------------------------------------------------------------
-// BT.2020 → BT.709 colour primaries matrix
+// BT.2020 -> BT.709 colour primaries matrix
 // -----------------------------------------------------------------------
 float3 BT2020_to_BT709(float3 c) {
     return float3(
@@ -79,20 +79,20 @@ float3 ACESFilmic(float3 x) {
 }
 
 // -----------------------------------------------------------------------
-// Gamma 2.2 encoding (linear → sRGB approximation)
+// Gamma 2.2 encoding (linear -> sRGB approximation)
 // -----------------------------------------------------------------------
-float3 LinearToGamma22(float3 linear) {
-    return pow(saturate(linear), 1.0f / 2.2f);
+float3 LinearToGamma22(float3 linearVal) {
+    return pow(saturate(linearVal), 1.0f / 2.2f);
 }
 
 // -----------------------------------------------------------------------
 float4 PSMain(VS_OUTPUT input) : SV_Target {
     float4 hdrSample = HDRInput.Sample(LinearSampler, input.TexCoord);
 
-    // 1. Decode PQ signal → linear nits
+    // 1. Decode PQ signal -> linear nits
     float3 linearNits = PQ_to_Linear(hdrSample.rgb);
 
-    // 2. Convert BT.2020 → BT.709 colour primaries
+    // 2. Convert BT.2020 -> BT.709 colour primaries
     float3 bt709 = BT2020_to_BT709(linearNits);
 
     // 3. Normalise to [0, 1] relative to the display's peak luminance
@@ -102,7 +102,7 @@ float4 PSMain(VS_OUTPUT input) : SV_Target {
     float luma = dot(bt709, float3(0.2126f, 0.7152f, 0.0722f));
     bt709 = lerp(float3(luma, luma, luma), bt709, Saturation);
 
-    // 5. ACES filmic tone-mapping (maps [0, ∞) → [0, 1])
+    // 5. ACES filmic tone-mapping (maps [0, +inf) -> [0, 1])
     float3 tonemapped = ACESFilmic(bt709);
 
     // 6. Gamma encode for SDR display

@@ -1,5 +1,5 @@
-// =============================================================================
-// Logger.cpp — Implementation of the centralised async spdlog logger
+﻿// =============================================================================
+// Logger.cpp -- Implementation of the centralised async spdlog logger
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -15,7 +15,7 @@
 
 namespace aura {
 
-// Module-level singleton — valid after init(), cleared by shutdown()
+// Module-level singleton -- valid after init(), cleared by shutdown()
 static std::shared_ptr<spdlog::logger> s_logger;
 
 void Logger::init(const std::string& logDir, std::size_t maxSizeMB, std::size_t maxFiles) {
@@ -33,18 +33,18 @@ void Logger::init(const std::string& logDir, std::size_t maxSizeMB, std::size_t 
     // Two sinks: coloured stdout + rotating file
     std::vector<spdlog::sink_ptr> sinks;
 
-    // Console sink (coloured) — useful during development
+    // Console sink (coloured) -- useful during development
     auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     consoleSink->set_level(spdlog::level::debug);
     sinks.push_back(consoleSink);
 
-    // Rotating file sink — keeps the last N files, each ≤ maxSizeMB
+    // Rotating file sink -- keeps the last N files, each ≤ maxSizeMB
     auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
         logPath, maxBytes, maxFiles);
     fileSink->set_level(spdlog::level::trace);
     sinks.push_back(fileSink);
 
-    // Async logger — writing never blocks the calling thread
+    // Async logger -- writing never blocks the calling thread
     s_logger = std::make_shared<spdlog::async_logger>(
         "aura",
         sinks.begin(), sinks.end(),
@@ -59,7 +59,7 @@ void Logger::init(const std::string& logDir, std::size_t maxSizeMB, std::size_t 
     spdlog::register_logger(s_logger);
     spdlog::set_default_logger(s_logger);
 
-    s_logger->info("[Logger] Initialised — log file: {}", logPath);
+    s_logger->info("[Logger] Initialised -- log file: {}", logPath);
 }
 
 std::shared_ptr<spdlog::logger> Logger::get() {

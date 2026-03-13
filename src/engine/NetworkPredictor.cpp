@@ -1,5 +1,5 @@
-// =============================================================================
-// NetworkPredictor.cpp — EMA bandwidth predictor
+﻿// =============================================================================
+// NetworkPredictor.cpp -- EMA bandwidth predictor
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "NetworkPredictor.h"
@@ -58,7 +58,7 @@ void NetworkPredictor::reset() {
 } // namespace aura
 
 // =============================================================================
-// RTT self-measurement  [ADDED — Task 070 gap fix]
+// RTT self-measurement  [ADDED -- Task 070 gap fix]
 // =============================================================================
 namespace aura {
 
@@ -88,7 +88,7 @@ void NetworkPredictor::onProbeEcho(uint32_t probeId) {
     const double rttMs = std::chrono::duration<double, std::milli>(now - it->second).count();
     m_pendingProbes.erase(it);
 
-    // Feed measured RTT into EMA — this is the self-measured value
+    // Feed measured RTT into EMA -- this is the self-measured value
     m_emaRtt.store(ema(m_emaRtt.load(), rttMs, kAlpha));
     AURA_LOG_TRACE("NetworkPredictor",
         "RTT probe {} echo: {:.1f}ms (ema {:.1f}ms)", probeId, rttMs, m_emaRtt.load());

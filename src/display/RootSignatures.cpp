@@ -1,7 +1,7 @@
 #include "../pch.h"  // PCH
 #include "RootSignatures.h"
 #include "../utils/Logger.h"
-#include <d3dx12.h>
+#include <directx/d3dx12.h>
 #include <stdexcept>
 
 bool RootSignatures::init(ID3D12Device* device) {

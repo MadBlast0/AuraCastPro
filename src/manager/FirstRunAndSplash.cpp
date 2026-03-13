@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "FirstRunAndSplash.h"
 #include "../utils/NetworkTools.h"
 #include "../utils/AppDataInit.h"
@@ -47,7 +47,7 @@ FirstRunWizard::FirstRunWizard(SettingsModel* settings, QWidget* parent)
     auto* btnRow = new QHBoxLayout;
     m_skipBtn = new QPushButton("Skip");
     m_backBtn = new QPushButton("Back");
-    m_nextBtn = new QPushButton("Next →");
+    m_nextBtn = new QPushButton("Next ->");
     m_nextBtn->setStyleSheet(
         "QPushButton { background:#FFFFFF; color:#000000; border:2px solid #FFFFFF; }"
         "QPushButton:hover { background:#CCCCCC; }");
@@ -119,7 +119,7 @@ void FirstRunWizard::buildRecordingPage() {
     QString defPath = QDir::homePath() + "/Videos/AuraCastPro";
     m_folderEdit->setText(defPath);
 
-    auto* browseBtn = new QPushButton("Browse…");
+    auto* browseBtn = new QPushButton("Browse...");
     auto* row = new QHBoxLayout;
     row->addWidget(m_folderEdit); row->addWidget(browseBtn);
     l->addLayout(row);
@@ -146,7 +146,7 @@ void FirstRunWizard::buildLicensePage() {
     l->addWidget(sub); l->addSpacing(16);
 
     m_licenseEdit = new QLineEdit;
-    m_licenseEdit->setPlaceholderText("License key (optional) — XXXX-XXXX-XXXX-XXXX");
+    m_licenseEdit->setPlaceholderText("License key (optional) -- XXXX-XXXX-XXXX-XXXX");
     l->addWidget(m_licenseEdit);
     m_nextBtn->setText("Start Using AuraCastPro");
     l->addStretch();
@@ -157,7 +157,7 @@ void FirstRunWizard::goToPage(int idx) {
     m_currentPage = idx;
     m_stack->setCurrentIndex(idx);
     m_backBtn->setEnabled(idx > 0);
-    m_nextBtn->setText(idx == kPageCount - 1 ? "Start Using AuraCastPro" : "Next →");
+    m_nextBtn->setText(idx == kPageCount - 1 ? "Start Using AuraCastPro" : "Next ->");
 }
 
 void FirstRunWizard::onNext() {
@@ -190,13 +190,13 @@ void FirstRunWizard::finish() {
 // ─── SplashScreen ────────────────────────────────────────────────────────────
 
 const SplashScreen::Step SplashScreen::kSteps[] = {
-    { 10, "Initialising logger…"          },
-    { 20, "Checking hardware…"            },
-    { 30, "Loading settings…"             },
-    { 50, "Starting network services…"    },
-    { 70, "Initialising GPU renderer…"    },
-    { 80, "Starting audio services…"      },
-    { 90, "Starting device discovery…"    },
+    { 10, "Initialising logger..."          },
+    { 20, "Checking hardware..."            },
+    { 30, "Loading settings..."             },
+    { 50, "Starting network services..."    },
+    { 70, "Initialising GPU renderer..."    },
+    { 80, "Starting audio services..."      },
+    { 90, "Starting device discovery..."    },
     {100, "Ready."                         },
 };
 

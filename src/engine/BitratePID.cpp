@@ -1,5 +1,5 @@
-// =============================================================================
-// BitratePID.cpp — PID-based adaptive bitrate controller implementation
+﻿// =============================================================================
+// BitratePID.cpp -- PID-based adaptive bitrate controller implementation
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -77,7 +77,7 @@ float BitratePID::update(const PIDTelemetry& telemetry) {
     if (telemetry.packetLossRate >= m_config.criticalLossRate) {
         // Emergency: cut to 50% immediately
         newBitrate = m_prevBitrate * 0.5f;
-        AURA_LOG_WARN("BitratePID", "Critical loss {:.1f}% — emergency cut to {:.0f} Kbps",
+        AURA_LOG_WARN("BitratePID", "Critical loss {:.1f}% -- emergency cut to {:.0f} Kbps",
                       telemetry.packetLossRate * 100.0f, newBitrate / 1000.0f);
         // Reset integral to prevent windup after emergency cut
         m_integral = 0.0f;
@@ -117,7 +117,7 @@ float BitratePID::update(const PIDTelemetry& telemetry) {
     AURA_LOG_TRACE("BitratePID",
         "loss={:.2f}% jitter={:.1f}ms rtt={:.0f}ms "
         "P={:.3f} I={:.3f} D={:.3f} "
-        "{:.0f} Kbps → {:.0f} Kbps",
+        "{:.0f} Kbps -> {:.0f} Kbps",
         telemetry.packetLossRate * 100.0f,
         telemetry.jitterMs,
         telemetry.rttMs,

@@ -1,5 +1,5 @@
-// =============================================================================
-// PerformanceTimer.cpp — Windows QPC-based sub-microsecond timer
+﻿// =============================================================================
+// PerformanceTimer.cpp -- Windows QPC-based sub-microsecond timer
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -17,7 +17,7 @@ bool          PerformanceTimer::s_initialised = false;
 // -----------------------------------------------------------------------------
 void PerformanceTimer::init() {
     if (!QueryPerformanceFrequency(&s_frequency)) {
-        throw std::runtime_error("QueryPerformanceFrequency failed — "
+        throw std::runtime_error("QueryPerformanceFrequency failed -- "
                                  "QPC not available on this hardware.");
     }
     s_initialised = true;
@@ -83,7 +83,7 @@ PerformanceTimer::ScopeGuard PerformanceTimer::scope(const std::string& name) {
 } // namespace aura
 
 // =============================================================================
-// Lap / split timing  [ADDED — Task 052 gap fix]
+// Lap / split timing  [ADDED -- Task 052 gap fix]
 // =============================================================================
 
 namespace aura {
@@ -114,7 +114,7 @@ int64_t PerformanceTimer::now_us() {
     LARGE_INTEGER now{};
     QueryPerformanceCounter(&now);
     if (s_frequency.QuadPart == 0) return 0;
-    // Convert QPC ticks → microseconds
+    // Convert QPC ticks -> microseconds
     return static_cast<int64_t>(
         (static_cast<double>(now.QuadPart) / static_cast<double>(s_frequency.QuadPart)) * 1'000'000.0
     );

@@ -1,16 +1,16 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// GlobalHotkey.h — Task 175: System-wide global hotkey registration
+// GlobalHotkey.h -- Task 175: System-wide global hotkey registration
 //
 // Registers Win32 global hotkeys (RegisterHotKey) that work even when
 // AuraCastPro's window is not focused or is minimised to the system tray.
 //
 // Default hotkeys (user-configurable in SettingsPage.qml):
-//   Ctrl+Shift+M   — Toggle mirror window visibility
-//   Ctrl+Shift+F   — Toggle fullscreen
-//   Ctrl+Shift+S   — Take screenshot of mirror frame
-//   Ctrl+Shift+R   — Start / stop recording
-//   Ctrl+Shift+D   — Disconnect current device
+//   Ctrl+Shift+M   -- Toggle mirror window visibility
+//   Ctrl+Shift+F   -- Toggle fullscreen
+//   Ctrl+Shift+S   -- Take screenshot of mirror frame
+//   Ctrl+Shift+R   -- Start / stop recording
+//   Ctrl+Shift+D   -- Disconnect current device
 // =============================================================================
 #include <functional>
 #include <map>
@@ -55,7 +55,7 @@ public:
     void unregisterAll();
 
     // Set the callback fired when any registered hotkey is pressed.
-    // Called on the message thread — post to main thread if needed.
+    // Called on the message thread -- post to main thread if needed.
     void setCallback(HotkeyCallback cb) { m_callback = std::move(cb); }
 
     // Must be called from the main message loop to dispatch WM_HOTKEY messages.

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// KeyboardToInput.h — PC keyboard → device key event translation
+// KeyboardToInput.h -- PC keyboard -> device key event translation
 // =============================================================================
 #include <functional>
 #include <cstdint>

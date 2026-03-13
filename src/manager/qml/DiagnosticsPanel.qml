@@ -15,16 +15,16 @@ Item {
             Text {
                 text: qsTr("DIAGNOSTICS")
                 font.family:    Theme.fontMono; font.pixelSize: Theme.fontSizeH2
-                font.weight:    Font.Black; color: Theme.textPrimary; letterSpacing: 4
+                font.weight:    Font.Black; color: Theme.textPrimary
             }
             Item { Layout.fillWidth: true }
             Rectangle {
-                width: 120; height: 36; color: qsTr("transparent")
+                width: 120; height: 36; color: "transparent"
                 border.color: Theme.borderNormal; border.width: 2
                 Text {
                     anchors.centerIn: parent; text: qsTr("EXPORT LOGS")
                     font.family:    Theme.fontMono; font.pixelSize: 11
-                    font.weight:    Font.Bold; color: Theme.textSecondary; letterSpacing: 1
+                    font.weight:    Font.Bold; color: Theme.textSecondary
                 }
                 MouseArea {
                     anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -63,7 +63,7 @@ Item {
                         Text {
                             text: modelData.label
                             font.family:    Theme.fontMono; font.pixelSize: Theme.fontSizeXS
-                            font.weight:    Font.Bold; color: Theme.textSecondary; letterSpacing: 2
+                            font.weight:    Font.Bold; color: Theme.textSecondary
                             Layout.alignment: Qt.AlignHCenter
                         }
                     }

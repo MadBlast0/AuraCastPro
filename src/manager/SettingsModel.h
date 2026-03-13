@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// SettingsModel.h — Complete application settings (45 Q_PROPERTYs).
+// SettingsModel.h -- Complete application settings (45 Q_PROPERTYs).
 // FIXED: Added all properties referenced by QML but previously missing:
 //   displayName, firstRunCompleted, airplayPort, castPort, rtmpUrl, streamKey,
 //   telemetryEnabled, hardwareDecodeEnabled, audioEnabled, micEnabled,
@@ -12,7 +12,7 @@
 //   maxResolutionIndex, fpsCapIndex
 //
 // Settings file: %APPDATA%\AuraCastPro\settings.json
-// Schema versioned — missing keys load as defaults (safe for upgrades).
+// Schema versioned -- missing keys load as defaults (safe for upgrades).
 // =============================================================================
 
 #include <QObject>
@@ -92,7 +92,7 @@ class SettingsModel : public QObject {
     // SettingsPage NETWORK section aliases
     Q_PROPERTY(QString networkInterface  READ selectedNetworkIface NOTIFY networkChanged)
     Q_PROPERTY(double  maxBitrateMbps    READ maxBitrateMbps       NOTIFY networkChanged)
-    // License info — provided by LicenseManager, mirrored here for QML
+    // License info -- provided by LicenseManager, mirrored here for QML
     Q_PROPERTY(QString licenseKey     READ licenseKey     WRITE setLicenseKey     NOTIFY licenseChanged)
     Q_PROPERTY(QString edition        READ edition        NOTIFY licenseChanged)
     Q_PROPERTY(QString licenseStatus  READ licenseStatus  NOTIFY licenseChanged)

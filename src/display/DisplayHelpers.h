@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <d3d12.h>
@@ -32,6 +32,15 @@ public:
                         UINT                   newWidth,
                         UINT                   newHeight,
                         Resources&             out);
+
+    // Simple overload: no fence tracking, used by MirrorWindowWin32::applyPendingResize.
+    // Caller must ensure GPU is idle before calling.
+    static bool execute(IDXGISwapChain4*       swapchain,
+                        ID3D12Device*          device,
+                        ID3D12DescriptorHeap*  rtvHeap,
+                        UINT                   newWidth,
+                        UINT                   newHeight,
+                        UINT                   bufferCount);
 };
 
 // ─── Rotation Handler ─────────────────────────────────────────────────────────
@@ -83,7 +92,7 @@ public:
     // Get the monitor currently containing the majority of the window
     static MonitorInfo getWindowMonitor(HWND hwnd);
 
-    // Format for Settings dropdown: "Display 1 (Primary) 3840×2160 HDR"
+    // Format for Settings dropdown: "Display 1 (Primary) 3840x2160 HDR"
     static std::string formatLabel(const MonitorInfo& mon);
 
 private:

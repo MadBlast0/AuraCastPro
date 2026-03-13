@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "H264Demuxer.h"
 #include "../utils/Logger.h"
 #include <cstring>
@@ -46,7 +46,7 @@ void H264Demuxer::feedNAL(const uint8_t* data, size_t size, int64_t tsUs) {
             break;
 
         case H264NALType::NonIDR:
-            // New slice starts a new access unit — flush previous
+            // New slice starts a new access unit -- flush previous
             if (!m_pendingVCL.empty()) flush();
             m_pendingVCL.assign(data, data + size);
             m_pendingIsIDR = false;
@@ -54,7 +54,7 @@ void H264Demuxer::feedNAL(const uint8_t* data, size_t size, int64_t tsUs) {
             break;
 
         case H264NALType::AUD:
-            // Access Unit Delimiter — boundary marker, flush pending
+            // Access Unit Delimiter -- boundary marker, flush pending
             if (!m_pendingVCL.empty()) flush();
             break;
 
@@ -69,7 +69,7 @@ void H264Demuxer::feedNAL(const uint8_t* data, size_t size, int64_t tsUs) {
 void H264Demuxer::flush() {
     if (m_pendingVCL.empty()) return;
     if (!m_hasSPS || !m_hasPPS) {
-        LOG_WARN("H264Demuxer: Dropping frame — waiting for SPS/PPS");
+        LOG_WARN("H264Demuxer: Dropping frame -- waiting for SPS/PPS");
         m_pendingVCL.clear();
         return;
     }

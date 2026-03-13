@@ -1,5 +1,5 @@
-// =============================================================================
-// DX12DeviceContext.cpp — Task 103: GPU descriptor heap manager + resource allocator
+﻿// =============================================================================
+// DX12DeviceContext.cpp -- Task 103: GPU descriptor heap manager + resource allocator
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "DX12DeviceContext.h"
@@ -19,7 +19,7 @@ void DX12DeviceContext::init() {
     m_rtvDescSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_srvDescSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    // RTV heap — non-shader-visible (CPU-only handles for render target views)
+    // RTV heap -- non-shader-visible (CPU-only handles for render target views)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc{};
         desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -31,7 +31,7 @@ void DX12DeviceContext::init() {
         (void)m_rtvHeap->SetName(L"AuraCastPro RTV Heap");
     }
 
-    // SRV/CBV/UAV heap — shader-visible (GPU-accessible, bound via SetDescriptorHeaps)
+    // SRV/CBV/UAV heap -- shader-visible (GPU-accessible, bound via SetDescriptorHeaps)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc{};
         desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;

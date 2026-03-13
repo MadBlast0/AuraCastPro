@@ -1,5 +1,5 @@
-// =============================================================================
-// USBHotplug.cpp — Task 062: WM_DEVICECHANGE for Android USB auto-detect
+﻿// =============================================================================
+// USBHotplug.cpp -- Task 062: WM_DEVICECHANGE for Android USB auto-detect
 // =============================================================================
 #include "../pch.h"  // PCH
 #define WIN32_LEAN_AND_MEAN
@@ -24,7 +24,7 @@ LRESULT CALLBACK USBHotplug::wndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) 
         if (wp == DBT_DEVICEARRIVAL) {
             auto* hdr = reinterpret_cast<DEV_BROADCAST_HDR*>(lp);
             if (hdr && hdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
-                AURA_LOG_INFO("USBHotplug", "USB device arrived — checking for Android.");
+                AURA_LOG_INFO("USBHotplug", "USB device arrived -- checking for Android.");
                 if (self->m_onArrived) self->m_onArrived();
             }
         } else if (wp == DBT_DEVICEREMOVECOMPLETE) {
@@ -67,12 +67,12 @@ void USBHotplug::messageLoop() {
     wc.lpfnWndProc   = wndProc;
     wc.hInstance     = GetModuleHandleW(nullptr);
     wc.lpszClassName = kWndClass;
-    RegisterClassExW(&wc); // may already be registered — ignore ERROR_CLASS_ALREADY_EXISTS
+    RegisterClassExW(&wc); // may already be registered -- ignore ERROR_CLASS_ALREADY_EXISTS
 
     // Create a message-only window (no UI, no taskbar entry)
     m_hwnd = CreateWindowExW(0, kWndClass, L"AuraCastPro USBHotplug",
                               0, 0, 0, 0, 0,
-                              HWND_MESSAGE,    // <— message-only parent
+                              HWND_MESSAGE,    // <-- message-only parent
                               nullptr, GetModuleHandleW(nullptr), nullptr);
 
     if (!m_hwnd) {
@@ -118,7 +118,7 @@ void USBHotplug::registerDeviceNotification() {
 
     if (!m_hNotify) {
         AURA_LOG_WARN("USBHotplug",
-            "RegisterDeviceNotification failed: 0x{:X} — hotplug disabled.",
+            "RegisterDeviceNotification failed: 0x{:X} -- hotplug disabled.",
             GetLastError());
     } else {
         AURA_LOG_INFO("USBHotplug",

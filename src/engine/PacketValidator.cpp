@@ -1,6 +1,6 @@
-// =============================================================================
-// PacketValidator.cpp — Task 072: 5-check UDP packet security validation.
-// BUILT: This file was completely missing — added from scratch.
+﻿// =============================================================================
+// PacketValidator.cpp -- Task 072: 5-check UDP packet security validation.
+// BUILT: This file was completely missing -- added from scratch.
 //
 // Checks (in order, first failure stops processing):
 //   1. Size >= 12 bytes (minimum valid header)
@@ -39,7 +39,7 @@ ValidateResult PacketValidator::validate(std::span<const uint8_t> data,
     uint32_t magic = 0;
     std::memcpy(&magic, data.data(), 4);
     // Accept any known protocol magic, or skip if no magic filtering needed
-    // (AirPlay uses RTSP text, Cast uses protobuf — magic check is protocol-layer)
+    // (AirPlay uses RTSP text, Cast uses protobuf -- magic check is protocol-layer)
     // We accept all non-zero magic to avoid breaking raw protocols
     if (magic == 0) {
         AURA_LOG_WARN("PacketValidator", "DROP: zero magic bytes from {}", senderIp);

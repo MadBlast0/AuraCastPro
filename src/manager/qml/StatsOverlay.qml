@@ -30,7 +30,7 @@ Rectangle {
         anchors { left: parent.left; right: parent.right; top: parent.top; margins: 10 }
         spacing: 4
 
-        Text { text: qsTr("AuraCastPro Stats"); color: muted; font.pixelSize: 10; font.uppercase: true; font.letterSpacing: 1 }
+        Text { text: qsTr("AuraCastPro Stats"); color: muted; font.pixelSize: 10; font.capitalization: Font.AllUppercase }
 
         StatRow { label: qsTr("Latency");      value: (statsModel ? statsModel.latencyMs.toFixed(1) : "—") + " ms";   valueColor: statsModel ? latencyColor(statsModel.latencyMs) : text }
         StatRow { label: qsTr("Bitrate");      value: (statsModel ? (statsModel.bitrateKbps/1000).toFixed(1) : "—") + " Mbps"; valueColor: text }

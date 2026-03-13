@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// NALParser.h — NAL (Network Abstraction Layer) unit extractor.
+// NALParser.h -- NAL (Network Abstraction Layer) unit extractor.
 //
 // H.265/HEVC and AV1 video streams are divided into NAL units.
-// AirPlay sends video as fragmented RTP packets — a single NAL unit may be
+// AirPlay sends video as fragmented RTP packets -- a single NAL unit may be
 // split across multiple UDP packets (STAP-A, FU-A fragmentation).
 //
 // This parser:

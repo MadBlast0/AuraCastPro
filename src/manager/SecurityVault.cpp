@@ -1,5 +1,5 @@
-// =============================================================================
-// SecurityVault.cpp — DPAPI + AES-256-GCM encrypted key vault
+﻿// =============================================================================
+// SecurityVault.cpp -- DPAPI + AES-256-GCM encrypted key vault
 //
 // Storage format (vault.json):
 // {
@@ -8,10 +8,10 @@
 // }
 //
 // The AES key is derived via DPAPI:
-//   1. CryptProtectData(randomSeed, entropy=machineId) → protectedBlob
+//   1. CryptProtectData(randomSeed, entropy=machineId) -> protectedBlob
 //   2. Store protectedBlob alongside vault.json (user-profile-bound)
-//   3. On read: CryptUnprotectData(protectedBlob) → AES key
-//   4. AES-256-GCM decrypt vault blob → plaintext JSON
+//   3. On read: CryptUnprotectData(protectedBlob) -> AES key
+//   4. AES-256-GCM decrypt vault blob -> plaintext JSON
 //
 // Why DPAPI: keys are useless on another machine or another Windows user account.
 // An attacker with physical access to the PC still cannot decrypt the vault
@@ -67,12 +67,12 @@ std::string SecurityVault::vaultFilePath() const {
 }
 
 // -----------------------------------------------------------------------------
-// getMasterKey() — Returns a stable per-user AES-256 master key.
+// getMasterKey() -- Returns a stable per-user AES-256 master key.
 //
 // Pattern:
 //   1. On first run: generate 32 random bytes (AES key).
-//   2. Wrap it with CryptProtectData (DPAPI) → store "dpapiKey" in vault.json header.
-//   3. On subsequent runs: load "dpapiKey" → CryptUnprotectData → AES key.
+//   2. Wrap it with CryptProtectData (DPAPI) -> store "dpapiKey" in vault.json header.
+//   3. On subsequent runs: load "dpapiKey" -> CryptUnprotectData -> AES key.
 //
 // DPAPI ties the key to the current Windows user + machine.
 // CryptProtectData is intentionally NOT called with the same plaintext each time
@@ -91,7 +91,7 @@ std::string SecurityVault::getMasterKey() {
             json outer;
             f >> outer;
             if (outer.contains("dpapiKey")) {
-                // Decode base64 → DPAPI blob → AES key
+                // Decode base64 -> DPAPI blob -> AES key
                 const std::string b64 = outer["dpapiKey"].get<std::string>();
                 DWORD blobLen = 0;
                 CryptStringToBinaryA(b64.c_str(), 0, CRYPT_STRING_BASE64,
@@ -115,7 +115,7 @@ std::string SecurityVault::getMasterKey() {
                     return m_impl->masterKey;
                 }
                 AURA_LOG_WARN("SecurityVault",
-                    "CryptUnprotectData failed: {} — vault may be from another user/machine.",
+                    "CryptUnprotectData failed: {} -- vault may be from another user/machine.",
                     GetLastError());
             }
         } catch (...) {}
@@ -190,7 +190,7 @@ bool SecurityVault::loadVault() {
     const std::string path = vaultFilePath();
     std::ifstream f(path);
     if (!f.is_open()) {
-        // First run — vault is empty
+        // First run -- vault is empty
         m_impl->secrets = json::object();
         m_impl->loaded  = true;
         AURA_LOG_INFO("SecurityVault", "No existing vault. Starting fresh.");
@@ -234,7 +234,7 @@ bool SecurityVault::loadVault() {
         return true;
     } catch (const std::exception& e) {
         AURA_LOG_ERROR("SecurityVault", "Failed to load vault: {}. "
-                       "Pairing data lost — devices will need to be re-paired.", e.what());
+                       "Pairing data lost -- devices will need to be re-paired.", e.what());
         m_impl->secrets = json::object();
         m_impl->loaded  = true;
         return false;
@@ -309,7 +309,7 @@ void SecurityVault::shutdown() {
 }
 
 // =============================================================================
-// Task 154 — Trusted device persistence
+// Task 154 -- Trusted device persistence
 // =============================================================================
 
 std::string SecurityVault::trustedDevicesFilePath() const {
@@ -324,7 +324,7 @@ bool SecurityVault::loadTrustedDevices() {
     std::ifstream f(path);
     if (!f.is_open()) {
         AURA_LOG_INFO("SecurityVault",
-            "No trusted_devices.json found at '{}' — starting fresh.", path);
+            "No trusted_devices.json found at '{}' -- starting fresh.", path);
         return true; // Not an error on first run
     }
     try {
@@ -332,7 +332,7 @@ bool SecurityVault::loadTrustedDevices() {
         f >> j;
         if (!j.is_array()) {
             AURA_LOG_WARN("SecurityVault",
-                "trusted_devices.json root is not an array — ignoring.");
+                "trusted_devices.json root is not an array -- ignoring.");
             return false;
         }
         m_impl->trustedDevices.clear();
@@ -446,7 +446,7 @@ bool SecurityVault::recordConnection(const std::string& deviceId) {
             return saveTrustedDevices();
         }
     }
-    return false; // device not found — not an error
+    return false; // device not found -- not an error
 }
 
 } // namespace aura

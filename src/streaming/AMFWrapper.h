@@ -10,18 +10,18 @@ struct AVCodecContext;
 struct AVPacket;
 
 // AMD Advanced Media Framework (AMF) hardware encoder.
-// Loaded dynamically from amfrt64.dll — gracefully absent if not AMD GPU.
+// Loaded dynamically from amfrt64.dll -- gracefully absent if not AMD GPU.
 class AMFWrapper : public HardwareEncoder {
 public:
     AMFWrapper();
-    ~AMFWrapper() override;
+    ~AMFWrapper() ;
 
-    bool init(int width, int height, int bitrateMbps, int fps) override;
-    bool encodeFrame(ID3D12Resource* frame) override;
-    void getEncodedPacket(AVPacket* out) override;
-    void drain() override;
+    bool init(int width, int height, int bitrateMbps, int fps) ;
+    bool encodeFrame(ID3D12Resource* frame) ;
+    void getEncodedPacket(AVPacket* out) ;
+    void drain() ;
     bool encodeAvFrame(AVFrame* frame);  // encode a pre-populated AVFrame
-    void shutdown() override;
+    void shutdown() ;
 
     static bool isAvailable();
 

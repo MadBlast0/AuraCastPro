@@ -1,5 +1,5 @@
-// =============================================================================
-// UDPServerThreadPool.cpp — Multi-threaded UDP socket drain pool
+﻿// =============================================================================
+// UDPServerThreadPool.cpp -- Multi-threaded UDP socket drain pool
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -80,12 +80,12 @@ void UDPServerThreadPool::workerLoop(int threadId) {
             }
         } catch (const std::exception& e) {
             AURA_LOG_ERROR("UDPServerThreadPool",
-                "IO thread {} caught exception: {} — continuing.", threadId, e.what());
+                "IO thread {} caught exception: {} -- continuing.", threadId, e.what());
             // Brief pause to avoid tight error loops on persistent failures
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         } catch (...) {
             AURA_LOG_ERROR("UDPServerThreadPool",
-                "IO thread {} caught unknown exception — continuing.", threadId);
+                "IO thread {} caught unknown exception -- continuing.", threadId);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }

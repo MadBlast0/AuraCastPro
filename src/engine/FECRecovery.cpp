@@ -1,11 +1,11 @@
-// =============================================================================
-// FECRecovery.cpp — Reed-Solomon Forward Error Correction
+﻿// =============================================================================
+// FECRecovery.cpp -- Reed-Solomon Forward Error Correction
 //
 // Uses a (N,K) Reed-Solomon code to recover lost UDP packets.
 // For every K data packets, N-K parity packets are appended.
 // Any K of the N packets can reconstruct all K data packets.
 //
-// Default: K=10, N=12 — recovers up to 2 lost packets per group (20% overhead)
+// Default: K=10, N=12 -- recovers up to 2 lost packets per group (20% overhead)
 //
 // RS implementation uses the Berlekamp-Welch algorithm via a compact
 // GF(2^8) finite field arithmetic library embedded below.
@@ -13,7 +13,7 @@
 // FEC group lifecycle:
 //   sender: transmits packets 0..K-1 (data) then K..N-1 (parity)
 //   receiver: as packets arrive, insert into fec_group[seqNum % N]
-//   when group has >= K packets: decode → recover missing data packets
+//   when group has >= K packets: decode -> recover missing data packets
 //   when group times out (50ms) with < K packets: discard (too much loss)
 // =============================================================================
 #include "../pch.h"  // PCH
@@ -92,7 +92,7 @@ FECRecovery::FECRecovery(int k, int n) : m_k(k), m_n(n) {
 
 void FECRecovery::init() {
     AURA_LOG_INFO("FECRecovery",
-        "Initialised. RS({},{}) — {} data / {} parity packets per group. "
+        "Initialised. RS({},{}) -- {} data / {} parity packets per group. "
         "Max recoverable loss: {}/{} packets per group. "
         "GF(2^8) polynomial: 0x11D.",
         m_n, m_k, m_k, m_n - m_k, m_n - m_k, m_n);
@@ -104,7 +104,7 @@ void FECRecovery::feedPacket(uint16_t seqNum, bool isParity,
     if (!isParity) m_dataPackets++;
 
     if (!m_enabled) {
-        // FEC disabled — pass data packets straight through
+        // FEC disabled -- pass data packets straight through
         if (!isParity && m_callback) {
             m_callback(std::move(data), seqNum);
         }
@@ -141,7 +141,7 @@ void FECRecovery::feedPacket(uint16_t seqNum, bool isParity,
         }
 
         if (missing.empty()) {
-            // No recovery needed — all data packets arrived
+            // No recovery needed -- all data packets arrived
             for (int i = 0; i < m_k; ++i) {
                 if (m_callback) {
                     m_callback(group->packets[i],
@@ -182,7 +182,7 @@ void FECRecovery::feedPacket(uint16_t seqNum, bool isParity,
                     }
                 }
             } else {
-                // Too many losses — discard group
+                // Too many losses -- discard group
                 m_groupsLost++;
                 AURA_LOG_WARN("FECRecovery",
                     "Group {} unrecoverable: {} missing packets.", groupId, missing.size());

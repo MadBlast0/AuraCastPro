@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// ReceiverSocket.h — UDP socket optimised for real-time video reception.
+// ReceiverSocket.h -- UDP socket optimised for real-time video reception.
 //
 // Design:
 //   - Single non-blocking UDP socket bound to a configurable port
@@ -42,7 +42,7 @@ struct RawPacket {
 class ReceiverSocket {
 public:
     // Called from the IO thread for every received packet.
-    // Must be fast and non-blocking — do not perform heavy work here.
+    // Must be fast and non-blocking -- do not perform heavy work here.
     // Post work to a queue and process on a separate thread.
     using PacketCallback = std::function<void(RawPacket packet)>;
 
@@ -64,7 +64,7 @@ public:
     bool isRunning() const { return m_running.load(); }
     uint16_t port() const { return m_port; }
 
-    // Allow packets only from this IP (wires into PacketValidator — Task 072)
+    // Allow packets only from this IP (wires into PacketValidator -- Task 072)
     void setAllowedSource(const std::string& ip) { m_validator.setAllowedSource(ip); }
     void clearAllowedSource()                    { m_validator.clearAllowedSource(); }
     void resetPacketSequence()                   { m_validator.resetSequence(); }
@@ -88,11 +88,11 @@ private:
     // Platform socket handle (SOCKET on Windows = uintptr_t)
     std::atomic<uintptr_t> m_socket{0};
 
-    // Receive buffer — reused across calls to avoid allocation per packet
+    // Receive buffer -- reused across calls to avoid allocation per packet
     static constexpr std::size_t kMaxPacketSize = 65536;
     std::vector<uint8_t> m_recvBuf;
 
-    // Packet security validator — Task 072
+    // Packet security validator -- Task 072
     aura::PacketValidator m_validator;
 
     // Statistics counters

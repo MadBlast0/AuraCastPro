@@ -1,5 +1,5 @@
-// =============================================================================
-// GlobalHotkey.cpp — Task 175: System-wide global hotkey registration
+﻿// =============================================================================
+// GlobalHotkey.cpp -- Task 175: System-wide global hotkey registration
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "GlobalHotkey.h"
@@ -17,27 +17,27 @@ GlobalHotkey::~GlobalHotkey() { unregisterAll(); }
 
 // =============================================================================
 void GlobalHotkey::registerDefaults() {
-    // Ctrl+Shift+M — Toggle mirror window visibility
+    // Ctrl+Shift+M -- Toggle mirror window visibility
     registerHotkey({HotkeyId::ToggleMirrorWindow,
         MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 'M',
         "Toggle mirror window"});
 
-    // Ctrl+Shift+F — Toggle fullscreen
+    // Ctrl+Shift+F -- Toggle fullscreen
     registerHotkey({HotkeyId::ToggleFullscreen,
         MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 'F',
         "Toggle fullscreen"});
 
-    // Ctrl+Shift+S — Screenshot
+    // Ctrl+Shift+S -- Screenshot
     registerHotkey({HotkeyId::Screenshot,
         MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 'S',
         "Screenshot"});
 
-    // Ctrl+Shift+R — Toggle recording
+    // Ctrl+Shift+R -- Toggle recording
     registerHotkey({HotkeyId::ToggleRecording,
         MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 'R',
         "Toggle recording"});
 
-    // Ctrl+Shift+D — Disconnect device
+    // Ctrl+Shift+D -- Disconnect device
     registerHotkey({HotkeyId::Disconnect,
         MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 'D',
         "Disconnect device"});

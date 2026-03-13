@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "SharedMemoryIPC.h"
 #include "../utils/Logger.h"
 #include <cstring>
@@ -61,7 +61,7 @@ bool SharedMemProducer::writeFrame(const uint8_t* bgra, uint32_t w, uint32_t h) 
 bool SharedMemConsumer::open() {
     m_hMapFile = OpenFileMappingW(FILE_MAP_READ, FALSE, kSharedMemName);
     if (!m_hMapFile) {
-        // Shared memory not yet created by producer — that's OK, try later
+        // Shared memory not yet created by producer -- that's OK, try later
         return false;
     }
     m_mapped = MapViewOfFile(m_hMapFile, FILE_MAP_READ, 0, 0, 0);

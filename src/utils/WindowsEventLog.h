@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// WindowsEventLog.h — Task 159: Windows Event Log integration
+// WindowsEventLog.h -- Task 159: Windows Event Log integration
 //
 // Writes structured entries to the Windows Application event log so that
 // system administrators can monitor AuraCastPro in enterprise environments
@@ -10,12 +10,12 @@
 // Source:     "AuraCastPro"
 //
 // Event IDs:
-//   1000  Informational — app start / stop
-//   1001  Informational — device connected / disconnected
-//   1002  Warning       — connection drop / quality degraded
-//   1003  Error         — subsystem init failure
-//   1004  Error         — licence validation failure
-//   1005  Warning       — disk space low (recording)
+//   1000  Informational -- app start / stop
+//   1001  Informational -- device connected / disconnected
+//   1002  Warning       -- connection drop / quality degraded
+//   1003  Error         -- subsystem init failure
+//   1004  Error         -- licence validation failure
+//   1005  Warning       -- disk space low (recording)
 //
 // The event source must be registered once (requires admin rights):
 //   scripts/register_dlls.bat calls:
@@ -34,7 +34,7 @@ public:
     static bool registerSource();
 
     // Open the event source handle. Call once at app startup.
-    // Safe to call if source is not registered — logs to debugger only.
+    // Safe to call if source is not registered -- logs to debugger only.
     void open();
     void close();
 
@@ -66,7 +66,7 @@ private:
     WindowsEventLog() = default;
     ~WindowsEventLog() { close(); }
 
-    void* m_handle{nullptr};   // HANDLE — void* avoids including <windows.h> here
+    void* m_handle{nullptr};   // HANDLE -- void* avoids including <windows.h> here
 };
 
 // Convenience macros (zero-overhead when disabled)

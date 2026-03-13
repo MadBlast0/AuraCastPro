@@ -41,7 +41,7 @@ TEST(BitratePIDTest, ZeroLossAllowsBitrateToIncrease) {
 
     pid.reset(5'000'000.0f); // Start low
 
-    NetworkTelemetry t;
+    PIDTelemetry t;
     t.packetLossRate    = 0.0f;   // No loss
     t.jitterMs          = 0.0f;
     t.rttMs             = 10.0f;
@@ -62,7 +62,7 @@ TEST(BitratePIDTest, CriticalLossTriggersEmergencyCut) {
     BitratePID pid(cfg);
     pid.reset(20'000'000.0f); // Start at 20 Mbps
 
-    NetworkTelemetry t;
+    PIDTelemetry t;
     t.packetLossRate  = 0.10f; // 10% — above critical threshold
     t.jitterMs        = 5.0f;
     t.rttMs           = 50.0f;
@@ -85,7 +85,7 @@ TEST(BitratePIDTest, NeverExceedsMaxBitrate) {
     // Run many iterations with zero loss
     for (int i = 0; i < 20; ++i) {
         waitForUpdate();
-        NetworkTelemetry t;
+        PIDTelemetry t;
         t.packetLossRate  = 0.0f;
         t.bandwidthEstBps = 100'000'000.0f;
         pid.update(t);
@@ -102,7 +102,7 @@ TEST(BitratePIDTest, NeverDropsBelowMinBitrate) {
     // Simulate catastrophic loss
     for (int i = 0; i < 10; ++i) {
         waitForUpdate();
-        NetworkTelemetry t;
+        PIDTelemetry t;
         t.packetLossRate  = 1.0f; // 100% loss
         t.bandwidthEstBps = 0.0f;
         pid.update(t);
@@ -120,7 +120,7 @@ TEST(BitratePIDTest, RespectsEstimatedBandwidthCeiling) {
     BitratePID pid(cfg);
     pid.reset(40'000'000.0f);
 
-    NetworkTelemetry t;
+    PIDTelemetry t;
     t.packetLossRate  = 0.0f;  // No loss
     t.bandwidthEstBps = 10'000'000.0f; // Only 10 Mbps available
 
@@ -140,7 +140,7 @@ TEST(BitratePIDTest, CallbackFiredOnSignificantChange) {
     float callbackValue = 0.0f;
     pid.setOnBitrateChanged([&](float v) { callbackValue = v; });
 
-    NetworkTelemetry t;
+    PIDTelemetry t;
     t.packetLossRate  = 0.5f; // High loss — should trigger significant change
     t.bandwidthEstBps = 0.0f;
 
@@ -150,3 +150,4 @@ TEST(BitratePIDTest, CallbackFiredOnSignificantChange) {
     EXPECT_GT(callbackValue, 0.0f);
     EXPECT_LT(callbackValue, 20'000'000.0f);
 }
+

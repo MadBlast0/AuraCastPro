@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DeviceManager.h — Device lifecycle and state machine.
+// DeviceManager.h -- Device lifecycle and state machine.
 //
 // Tracks every discovered, paired, and connected device.
 // Emits Qt signals when devices are added, removed, or change state.
 // The UI and protocol hosts listen to these signals.
 //
 // State machine per device:
-//   Discovered → Pairing → Paired → Connecting → Connected → Streaming
-//   Any state → Disconnected → (removed after timeout)
+//   Discovered -> Pairing -> Paired -> Connecting -> Connected -> Streaming
+//   Any state -> Disconnected -> (removed after timeout)
 // =============================================================================
 
 #include <QObject>
@@ -19,9 +19,9 @@
 namespace aura {
 
 enum class DeviceState {
-    Discovered,   // Seen via mDNS — not yet paired
+    Discovered,   // Seen via mDNS -- not yet paired
     Pairing,      // Pairing in progress (PIN entry)
-    Paired,       // Pairing complete — has stored key
+    Paired,       // Pairing complete -- has stored key
     Connecting,   // TCP/ADB connection being established
     Connected,    // Control channel open, no video yet
     Streaming,    // Video is flowing

@@ -1,5 +1,5 @@
-// =============================================================================
-// NALParser.cpp — RTP NAL unit reassembly (H.265 / RFC 7798)
+﻿// =============================================================================
+// NALParser.cpp -- RTP NAL unit reassembly (H.265 / RFC 7798)
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -121,8 +121,8 @@ void NALParser::processSTAP_A(std::span<const uint8_t> payload) {
 //   Byte 0-1: RTP H.265 header (type = 49 = FU)
 //   Byte 2:   FU header: S(1) E(1) nal_unit_type(6)
 //   Byte 3+:  Fragment data
-// S=1 → start of NAL unit
-// E=1 → end of NAL unit (emit reassembled buffer)
+// S=1 -> start of NAL unit
+// E=1 -> end of NAL unit (emit reassembled buffer)
 // -----------------------------------------------------------------------------
 void NALParser::processFU(std::span<const uint8_t> payload) {
     if (payload.size() < 3) return;
@@ -141,8 +141,8 @@ void NALParser::processFU(std::span<const uint8_t> payload) {
 
     if (isStart) {
         if (m_fuInProgress) {
-            // Previous FU sequence was incomplete — discard
-            AURA_LOG_WARN("NALParser", "FU: New start before previous end — discarding {} bytes",
+            // Previous FU sequence was incomplete -- discard
+            AURA_LOG_WARN("NALParser", "FU: New start before previous end -- discarding {} bytes",
                           m_fuBuffer.size());
             m_fragsDropped++;
         }
@@ -156,13 +156,13 @@ void NALParser::processFU(std::span<const uint8_t> payload) {
         m_fuBuffer.insert(m_fuBuffer.end(), fragment.begin(), fragment.end());
 
         if (isEnd) {
-            // All fragments received — emit the reassembled NAL unit
+            // All fragments received -- emit the reassembled NAL unit
             emitNal(m_fuType, m_fuBuffer);
             m_fuBuffer.clear();
             m_fuInProgress = false;
         }
     } else {
-        // Fragment received without a start — packet loss
+        // Fragment received without a start -- packet loss
         AURA_LOG_TRACE("NALParser", "FU: Fragment without start (packet loss?)");
         m_fragsDropped++;
     }

@@ -87,7 +87,6 @@ Item {
                             Layout.fillWidth: true
                             placeholderText: qsTr("AURA1-XXXXX-XXXXX-XXXXX-XXXXX")
                             color: textMain
-                            font.letterSpacing: 1.5
                             background: Rectangle { color: "#0D1117"; border.color: accent; border.width: 2; radius: 8 }
                         }
 
@@ -102,7 +101,7 @@ Item {
                         Text {
                             text: activationStatus
                             color: activationStatus.indexOf("success") !== -1 ? green :
-                                   activationStatus.length > 0 ? "#F85149" : qsTr("transparent")
+                activationStatus.length > 0 ? "#F85149" : "transparent"
                             font.pixelSize: 12
                             visible: activationStatus.length > 0
                         }
@@ -168,7 +167,7 @@ Item {
                             ]
                             Rectangle {
                                 Layout.fillWidth: true; height: 36
-                                color: index % 2 === 0 ? qsTr("transparent") : "#0D1117"
+                    color: index % 2 === 0 ? "transparent" : "#0D1117"
                                 RowLayout {
                                     anchors { fill: parent; leftMargin: 0; rightMargin: 0; topMargin: 0; bottomMargin: 0 }
                                     Text { text: modelData.f; color: textMain; font.pixelSize: 12; Layout.fillWidth: true; verticalAlignment: Text.AlignVCenter }

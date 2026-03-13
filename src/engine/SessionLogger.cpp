@@ -1,5 +1,5 @@
-// =============================================================================
-// SessionLogger.cpp — Per-session structured event log (JSON lines)
+﻿// =============================================================================
+// SessionLogger.cpp -- Per-session structured event log (JSON lines)
 // Task 211: Writes timestamped session events to %APPDATA%\AuraCastPro\sessions\
 //           for post-session diagnostics and support.
 // =============================================================================

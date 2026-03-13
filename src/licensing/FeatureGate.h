@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// FeatureGate.h — Runtime feature availability based on license tier
+// FeatureGate.h -- Runtime feature availability based on license tier
 // =============================================================================
 #include <functional>
 #include <string>

@@ -1,4 +1,4 @@
-#include "../pch.h"  // PCH
+﻿#include "../pch.h"  // PCH
 #include "ProxySettings.h"
 #include "../utils/Logger.h"
 #include <QNetworkProxyFactory>
@@ -43,9 +43,9 @@ void ProxySettings::applySystemProxy() {
         }
     }
 
-    // No proxy — use direct connection
+    // No proxy -- use direct connection
     QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
     s_proxyActive = false;
     s_description = "Direct connection (no proxy)";
-    LOG_INFO("ProxySettings: No proxy detected — direct connection");
+    LOG_INFO("ProxySettings: No proxy detected -- direct connection");
 }

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// EncryptHelper.h — AES-256-GCM encryption / decryption helpers.
+// EncryptHelper.h -- AES-256-GCM encryption / decryption helpers.
 //
 // Used by SecurityVault to encrypt pairing keys and license data at rest.
 // All operations use OpenSSL EVP API (constant-time, side-channel resistant).
@@ -65,7 +65,7 @@ public:
 private:
     EncryptHelper() = delete;
 
-    static constexpr int IV_SIZE  = 12; // 96-bit IV — optimal for GCM
+    static constexpr int IV_SIZE  = 12; // 96-bit IV -- optimal for GCM
     static constexpr int TAG_SIZE = 16; // 128-bit authentication tag
 };
 

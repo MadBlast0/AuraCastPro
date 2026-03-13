@@ -1,5 +1,5 @@
-// =============================================================================
-// NetworkAdaptation.cpp — Dynamic quality adaptation based on network conditions
+﻿// =============================================================================
+// NetworkAdaptation.cpp -- Dynamic quality adaptation based on network conditions
 // Task 212: Adjusts encoder bitrate, resolution, and FEC strength in response
 //           to real-time network measurements from NetworkPredictor + BitratePID.
 // =============================================================================
@@ -30,9 +30,9 @@ void NetworkAdaptation::update(double estimatedBandwidthKbps, double lossRate, d
 
     // Loss-based adjustment: reduce more aggressively under loss
     if (lossRate > 0.10) {
-        targetKbps *= 0.5;   // severe loss → halve bitrate
+        targetKbps *= 0.5;   // severe loss -> halve bitrate
     } else if (lossRate > 0.03) {
-        targetKbps *= 0.75;  // moderate loss → reduce 25%
+        targetKbps *= 0.75;  // moderate loss -> reduce 25%
     }
 
     // Smooth: exponential moving average (alpha=0.2 so changes aren't jerky)
@@ -60,7 +60,7 @@ void NetworkAdaptation::update(double estimatedBandwidthKbps, double lossRate, d
         m_downgraded        = shouldDowngrade;
 
         AURA_LOG_DEBUG("NetworkAdaptation",
-            "Adapt → {}kbps FEC={} downgrade={}  (bw={:.0f} loss={:.1f}% jitter={:.0f}ms)",
+            "Adapt -> {}kbps FEC={} downgrade={}  (bw={:.0f} loss={:.1f}% jitter={:.0f}ms)",
             m_currentBitrateKbps, newFEC, shouldDowngrade,
             estimatedBandwidthKbps, lossRate * 100, jitterMs);
 

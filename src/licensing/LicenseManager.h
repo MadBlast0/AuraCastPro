@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// LicenseManager.h — License tier management + QObject for QML binding.
+// LicenseManager.h -- License tier management + QObject for QML binding.
 // FIXED: Added QObject + Q_PROPERTYs (tierName, isValid, canUse4K etc.)
 //        so QML can bind to licenseManager.tierName etc. directly.
 // =============================================================================

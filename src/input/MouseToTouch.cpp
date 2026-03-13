@@ -1,5 +1,5 @@
-// =============================================================================
-// MouseToTouch.cpp — Mouse → touch event translation
+﻿// =============================================================================
+// MouseToTouch.cpp -- Mouse -> touch event translation
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "MouseToTouch.h"
@@ -13,8 +13,8 @@ MouseToTouch::~MouseToTouch() {}
 
 void MouseToTouch::init() {
     AURA_LOG_INFO("MouseToTouch",
-        "Initialised. Mapping: LClick→Tap, LDrag→Swipe, "
-        "Scroll→2-finger scroll, RClick→LongPress.");
+        "Initialised. Mapping: LClick->Tap, LDrag->Swipe, "
+        "Scroll->2-finger scroll, RClick->LongPress.");
 }
 
 void MouseToTouch::start() { m_enabled.store(true); }

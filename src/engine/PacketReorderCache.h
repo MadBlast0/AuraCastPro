@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// PacketReorderCache.h — Jitter buffer / packet reorder cache.
+// PacketReorderCache.h -- Jitter buffer / packet reorder cache.
 // FIXED (Task 067): Upgraded to single-producer single-consumer (SPSC)
 // lock-free design as specified. Producer = network IO thread,
 // Consumer = decoder thread. Only the drain-release decision uses a
 // lightweight spinlock (held for nanoseconds) to protect the release pointer.
 //
 // Architecture:
-//   - Fixed-size slot array indexed by (seqNum % capacity) — wait-free write
+//   - Fixed-size slot array indexed by (seqNum % capacity) -- wait-free write
 //   - Per-slot atomic occupancy flag (producer sets, consumer clears)
 //   - Release pointer advances only when seqNum is in-order or hold timeout
 //   - No heap allocation on hot path (slots pre-allocated)
@@ -53,11 +53,11 @@ public:
         return result;
     }
 
-    // Lock-free insert — called from the network IO thread.
+    // Lock-free insert -- called from the network IO thread.
     // Uses atomic store to the correct slot; no mutex taken.
     void insert(OrderedPacket packet);
 
-    // Drain in-order packets — called from the decoder thread.
+    // Drain in-order packets -- called from the decoder thread.
     // Uses atomic load/CAS on each slot; only brief spinlock on release pointer.
     void drain(const DrainCallback& callback);
 
@@ -97,12 +97,12 @@ private:
     };
     std::vector<Slot> m_slots;
 
-    // Release pointer — only touched by consumer thread (no atomic needed)
+    // Release pointer -- only touched by consumer thread (no atomic needed)
     uint16_t m_nextExpected{0};
     bool     m_started{false};
 
     // Spinlock protecting only the release pointer update decision
-    // (held for < 100 ns — only when a packet is actually released)
+    // (held for < 100 ns -- only when a packet is actually released)
     std::atomic_flag m_releaseLock = ATOMIC_FLAG_INIT;
 
     std::atomic<uint64_t> m_inserted{0};

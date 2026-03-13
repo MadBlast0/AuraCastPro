@@ -1,4 +1,4 @@
-// ProtocolHandshake.cpp
+﻿// ProtocolHandshake.cpp
 #include "../pch.h"  // PCH
 #include "ProtocolHandshake.h"
 #include "../utils/Logger.h"
@@ -41,8 +41,8 @@ std::vector<uint8_t> ProtocolHandshake::deriveAirPlaySessionKey(
     const uint8_t* ikm    = srpSecret.data();
     const size_t   ikmLen = srpSecret.size();
 
-    // Proper HKDF-SHA512 (RFC 5869) — used by AirPlay2 pairing protocol
-    // Step 1: Extract — HMAC-SHA512(salt=context, IKM=srpSecret)
+    // Proper HKDF-SHA512 (RFC 5869) -- used by AirPlay2 pairing protocol
+    // Step 1: Extract -- HMAC-SHA512(salt=context, IKM=srpSecret)
     // For AirPlay2: salt is the UTF-8 context string
     unsigned char prk[SHA512_DIGEST_LENGTH]; // pseudo-random key
     unsigned int prkLen = 0;
@@ -51,7 +51,7 @@ std::vector<uint8_t> ProtocolHandshake::deriveAirPlaySessionKey(
          ikm, static_cast<int>(ikmLen),                    // IKM
          prk, &prkLen);
 
-    // Step 2: Expand — HMAC-SHA512(PRK, "" || 0x01) truncated to 16 bytes
+    // Step 2: Expand -- HMAC-SHA512(PRK, "" || 0x01) truncated to 16 bytes
     // For AirPlay2 context the info string is empty and counter starts at 1
     const uint8_t counter = 0x01;
     unsigned char okm[SHA512_DIGEST_LENGTH];

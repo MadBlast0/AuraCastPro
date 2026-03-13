@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -74,7 +74,7 @@ public:
     void setDiskMonitor(RecordingDiskGuard* mon) { m_diskMon = mon; }
     void setOutputFolder(const std::string& folder) { m_outputFolder = folder; }
 
-    // Video stream parameters — set before startRecording()
+    // Video stream parameters -- set before startRecording()
     struct VideoConfig {
         uint32_t    width  = 1920;
         uint32_t    height = 1080;

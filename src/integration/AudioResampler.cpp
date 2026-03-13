@@ -15,7 +15,7 @@ bool AudioResampler::init(const Format& in, const Format& out) {
     if (in.sampleRate == out.sampleRate &&
         in.channels   == out.channels   &&
         in.sampleFmt  == out.sampleFmt) {
-        LOG_DEBUG("AudioResampler: formats match — passthrough mode");
+        LOG_DEBUG("AudioResampler: formats match -- passthrough mode");
         return true;
     }
 
@@ -41,7 +41,7 @@ bool AudioResampler::init(const Format& in, const Format& out) {
         return false;
     }
 
-    LOG_INFO("AudioResampler: {}Hz → {}Hz, {} → {} ch",
+    LOG_INFO("AudioResampler: {}Hz -> {}Hz, {} -> {} ch",
              in.sampleRate, out.sampleRate, in.channels, out.channels);
     return true;
 }
@@ -63,9 +63,10 @@ int AudioResampler::convert(const float* const* inData,
         return std::min(numFrames, maxOutFrames);
     }
 
-    int n = swr_convert(m_swr,
-                        reinterpret_cast<uint8_t**>(outData), maxOutFrames,
-                        reinterpret_cast<const uint8_t**>(const_cast<float**>(inData)), numFrames);
+    uint8_t* const* outBuf = reinterpret_cast<uint8_t* const*>(outData);
+    const uint8_t** inBuf = reinterpret_cast<const uint8_t**>(
+                                const_cast<const float**>(inData));
+    int n = swr_convert(m_swr, outBuf, maxOutFrames, inBuf, numFrames);
     if (n < 0) {
         LOG_WARN("AudioResampler: swr_convert returned {}", n);
         return 0;
@@ -105,3 +106,4 @@ int AudioResampler::convertInterleaved(const float* inInterleaved,
     }
     return n;
 }
+

@@ -1,5 +1,5 @@
-// =============================================================================
-// ADBBridge.cpp — scrcpy-based Android wired/wireless mirroring via ADB
+﻿// =============================================================================
+// ADBBridge.cpp -- scrcpy-based Android wired/wireless mirroring via ADB
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "ADBBridge.h"
@@ -113,6 +113,39 @@ std::string ADBBridge::runADB(const std::string& args) const {
     return output;
 }
 
+bool ADBBridge::runADBDetached(const std::string& args) const {
+    const std::string command = "\"" + m_adbExe + "\" " + args;
+
+    STARTUPINFOA si{};
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
+
+    PROCESS_INFORMATION pi{};
+    std::string mutableCommand = command;
+    const BOOL ok = CreateProcessA(
+        nullptr,
+        mutableCommand.data(),
+        nullptr,
+        nullptr,
+        FALSE,
+        CREATE_NO_WINDOW | DETACHED_PROCESS,
+        nullptr,
+        nullptr,
+        &si,
+        &pi);
+
+    if (!ok) {
+        AURA_LOG_WARN("ADBBridge", "Detached adb command failed: {} (0x{:08X})",
+            command, GetLastError());
+        return false;
+    }
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    return true;
+}
+
 std::vector<AndroidDevice> ADBBridge::enumerateDevices() {
     std::vector<AndroidDevice> devices;
     if (!m_adbAvailable) return devices;
@@ -150,7 +183,7 @@ std::vector<AndroidDevice> ADBBridge::enumerateDevices() {
         }
 
         AURA_LOG_INFO("ADBBridge",
-            "Found device: {} {} {}×{} ({})",
+            "Found device: {} {} {}x{} ({})",
             dev.serial, dev.model,
             dev.screenWidth, dev.screenHeight,
             dev.isWifi ? "Wi-Fi" : "USB");
@@ -186,7 +219,10 @@ bool ADBBridge::startMirroring(const std::string& serial, StreamCallback videoCa
         "app_process / com.genymobile.scrcpy.Server 2.3 "
         "tunnel_forward=true video_codec=h265 max_size=0 max_fps=60",
         serial);
-    // (This runs in background via detached process)
+    if (!runADBDetached(startServer)) {
+        AURA_LOG_ERROR("ADBBridge", "Failed to launch scrcpy server for {}", serial);
+        return false;
+    }
 
     // 3. Forward port to local TCP
     runADB(std::format("-s {} forward tcp:27183 localabstract:scrcpy", serial));
@@ -205,14 +241,14 @@ bool ADBBridge::startMirroring(const std::string& serial, StreamCallback videoCa
     addr.sin_port   = htons(27183);
     inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);
 
-    // Retry connect (server takes ~500ms to start)
+    // Retry connect (server takes a moment to start on-device)
     bool connected = false;
-    for (int i = 0; i < 10 && !connected; i++) {
+    for (int i = 0; i < 20 && !connected; i++) {
         if (connect(session->dataSocket,
                     reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0) {
             connected = true;
         } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
         }
     }
 
@@ -327,7 +363,7 @@ void ADBBridge::stop() {
 }
 
 // =============================================================================
-// pairWireless — runs `adb pair <address:port> <pairingCode>`
+// pairWireless -- runs `adb pair <address:port> <pairingCode>`
 // Used for Android 11+ wireless debugging pairing flow.
 // The address:port and 6-digit code are shown in Android Settings >
 // Developer Options > Wireless debugging > Pair device with pairing code.
@@ -335,7 +371,7 @@ void ADBBridge::stop() {
 bool ADBBridge::pairWireless(const std::string& addressAndPort,
                               const std::string& pairingCode) {
     if (m_adbExe.empty()) {
-        AURA_LOG_WARN("ADBBridge", "pairWireless: adb not found — cannot pair.");
+        AURA_LOG_WARN("ADBBridge", "pairWireless: adb not found -- cannot pair.");
         return false;
     }
     const std::string cmd = m_adbExe

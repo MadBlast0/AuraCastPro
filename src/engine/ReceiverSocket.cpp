@@ -1,5 +1,5 @@
-// =============================================================================
-// ReceiverSocket.cpp — High-performance UDP receive socket
+﻿// =============================================================================
+// ReceiverSocket.cpp -- High-performance UDP receive socket
 // =============================================================================
 
 #include "../pch.h"  // PCH
@@ -97,7 +97,7 @@ bool ReceiverSocket::receiveOnce(int timeoutMs) {
 
     if (received == 0) return m_running.load();
 
-    // Build RawPacket — copy payload bytes
+    // Build RawPacket -- copy payload bytes
     RawPacket pkt;
     pkt.data.assign(m_recvBuf.begin(), m_recvBuf.begin() + received);
     pkt.receivedAt = std::chrono::steady_clock::now();
@@ -127,7 +127,7 @@ bool ReceiverSocket::receiveOnce(int timeoutMs) {
             "Packet dropped: {} (from {}:{})",
             aura::PacketValidator::resultString(vResult),
             pkt.senderIp, pkt.senderPort);
-        return true; // DROP — do not deliver to callback
+        return true; // DROP -- do not deliver to callback
     }
 
     // Deliver to registered callback
@@ -162,7 +162,7 @@ void ReceiverSocket::createAndBind() {
     if (!m_bindIp.empty()) {
         if (inet_pton(AF_INET, m_bindIp.c_str(), &addr.sin_addr) != 1) {
             AURA_LOG_WARN("ReceiverSocket",
-                "Invalid bind IP '{}' — falling back to INADDR_ANY", m_bindIp);
+                "Invalid bind IP '{}' -- falling back to INADDR_ANY", m_bindIp);
             addr.sin_addr.s_addr = INADDR_ANY;
         } else {
             AURA_LOG_INFO("ReceiverSocket",

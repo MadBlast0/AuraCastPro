@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// PluginInterface.h — Abstract base class for all AuraCastPro plugins
+// PluginInterface.h -- Abstract base class for all AuraCastPro plugins
 //
 // Plugins are DLLs that export:
 //   extern "C" __declspec(dllexport) aura::IPlugin* CreatePlugin();
@@ -62,7 +62,7 @@ public:
     virtual bool init()     = 0;  // return false to abort loading
     virtual void shutdown() = 0;
 
-    // ── Hooks (all optional — return false to pass through unchanged) ────────
+    // ── Hooks (all optional -- return false to pass through unchanged) ────────
     // Called on decoder thread for each decoded frame
     virtual bool onVideoFrame(VideoFrameInfo& /*frame*/) { return false; }
 
@@ -76,7 +76,7 @@ public:
     virtual const char* settingsQMLPath() const { return nullptr; }
 };
 
-// ─── IPluginHost — Services AuraCastPro exposes back to plugins ──────────────
+// ─── IPluginHost -- Services AuraCastPro exposes back to plugins ──────────────
 // Task 160: Plugins receive a pointer to IPluginHost during init().
 // This lets plugins log messages, show notifications, and read settings
 // without depending on AuraCastPro internals.

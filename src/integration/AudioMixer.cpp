@@ -1,5 +1,5 @@
-// =============================================================================
-// AudioMixer.cpp — Real-time audio mixer
+﻿// =============================================================================
+// AudioMixer.cpp -- Real-time audio mixer
 //
 // Mixes device audio loopback + optional microphone at configurable levels.
 // Outputs to all registered sinks (VirtualAudioDriver + StreamRecorder).
@@ -59,7 +59,7 @@ void AudioMixer::feedDeviceAudio(const AudioBuffer& buf) {
 void AudioMixer::feedMicAudio(const float* samples, uint32_t numFrames,
                                uint32_t sampleRate, uint32_t channels) {
     if (!m_running.load() || !m_micEnabled.load()) return;
-    // Mix into output buffer — full implementation uses a ring buffer
+    // Mix into output buffer -- full implementation uses a ring buffer
     // to align device and mic audio by timestamp
     AURA_LOG_TRACE("AudioMixer", "Mic audio: {} frames @ {}Hz", numFrames, sampleRate);
 }
@@ -86,13 +86,13 @@ void AudioMixer::mixAndDeliver(const float* deviceSamples,
         sink(m_mixBuffer.data(), numFrames, sampleRate, channels);
 }
 
-// Task 121: A/V sync offset — EMA-smooth the measured offset and update
+// Task 121: A/V sync offset -- EMA-smooth the measured offset and update
 // the applied delay. Called by the video pipeline once per second.
 void AudioMixer::reportMeasuredOffset(int measuredMs) {
     // Clamp to ±200ms range
     measuredMs = std::clamp(measuredMs, -200, 200);
 
-    // EMA smoothing: alpha=0.2 → slow adaptation (stable, avoids oscillation)
+    // EMA smoothing: alpha=0.2 -> slow adaptation (stable, avoids oscillation)
     constexpr float kAlpha = 0.2f;
     int current = m_appliedDelayMs.load();
     int next = static_cast<int>(kAlpha * measuredMs + (1.0f - kAlpha) * current);

@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// PerformanceTimer.h — Sub-microsecond wall-clock timer using
+// PerformanceTimer.h -- Sub-microsecond wall-clock timer using
 //                       Windows QueryPerformanceCounter (QPC).
 //
 // QPC is the highest-resolution timer available on Windows.
@@ -29,7 +29,7 @@ namespace aura {
 class PerformanceTimer {
 public:
     // -----------------------------------------------------------------------
-    // init() — caches the QPC frequency once at startup.
+    // init() -- caches the QPC frequency once at startup.
     // Must be called from main() before any timer is used.
     // -----------------------------------------------------------------------
     static void init();
@@ -55,7 +55,7 @@ public:
     double restartMs();
 
     // -----------------------------------------------------------------------
-    // RAII scope guard — logs elapsed time on destruction
+    // RAII scope guard -- logs elapsed time on destruction
     // -----------------------------------------------------------------------
     class ScopeGuard {
     public:
@@ -75,7 +75,7 @@ public:
     static ScopeGuard scope(const std::string& name);
 
     // -----------------------------------------------------------------------
-    // Lap / split timing  [ADDED — Task 052 gap fix]
+    // Lap / split timing  [ADDED -- Task 052 gap fix]
     // lap() records a split time from the last start() or lap().
     // getLaps() returns all recorded splits as (name, elapsedMs) pairs.
     // Used by LatencyMonitor to measure per-pipeline-stage latency.
@@ -84,7 +84,7 @@ public:
     const std::vector<std::pair<std::string, double>>& getLaps() const;
     void clearLaps();
 
-    // Static wall-clock timestamp in microseconds  [ADDED — Task 052 gap fix]
+    // Static wall-clock timestamp in microseconds  [ADDED -- Task 052 gap fix]
     // Used for absolute timestamps (packet arrival, frame decode, etc.)
     static int64_t now_us();
 
@@ -103,4 +103,4 @@ private:
 
 // NOTE: The following section was ADDED to fix Task 052 gap.
 // lap() / getLaps() split-timing system and now_us() static.
-// Previously missing — required by LatencyMonitor stage breakdown.
+// Previously missing -- required by LatencyMonitor stage breakdown.

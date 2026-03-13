@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// DX12Fence.h — GPU synchronisation fence.
+// DX12Fence.h -- GPU synchronisation fence.
 //
 // DirectX 12 uses explicit synchronisation. A fence is a counter shared
 // between CPU and GPU. The GPU signals the fence when it completes a batch

@@ -1,5 +1,5 @@
 // =============================================================================
-// main.cpp — AuraCastPro complete startup + shutdown sequence
+// main.cpp -- AuraCastPro complete startup + shutdown sequence
 // =============================================================================
 #include "pch.h"  // PCH
 #define WIN32_LEAN_AND_MEAN
@@ -27,7 +27,7 @@
 #include <QTranslator>
 #include <QNetworkProxyFactory>
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
+// -- Utils ---------------------------------------------------------------------
 #include "utils/Logger.h"
 #include "utils/PerformanceTimer.h"
 #include "utils/CrashReporter.h"
@@ -38,11 +38,11 @@
 #include "utils/NetworkTools.h"
 #include "utils/WindowsEventLog.h"     // Task 159
 
-// ── Display ───────────────────────────────────────────────────────────────────
+// -- Display -------------------------------------------------------------------
 #include "display/DX12Manager.h"
 #include "display/MirrorWindow.h"
 
-// ── Engine ────────────────────────────────────────────────────────────────────
+// -- Engine --------------------------------------------------------------------
 #include "engine/AirPlay2Host.h"
 #include "engine/ReconnectManager.h"
 #include "engine/CastV2Host.h"
@@ -60,12 +60,12 @@
 #include "engine/FECRecovery.h"
 #include "engine/ProtocolHandshake.h"
 
-// ── Discovery ─────────────────────────────────────────────────────────────────
+// -- Discovery -----------------------------------------------------------------
 #include "discovery/MDNSService.h"
 #include "discovery/BonjourAdapter.h"
 #include "discovery/DeviceAdvertiser.h"
 
-// ── Integration ───────────────────────────────────────────────────────────────
+// -- Integration ---------------------------------------------------------------
 #include "integration/AudioLoopback.h"
 #include "integration/AudioMixer.h"
 #include "integration/VCamBridge.h"
@@ -73,13 +73,13 @@
 #include "integration/DiskSpaceMonitor.h"    // Task: low-disk auto-stop recording
 #include "integration/VirtualAudioDriver.h"
 
-// ── Streaming ─────────────────────────────────────────────────────────────────
+// -- Streaming -----------------------------------------------------------------
 #include "streaming/HardwareEncoder.h"
 #include "streaming/NVENCWrapper.h"
 #include "streaming/RTMPOutput.h"
 #include "streaming/StreamBroadcaster.h"
 
-// ── Input ─────────────────────────────────────────────────────────────────────
+// -- Input ---------------------------------------------------------------------
 #include "input/MouseToTouch.h"
 #include "input/KeyboardToInput.h"
 #include "input/AndroidControlBridge.h"
@@ -87,9 +87,10 @@
 #include "engine/USBHotplug.h"             // Task 062
 #include "manager/WindowsServices.h"       // Task 178
 
-// ── Manager ───────────────────────────────────────────────────────────────────
+// -- Manager -------------------------------------------------------------------
 #include "manager/HubWindow.h"
 #include "manager/SettingsModel.h"
+#include "manager/HubModel.h"
 #include "manager/SecurityVault.h"
 #include "manager/DeviceManager.h"
 #include "manager/NetworkStatsModel.h"
@@ -98,15 +99,15 @@
 #include "manager/ToastNotification.h"  // Task 176
 #include "manager/ErrorDialog.h"        // Task 177
 
-// ── Licensing ─────────────────────────────────────────────────────────────────
+// -- Licensing -----------------------------------------------------------------
 #include "licensing/LicenseManager.h"
 #include "licensing/LicenseValidator.h"
 #include "licensing/FeatureGate.h"
 
-// ── Plugins ───────────────────────────────────────────────────────────────────
+// -- Plugins -------------------------------------------------------------------
 #include "plugins/PluginManager.h"
 
-// ── Cloud ─────────────────────────────────────────────────────────────────────
+// -- Cloud ---------------------------------------------------------------------
 #include "../cloud/UpdateService.h"
 #include "../cloud/LicenseClient.h"
 #include "../cloud/TelemetryClient.h"
@@ -142,7 +143,7 @@ static std::unique_ptr<aura::DiskSpaceMonitor>     g_diskMonitor;  // low-disk a
 static std::unique_ptr<aura::RTMPOutput>           g_rtmp;
 static std::unique_ptr<aura::HardwareEncoder>      g_encoder;
 static std::unique_ptr<aura::NVENCWrapper>         g_nvenc;
-// Shared ownership — UDPServerThreadPool and the receive callback both hold
+// Shared ownership -- UDPServerThreadPool and the receive callback both hold
 // a shared_ptr so neither dangling-ref the other.
 static std::shared_ptr<aura::ReceiverSocket>       g_sharedSocket;
 static std::unique_ptr<aura::UDPServerThreadPool>  g_udpPool;
@@ -192,7 +193,7 @@ static void ensureDirectories() {
 }
 
 // =============================================================================
-// SAFE_INIT macros — log failure but keep running for non-critical subsystems
+// SAFE_INIT macros -- log failure but keep running for non-critical subsystems
 // =============================================================================
 #define SAFE_INIT(name, expr)                                                  \
     try {                                                                       \
@@ -210,12 +211,12 @@ static void ensureDirectories() {
         AURA_LOG_CRITICAL("main", "{} CRITICAL FAILURE: {}", name, e.what()); \
         MessageBoxA(nullptr,                                                    \
             (std::string(name) + " failed:\n" + e.what()).c_str(),             \
-            "AuraCastPro — Fatal Error", MB_ICONERROR);                        \
+            "AuraCastPro -- Fatal Error", MB_ICONERROR);                        \
         return 1;                                                               \
     }
 
 // =============================================================================
-// Shutdown — called once before process exit, in reverse construction order
+// Shutdown -- called once before process exit, in reverse construction order
 // =============================================================================
 static void shutdownAll() {
     auto& log = *aura::Logger::get();
@@ -230,6 +231,12 @@ static void shutdownAll() {
 
     safe("GlobalHotkey",      [&]{ aura::GlobalHotkey::instance().unregisterAll(); });
     safe("ToastNotification",  [&]{ aura::ToastNotification::shutdown(); });
+    safe("AirPlay2Host",      [&]{ if (g_airplay)      { g_airplay->shutdown();       g_airplay.reset(); } });
+    safe("CastV2Host",        [&]{ if (g_cast)         { g_cast->shutdown();          g_cast.reset(); } });
+    safe("ADBBridge",         [&]{ if (g_adb)          { g_adb->shutdown();           g_adb.reset(); } });
+    safe("DeviceAdvertiser",  [&]{ if (g_advertiser)   { g_advertiser->shutdown();    g_advertiser.reset(); } });
+    safe("MDNSService",       [&]{ if (g_mdns)         { g_mdns->shutdown();          g_mdns.reset(); } });
+    safe("BonjourAdapter",    [&]{ if (g_bonjour)      { g_bonjour->shutdown();       g_bonjour.reset(); } });
     safe("HubWindow",          [&]{ g_hubWindow.reset(); });
     safe("UpdateService",     [&]{ if (g_updater)      { g_updater->shutdown();       g_updater.reset(); } });
     safe("TelemetryClient",   [&]{ if (g_telemetry)    { g_telemetry->shutdown();     g_telemetry.reset(); } });
@@ -245,12 +252,6 @@ static void shutdownAll() {
     safe("ClipboardBridge",   [&]{ if (g_clipboard){ g_clipboard->stopMonitoring(); g_clipboard.reset(); } });
     safe("USBHotplug",        [&]{ if (g_usbHotplug){ g_usbHotplug->stop(); g_usbHotplug.reset(); } });
     safe("MouseToTouch",      [&]{ if (g_mouseToTouch) { g_mouseToTouch->shutdown();  g_mouseToTouch.reset(); } });
-    safe("AirPlay2Host",      [&]{ if (g_airplay)      { g_airplay->shutdown();       g_airplay.reset(); } });
-    safe("CastV2Host",        [&]{ if (g_cast)         { g_cast->shutdown();          g_cast.reset(); } });
-    safe("ADBBridge",         [&]{ if (g_adb)          { g_adb->shutdown();           g_adb.reset(); } });
-    safe("DeviceAdvertiser",  [&]{ if (g_advertiser)   { g_advertiser->shutdown();    g_advertiser.reset(); } });
-    safe("MDNSService",       [&]{ if (g_mdns)         { g_mdns->shutdown();          g_mdns.reset(); } });
-    safe("BonjourAdapter",    [&]{ if (g_bonjour)      { g_bonjour->shutdown();       g_bonjour.reset(); } });
     // Stop IO threads before closing the socket
     safe("ReconnectManager", [&]{ if (g_reconnect) { g_reconnect->stop(); g_reconnect.reset(); } });
     safe("UDPPool",           [&]{ if (g_udpPool)      { g_udpPool->stop();           g_udpPool.reset(); } });
@@ -276,11 +277,11 @@ static void shutdownAll() {
 // =============================================================================
 int main(int argc, char* argv[]) {
 
-    // ── Step 0: Crash reporter — must be installed first ────────────────────
+    // -- Step 0: Crash reporter -- must be installed first --------------------
     aura::CrashReporter::install();
     aura::CrashReporter::setAppVersion(AURA_VERSION_STRING);
 
-    // ── COM initialization — MUST be before any WASAPI / WMF / DirectShow ──
+    // -- COM initialization -- MUST be before any WASAPI / WMF / DirectShow --
     // COINIT_MULTITHREADED: audio capture (WASAPI) and Media Foundation (WMF)
     // both require multi-threaded COM. Qt itself re-initializes COM on its GUI
     // thread with COINIT_APARTMENTTHREADED, which is compatible.
@@ -288,10 +289,10 @@ int main(int argc, char* argv[]) {
     if (FAILED(hrCOM) && hrCOM != RPC_E_CHANGED_MODE) {
         MessageBoxA(nullptr,
             "COM initialization failed. AuraCastPro cannot start.",
-            "AuraCastPro — Fatal Error", MB_ICONERROR);
+            "AuraCastPro -- Fatal Error", MB_ICONERROR);
         return 1;
     }
-    // Media Foundation startup — required before any IMFTransform / decoder use
+    // Media Foundation startup -- required before any IMFTransform / decoder use
     HRESULT hrMF = MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
     if (FAILED(hrMF)) {
         // Non-fatal: hardware decode will fall back to software via FFmpeg
@@ -315,14 +316,14 @@ int main(int argc, char* argv[]) {
     app.setOrganizationName("AuraCastPro");
     app.setOrganizationDomain("auracastpro.com");
 
-    // Task 178: --minimised flag — written to registry for auto-start at login.
+    // Task 178: --minimised flag -- written to registry for auto-start at login.
     // When set, the app starts hidden in the system tray (no main window shown).
     const bool startMinimised = app.arguments().contains("--minimised")
                               || app.arguments().contains("--minimized");
 
     ensureDirectories();
 
-    // ── Step 1: Logging ──────────────────────────────────────────────────────
+    // -- Step 1: Logging ------------------------------------------------------
     const std::string logDir =
         QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
             .toStdString() + "/logs";
@@ -334,7 +335,7 @@ int main(int argc, char* argv[]) {
     aura::WindowsEventLog::instance().open();
     aura::WindowsEventLog::instance().logAppStart(AURA_VERSION_STRING);
     } catch (const std::exception& e) {
-        MessageBoxA(nullptr, e.what(), "AuraCastPro — Logger Failed", MB_ICONERROR);
+        MessageBoxA(nullptr, e.what(), "AuraCastPro -- Logger Failed", MB_ICONERROR);
         return 1;
     }
 
@@ -364,7 +365,7 @@ int main(int argc, char* argv[]) {
     // Apply system proxy settings
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
-    // ── Splash screen ────────────────────────────────────────────────────────
+    // -- Splash screen --------------------------------------------------------
     QSplashScreen* splash = nullptr;
     {
         QPixmap px(":/textures/8K_Splashes/splash.png");
@@ -387,7 +388,7 @@ int main(int argc, char* argv[]) {
 
     splashMsg("Checking hardware...", 5);
 
-    // ── Step 2: OS + hardware detection ─────────────────────────────────────
+    // -- Step 2: OS + hardware detection -------------------------------------
     SAFE_INIT("OSVersionHelper",  aura::OSVersionHelper::detect());
     SAFE_INIT("HardwareProfiler", aura::HardwareProfiler::detect());
 
@@ -398,7 +399,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // ── Step 3: Settings ─────────────────────────────────────────────────────
+    // -- Step 3: Settings -----------------------------------------------------
     splashMsg("Loading settings...", 10);
     SAFE_INIT("SettingsModel", {
         g_settings = std::make_unique<aura::SettingsModel>();
@@ -410,7 +411,7 @@ int main(int argc, char* argv[]) {
         g_settings->setOsVersion(QString::fromStdString(os.displayName));
     });
 
-    // ── Step 4: Security vault ───────────────────────────────────────────────
+    // -- Step 4: Security vault -----------------------------------------------
     SAFE_INIT("SecurityVault", {
         g_vault = std::make_unique<aura::SecurityVault>();
         g_vault->init();
@@ -419,7 +420,7 @@ int main(int argc, char* argv[]) {
         if (g_settings) g_settings->setVault(g_vault.get());
     });
 
-    // ── Step 5: Licensing ────────────────────────────────────────────────────
+    // -- Step 5: Licensing ----------------------------------------------------
     splashMsg("Checking license...", 15);
     SAFE_INIT("LicenseManager", {
         g_license          = std::make_unique<aura::LicenseManager>();
@@ -441,7 +442,7 @@ int main(int argc, char* argv[]) {
         g_featureGate->init();
     });
 
-    // ── Step 6: DirectX 12 ──────────────────────────────────────────────────
+    // -- Step 6: DirectX 12 --------------------------------------------------
     splashMsg("Initialising GPU...", 20);
     SAFE_INIT_CRITICAL("DX12Manager", {
         g_dx12 = std::make_unique<aura::DX12Manager>();
@@ -449,7 +450,7 @@ int main(int argc, char* argv[]) {
         AURA_LOG_INFO("main", "GPU: {}", g_dx12->adapterName());
     });
 
-    // ── Step 7: Audio pipeline ───────────────────────────────────────────────
+    // -- Step 7: Audio pipeline -----------------------------------------------
     splashMsg("Starting audio engine...", 30);
     SAFE_INIT("AudioLoopback", {
         g_audioLoopback = std::make_unique<aura::AudioLoopback>();
@@ -464,7 +465,7 @@ int main(int argc, char* argv[]) {
     SAFE_INIT("AudioMixer", {
         g_audioMixer = std::make_unique<aura::AudioMixer>();
         g_audioMixer->init();
-        // Wire: loopback → mixer
+        // Wire: loopback -> mixer
         if (g_audioLoopback) {
             g_audioLoopback->setCallback([](const aura::AudioBuffer& buf) {
                 if (g_audioMixer) g_audioMixer->feedDeviceAudio(buf);
@@ -474,7 +475,7 @@ int main(int argc, char* argv[]) {
     SAFE_INIT("VirtualAudioDriver", {
         g_virtualAudio = std::make_unique<aura::VirtualAudioDriver>();
         g_virtualAudio->init();
-        // Wire: mixer → virtual audio output
+        // Wire: mixer -> virtual audio output
         if (g_audioMixer && g_virtualAudio) {
             g_audioMixer->addOutputSink([](const float* s, uint32_t n,
                                            uint32_t sr, uint32_t ch) {
@@ -483,17 +484,17 @@ int main(int argc, char* argv[]) {
         }
     });
 
-    // ── Step 8: Video decode pipeline ────────────────────────────────────────
+    // -- Step 8: Video decode pipeline ----------------------------------------
     splashMsg("Building decode pipeline...", 40);
 
-    // 8a. Video decoder — created first so downstream can capture its pointer
+    // 8a. Video decoder -- created first so downstream can capture its pointer
     SAFE_INIT("VideoDecoder", {
         g_videoDecoder = std::make_unique<aura::VideoDecoder>(
             g_dx12 ? g_dx12->device() : nullptr,
             aura::VideoCodec::H265);
         g_videoDecoder->init();
 
-        // Wire: decoder frame output → mirror window + virtual camera
+        // Wire: decoder frame output -> mirror window + virtual camera
         g_videoDecoder->setFrameCallback([](const aura::DecodedFrame& frame) {
             if (g_mirrorWindow) {
                 if (frame.texture)
@@ -534,7 +535,7 @@ int main(int argc, char* argv[]) {
         });
     });
 
-    // 8b. NAL parser — constructor requires callback; wire directly to decoder
+    // 8b. NAL parser -- constructor requires callback; wire directly to decoder
     SAFE_INIT("NALParser", {
         g_nalParser = std::make_unique<aura::NALParser>(
             [](aura::NalUnit nal) {
@@ -565,15 +566,15 @@ int main(int argc, char* argv[]) {
         g_bitratePID = std::make_unique<aura::BitratePID>();
         g_bitratePID->reset(20'000'000.f); // start at 20 Mbps
         g_bitratePID->setOnBitrateChanged([](float bps) {
-            AURA_LOG_DEBUG("main", "Bitrate → {:.1f} Mbps", bps / 1e6f);
+            AURA_LOG_DEBUG("main", "Bitrate -> {:.1f} Mbps", bps / 1e6f);
         });
     });
 
-    // 8c. FEC — wire to NALParser downstream
+    // 8c. FEC -- wire to NALParser downstream
     SAFE_INIT("FECRecovery", {
         g_fec = std::make_unique<aura::FECRecovery>(10, 12);
         g_fec->init();
-        // Wire: FEC recovered data → NALParser + update packet loss stats
+        // Wire: FEC recovered data -> NALParser + update packet loss stats
         g_fec->setCallback([](std::vector<uint8_t> data, uint16_t /*seq*/) {
             if (g_nalParser)
                 g_nalParser->feedPacket(
@@ -594,9 +595,9 @@ int main(int argc, char* argv[]) {
         });
     });
 
-    // ── Step 9: Network receive pipeline (full hot-path wiring) ──────────────
+    // -- Step 9: Network receive pipeline (full hot-path wiring) --------------
     // Data flow:
-    //   UDP Socket → PacketReorderCache → FECRecovery → NALParser → VideoDecoder
+    //   UDP Socket -> PacketReorderCache -> FECRecovery -> NALParser -> VideoDecoder
     splashMsg("Binding network sockets...", 50);
 
     // 9a. Reorder cache (no constructor dependencies)
@@ -604,7 +605,7 @@ int main(int argc, char* argv[]) {
         g_reorderCache = std::make_unique<aura::PacketReorderCache>(256, 50);
     });
 
-    // 9a.5: ReconnectManager — auto-reconnect when packets stop arriving
+    // 9a.5: ReconnectManager -- auto-reconnect when packets stop arriving
     SAFE_INIT("ReconnectManager", {
         ReconnectManager::Config rcfg;
         rcfg.silenceTimeoutSec = 5;
@@ -620,26 +621,26 @@ int main(int argc, char* argv[]) {
             if (g_nalParser)     g_nalParser->reset();
         });
         g_reconnect->setOnGiveUp([] {
-            AURA_LOG_WARN("main", "ReconnectManager: max retries reached — giving up.");
+            AURA_LOG_WARN("main", "ReconnectManager: max retries reached -- giving up.");
             if (g_deviceManager) g_deviceManager->disconnectAll();
         });
         g_reconnect->start();
     });
 
-    // 9b. ReceiverSocket — FIXED: requires (port, PacketCallback) constructor
+    // 9b. ReceiverSocket -- FIXED: requires (port, PacketCallback) constructor
     //     Shared_ptr so UDPServerThreadPool also holds a reference
-    SAFE_INIT("ReceiverSocket", {
+    try {
         // AirPlay video RTP streams arrive on UDP 7010.
-        // (UDP 7236 is the RTSP control port — different from the RTP data port.)
+        // (UDP 7236 is the RTSP control port -- different from the RTP data port.)
         constexpr uint16_t kAirPlayVideoPort = 7010;
 
         auto packetCallback = [](aura::RawPacket pkt) {
             if (!g_reorderCache || !g_fec) return;
 
-            // ── Notify reconnect manager — reset silence timer ─────────────
+            // -- Notify reconnect manager -- reset silence timer -------------
             if (g_reconnect) g_reconnect->onPacketReceived();
 
-            // ── Track receive latency for stats overlay ─────────────────────
+            // -- Track receive latency for stats overlay ---------------------
             if (g_networkStats) {
                 // Estimate one-way network latency from jitter in arrival times
                 static auto   prevArrival = std::chrono::steady_clock::now();
@@ -653,7 +654,7 @@ int main(int argc, char* argv[]) {
                 g_networkStats->setLatencyMs(smoothedInterPacketMs * 6.0); // scale to ms
             }
 
-            // ── Build OrderedPacket from raw RTP bytes ──────────────────────
+            // -- Build OrderedPacket from raw RTP bytes ----------------------
             // RTP fixed header: 12 bytes
             //   [0]     V(2) P(1) X(1) CC(4)
             //   [1]     M(1) PT(7)
@@ -682,10 +683,10 @@ int main(int argc, char* argv[]) {
             }
             op.isKeyframe = false; // determined by NALParser downstream
 
-            // ── Insert into reorder cache ───────────────────────────────────
+            // -- Insert into reorder cache -----------------------------------
             g_reorderCache->insert(std::move(op));
 
-            // ── Drain in-order packets → FEC ───────────────────────────────
+            // -- Drain in-order packets -> FEC -------------------------------
             g_reorderCache->drain([](aura::OrderedPacket ordered) {
                 if (!g_fec) return;
                 // In an RS(10,12) group: packets 0-9 = data, 10-11 = parity
@@ -704,17 +705,20 @@ int main(int argc, char* argv[]) {
             if (!iface.empty())
                 g_sharedSocket->setBindInterface(iface);
         }
-    });
+        AURA_LOG_INFO("main", "ReceiverSocket initialised.");
+    } catch (const std::exception& e) {
+        AURA_LOG_ERROR("main", "ReceiverSocket init failed: {}", e.what());
+    }
 
-    // 9c. Thread pool — FIXED: takes shared_ptr<ReceiverSocket>
+    // 9c. Thread pool -- FIXED: takes shared_ptr<ReceiverSocket>
     SAFE_INIT("UDPServerThreadPool", {
-        // Use optimal thread count (≤4, ≤ half CPU cores)
+        // Use optimal thread count (=4, = half CPU cores)
         g_udpPool = std::make_unique<aura::UDPServerThreadPool>(
             g_sharedSocket, /* numThreads = */ 0 /*auto*/);
-        // No init() — ready after construction
+        // No init() -- ready after construction
     });
 
-    // ── Step 10: Virtual camera + recording ─────────────────────────────────
+    // -- Step 10: Virtual camera + recording ---------------------------------
     splashMsg("Initialising output pipeline...", 55);
     SAFE_INIT("VCamBridge", {
         g_vcam = std::make_unique<aura::VCamBridge>();
@@ -726,7 +730,7 @@ int main(int argc, char* argv[]) {
         // Wire recorder into HubWindow so QML toggle works
         if (g_hubWindow) g_hubWindow->setRecorder(g_recorder.get());
 
-        // Wire: AudioMixer mixed output → recorder (audio track in MP4)
+        // Wire: AudioMixer mixed output -> recorder (audio track in MP4)
         // Added here (after recorder creation) because AudioMixer SAFE_INIT ran earlier.
         if (g_audioMixer) {
             g_audioMixer->addOutputSink([](const float* samples, uint32_t numFrames,
@@ -752,7 +756,7 @@ int main(int argc, char* argv[]) {
                 .toStdString() + "/AuraCastPro/recordings";
         g_diskMonitor->start(recPath);
 
-        // Low-disk warning → toast notification
+        // Low-disk warning -> toast notification
         g_diskMonitor->setLowDiskCallback([](uint64_t freeBytes) {
             const double gb = static_cast<double>(freeBytes) / (1024.0 * 1024.0 * 1024.0);
             const QString msg = QString("Only %1 GB left on recording drive.")
@@ -762,20 +766,20 @@ int main(int argc, char* argv[]) {
                 QMetaObject::invokeMethod(g_hubWindow.get(), [msg]() {
                     // Show toast via HubModel log line (visible in DiagnosticsPanel)
                     auto* hm = g_hubWindow ? g_hubWindow->hubModel() : nullptr;
-                    if (hm) hm->appendLogLine("[⚠ Disk] " + msg);
+                    if (hm) hm->appendLogLine("[? Disk] " + msg);
                 }, Qt::QueuedConnection);
             }
         });
 
-        // Critical disk space → auto-stop recording to prevent corruption
+        // Critical disk space -> auto-stop recording to prevent corruption
         g_diskMonitor->setCriticalCallback([&]() {
-            AURA_LOG_ERROR("main", "Critical disk space — auto-stopping recording");
+            AURA_LOG_ERROR("main", "Critical disk space -- auto-stopping recording");
             if (g_recorder) g_recorder->stopRecording();
             if (g_hubWindow) {
                 QMetaObject::invokeMethod(g_hubWindow.get(), []() {
                     auto* hm = g_hubWindow ? g_hubWindow->hubModel() : nullptr;
                     if (hm) {
-                        hm->appendLogLine("[✖ Disk] Critical — recording stopped automatically.");
+                        hm->appendLogLine("[? Disk] Critical -- recording stopped automatically.");
                         hm->setProperty("isRecording", false);
                     }
                 }, Qt::QueuedConnection);
@@ -789,7 +793,7 @@ int main(int argc, char* argv[]) {
     SAFE_INIT("HardwareEncoder", {
         g_encoder = std::make_unique<aura::HardwareEncoder>();
         g_encoder->init();
-        // Wire: encoder output packets → RTMP + recorder
+        // Wire: encoder output packets -> RTMP + recorder
         g_encoder->setCallback([](const aura::EncodedPacket& ep) {
             if (g_rtmp)
                 g_rtmp->sendVideoPacket(ep.data.data(), ep.data.size(),
@@ -809,13 +813,13 @@ int main(int argc, char* argv[]) {
         g_broadcaster->init();
     });
 
-    // ── Step 11: Input control ────────────────────────────────────────────────
+    // -- Step 11: Input control ------------------------------------------------
     SAFE_INIT("MouseToTouch",        { g_mouseToTouch   = std::make_unique<aura::MouseToTouch>();        g_mouseToTouch->init(); });
     SAFE_INIT("KeyboardToInput",     { g_keyboardInput  = std::make_unique<aura::KeyboardToInput>();     g_keyboardInput->init(); });
     SAFE_INIT("AndroidControlBridge",{ g_androidControl = std::make_unique<aura::AndroidControlBridge>(); g_androidControl->init(); });
     SAFE_INIT("ProtocolHandshake",   { g_handshake      = std::make_unique<aura::ProtocolHandshake>();   g_handshake->init(); });
 
-    // Task 150: Clipboard bridge — bidirectional PC ↔ device clipboard sync
+    // Task 150: Clipboard bridge -- bidirectional PC ? device clipboard sync
     SAFE_INIT("ClipboardBridge", {
         g_clipboard = std::make_unique<aura::ClipboardBridge>();
         // Wire to AndroidControlBridge for push-to-device
@@ -823,11 +827,11 @@ int main(int argc, char* argv[]) {
         AURA_LOG_INFO("main", "Clipboard bridge started (auto-sync: off until device connects).");
     });
 
-    // Task 062: USB hotplug — auto-detect Android devices on USB plug-in
+    // Task 062: USB hotplug -- auto-detect Android devices on USB plug-in
     SAFE_INIT("USBHotplug", {
         g_usbHotplug = std::make_unique<aura::USBHotplug>();
         g_usbHotplug->setOnDeviceArrived([]{
-            AURA_LOG_INFO("main", "USB device arrived — triggering ADB scan.");
+            AURA_LOG_INFO("main", "USB device arrived -- triggering ADB scan.");
             if (g_adb) g_adb->scanForDevices();
         });
         g_usbHotplug->setOnDeviceRemoved([]{
@@ -837,7 +841,7 @@ int main(int argc, char* argv[]) {
         g_usbHotplug->start();
     });
 
-    // ── Step 12: Protocol hosts ───────────────────────────────────────────────
+    // -- Step 12: Protocol hosts -----------------------------------------------
     splashMsg("Starting protocol hosts...", 60);
 
     SAFE_INIT("AirPlay2Host", {
@@ -848,9 +852,19 @@ int main(int argc, char* argv[]) {
             if (g_reconnect) g_reconnect->onConnected(info.deviceId);
             AURA_LOG_INFO("main", "AirPlay session started: {} ({})",
                           info.deviceName, info.ipAddress);
-            if (g_deviceManager)
+            if (g_deviceManager) {
+                aura::DeviceInfo deviceInfo;
+                deviceInfo.id = QString::fromStdString(info.deviceId);
+                deviceInfo.name = QString::fromStdString(
+                    info.deviceName.empty() ? info.ipAddress : info.deviceName);
+                deviceInfo.ipAddress = QString::fromStdString(info.ipAddress);
+                deviceInfo.type = aura::DeviceType::IOS;
+                deviceInfo.state = aura::DeviceState::Connected;
+                deviceInfo.isPaired = info.isPaired;
+                g_deviceManager->onDeviceDiscovered(deviceInfo);
                 g_deviceManager->onDeviceStateChanged(
-                    info.deviceId, aura::DeviceState::Streaming);
+                    QString::fromStdString(info.deviceId), aura::DeviceState::Streaming);
+            }
             if (g_broadcaster)   g_broadcaster->start();
             if (g_vcam)          g_vcam->start();
             if (g_audioLoopback) g_audioLoopback->start();
@@ -878,7 +892,7 @@ int main(int argc, char* argv[]) {
             AURA_LOG_INFO("main", "AirPlay PIN: {}", pin);
         });
 
-        // Wire pairing result → HubModel → QML PairingDialog
+        // Wire pairing result -> HubModel -> QML PairingDialog
         g_airplay->setPairingResultCallback([](bool success) {
             AURA_LOG_INFO("main", "AirPlay pairing {}", success ? "succeeded" : "failed");
             if (g_hubWindow) {
@@ -898,6 +912,16 @@ int main(int argc, char* argv[]) {
         g_cast->init();
         g_cast->setSessionStartedCallback([](const aura::CastSessionInfo& info) {
             AURA_LOG_INFO("main", "Cast session started from {}", info.ipAddress);
+            if (g_deviceManager) {
+                aura::DeviceInfo deviceInfo;
+                deviceInfo.id = QString::fromStdString(info.sessionId.empty() ? info.ipAddress : info.sessionId);
+                deviceInfo.name = QStringLiteral("Android Cast");
+                deviceInfo.ipAddress = QString::fromStdString(info.ipAddress);
+                deviceInfo.type = aura::DeviceType::Android;
+                deviceInfo.state = aura::DeviceState::Connected;
+                g_deviceManager->onDeviceDiscovered(deviceInfo);
+                g_deviceManager->onDeviceStateChanged(deviceInfo.id, aura::DeviceState::Streaming);
+            }
             if (g_broadcaster) g_broadcaster->start();
             if (g_audioLoopback) g_audioLoopback->start();
             if (g_audioMixer)    g_audioMixer->start();
@@ -912,7 +936,7 @@ int main(int argc, char* argv[]) {
         g_adb = std::make_unique<aura::ADBBridge>();
         g_adb->init();
         g_adb->setDeviceFoundCallback([](const aura::AndroidDevice& dev) {
-            AURA_LOG_INFO("main", "ADB device: {} {} ({}×{})",
+            AURA_LOG_INFO("main", "ADB device: {} {} ({}x{})",
                           dev.serial, dev.model,
                           dev.screenWidth, dev.screenHeight);
             if (!g_deviceManager) return;
@@ -925,7 +949,7 @@ int main(int argc, char* argv[]) {
             g_deviceManager->onDeviceDiscovered(info);
         });
 
-        // Wire Android authorization result → HubModel → QML PairingDialog
+        // Wire Android authorization result -> HubModel -> QML PairingDialog
         g_adb->setPairingResultCallback([](const std::string& serial, bool success) {
             AURA_LOG_INFO("main", "ADB pairing {} for {}", success ? "succeeded" : "failed", serial);
             if (g_hubWindow) {
@@ -937,7 +961,7 @@ int main(int argc, char* argv[]) {
         });
     });
 
-    // ── Step 13: mDNS / network advertising ──────────────────────────────────
+    // -- Step 13: mDNS / network advertising ----------------------------------
     splashMsg("Advertising on network...", 70);
     SAFE_INIT("BonjourAdapter", {
         g_bonjour = std::make_unique<aura::BonjourAdapter>();
@@ -949,13 +973,11 @@ int main(int argc, char* argv[]) {
             "Bonjour (Apple mDNS) is not installed. "
             "AirPlay device discovery will be unavailable. "
             "Install Bonjour for Windows from https://support.apple.com/downloads/bonjour");
-        if (g_toast) {
-            g_toast->show(
-                "AirPlay Discovery Unavailable",
-                "Bonjour is not installed. Apple AirPlay devices will not be discovered. "
-                "Install Bonjour for Windows to enable AirPlay mirroring.",
-                aura::ToastIcon::Warning);
-        }
+        aura::ToastNotification::show(
+            "AirPlay Discovery Unavailable",
+            "Bonjour is not installed. Apple AirPlay devices will not be discovered. "
+            "Install Bonjour for Windows to enable AirPlay mirroring.",
+            aura::ToastIcon::Warning);
     }
 
     SAFE_INIT("MDNSService", {
@@ -974,7 +996,7 @@ int main(int argc, char* argv[]) {
                 g_settings->displayName().toStdString());
     });
 
-    // ── Step 14: Mirror window + render loop ─────────────────────────────────
+    // -- Step 14: Mirror window + render loop ---------------------------------
     splashMsg("Creating mirror window...", 75);
     SAFE_INIT("MirrorWindow", {
         g_mirrorWindow = std::make_unique<aura::MirrorWindow>(
@@ -982,7 +1004,7 @@ int main(int argc, char* argv[]) {
         g_mirrorWindow->init();
     });
 
-    // ── Step 15: Device manager ───────────────────────────────────────────────
+    // -- Step 15: Device manager -----------------------------------------------
     SAFE_INIT("DeviceManager", {
         g_deviceManager = std::make_unique<aura::DeviceManager>();
         g_deviceManager->init();
@@ -1005,7 +1027,7 @@ int main(int argc, char* argv[]) {
             });
     });
 
-    // ── Step 16: Network stats + overlay ─────────────────────────────────────
+    // -- Step 16: Network stats + overlay -------------------------------------
     SAFE_INIT("NetworkStatsModel", {
         g_networkStats = std::make_unique<aura::NetworkStatsModel>();
         g_networkStats->init();
@@ -1022,7 +1044,7 @@ int main(int argc, char* argv[]) {
         if (g_mirrorWindow) g_mirrorWindow->setOverlay(g_overlay.get());
     });
 
-    // ── Step 17: Plugins ─────────────────────────────────────────────────────
+    // -- Step 17: Plugins -----------------------------------------------------
     SAFE_INIT("PluginManager", {
         g_plugins = std::make_unique<aura::PluginManager>();
         g_plugins->init();
@@ -1032,7 +1054,7 @@ int main(int argc, char* argv[]) {
         g_plugins->discoverAndLoad(pluginDir);
     });
 
-    // ── Step 18: Cloud services ───────────────────────────────────────────────
+    // -- Step 18: Cloud services -----------------------------------------------
     SAFE_INIT("TelemetryClient", {
         g_telemetry = std::make_unique<aura::TelemetryClient>();
         g_telemetry->init();
@@ -1045,7 +1067,7 @@ int main(int argc, char* argv[]) {
     SAFE_INIT("UpdateService", {
         g_updater = std::make_unique<aura::UpdateService>();
         g_updater->init();
-        // Wire update notification → toast so the user sees an update badge
+        // Wire update notification -> toast so the user sees an update badge
         g_updater->setUpdateAvailableCallback([](const aura::UpdateInfo& info) {
             AURA_LOG_INFO("main", "Update available: v{}", info.latestVersion);
             aura::ToastNotification::showUpdateAvailable(
@@ -1054,7 +1076,7 @@ int main(int argc, char* argv[]) {
         g_updater->startAutoCheck(AURA_VERSION_STRING);
     });
 
-    // ── Step 19: Start network services ──────────────────────────────────────
+    // -- Step 19: Start network services --------------------------------------
     splashMsg("Starting services...", 80);
     SAFE_INIT("MDNSService.start",        { if (g_mdns)         g_mdns->start(); });
     SAFE_INIT("DeviceAdvertiser.start",   { if (g_advertiser)   g_advertiser->start(); });
@@ -1065,10 +1087,9 @@ int main(int argc, char* argv[]) {
     // Socket must be bound before thread pool starts calling receiveOnce()
     SAFE_INIT("ReceiverSocket.start",     { if (g_sharedSocket) g_sharedSocket->start(); });
     SAFE_INIT("UDPPool.start",            { if (g_udpPool)      g_udpPool->start(); });
-    // Create Win32 window + DX12 swapchain, show window
-    SAFE_INIT("MirrorWindow.start",       { if (g_mirrorWindow) g_mirrorWindow->start(); });
+    // MirrorWindow should NOT be started automatically here; it's started when a device connects.
 
-    // ── Step 20: Main hub window ──────────────────────────────────────────────
+    // -- Step 20: Main hub window ----------------------------------------------
     splashMsg("Starting user interface...", 90);
     SAFE_INIT("HubWindow", {
         g_hubWindow = std::make_unique<aura::HubWindow>();
@@ -1103,7 +1124,7 @@ int main(int argc, char* argv[]) {
                 if (g_mirrorWindow) g_mirrorWindow->toggleFullscreen();
                 break;
             case aura::HotkeyId::Screenshot:
-                // FrameCapture fires via InputExtras — signal via DeviceManager
+                // FrameCapture fires via InputExtras -- signal via DeviceManager
                 break;
             case aura::HotkeyId::ToggleRecording:
                 if (g_hubWindow) g_hubWindow->triggerRecordingToggle();
@@ -1120,7 +1141,7 @@ int main(int argc, char* argv[]) {
                 static_cast<void*>(g_hubWindow.get()));
         }
 
-        // Task 178: Honour "start with Windows" setting — sync registry on every launch
+        // Task 178: Honour "start with Windows" setting -- sync registry on every launch
         if (g_settings) {
             const bool startWithWindows = g_settings->startWithWindows();
             if (startWithWindows)
@@ -1138,8 +1159,8 @@ int main(int argc, char* argv[]) {
         }
     });
 
-    // ── Wire HubModel → protocol host signals ─────────────────────────────────
-    // QML calls hubModel.startMirroring() / stopMirroring() — connect these to
+    // -- Wire HubModel -> protocol host signals ---------------------------------
+    // QML calls hubModel.startMirroring() / stopMirroring() -- connect these to
     // the actual protocol engines so the UI can actually control mirroring.
     if (g_hubWindow) {
         aura::HubModel* hub = g_hubWindow->hubModel();
@@ -1150,7 +1171,7 @@ int main(int argc, char* argv[]) {
                 if (g_airplay) g_airplay->setMirroringActive(true);
                 if (g_cast)    g_cast->setMirroringActive(true);
                 if (g_adb)     g_adb->setMirroringActive(true);
-                AURA_LOG_INFO("main", "Mirroring start requested — all hosts notified.");
+                AURA_LOG_INFO("main", "Mirroring start requested -- all hosts notified.");
             }, Qt::QueuedConnection);
 
             // Stop mirroring: halt active sessions
@@ -1159,7 +1180,7 @@ int main(int argc, char* argv[]) {
                 if (g_airplay) g_airplay->setMirroringActive(false);
                 if (g_cast)    g_cast->setMirroringActive(false);
                 if (g_adb)     g_adb->setMirroringActive(false);
-                AURA_LOG_INFO("main", "Mirroring stop requested — all hosts notified.");
+                AURA_LOG_INFO("main", "Mirroring stop requested -- all hosts notified.");
             }, Qt::QueuedConnection);
 
             // Wire LicenseManager to HubModel for QML activation
@@ -1185,7 +1206,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // ── Final splash close ────────────────────────────────────────────────────
+    // -- Final splash close ----------------------------------------------------
     splashMsg("Ready.", 100);
     if (splash) {
         splash->finish(g_hubWindow
@@ -1209,11 +1230,14 @@ int main(int argc, char* argv[]) {
             aura::OSVersionHelper::version().displayName);
     }
 
-    // ── Qt event loop ─────────────────────────────────────────────────────────
+    // -- Qt event loop ---------------------------------------------------------
     const int exitCode = app.exec();
 
     AURA_LOG_INFO("main", "Qt event loop exited ({}). Shutting down...", exitCode);
     aura::WindowsEventLog::instance().logAppStop();  // Task 159
+    aura::CrashReporter::uninstall();
     shutdownAll();
     return exitCode;
 }
+
+

@@ -1,5 +1,5 @@
-// =============================================================================
-// MirrorWindowWin32.cpp — Win32 mirror window with DXGI swapchain
+﻿// =============================================================================
+// MirrorWindowWin32.cpp -- Win32 mirror window with DXGI swapchain
 // Task 111: bindSwapchain() + applyPendingResize() wired
 // Task 113: Rotation callback wired through resize path
 // Task 179: setAlwaysOnTop() wired to HWND_TOPMOST
@@ -91,7 +91,7 @@ void MirrorWindowWin32::create(uint32_t width, uint32_t height,
                         GetLastError()));
     }
 
-    AURA_LOG_INFO("MirrorWindowWin32", "Window created: {}×{}", width, height);
+    AURA_LOG_INFO("MirrorWindowWin32", "Window created: {}x{}", width, height);
 }
 
 // -----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ void MirrorWindowWin32::applyPendingResize() {
     if (!m_swapchain || !m_device || newW == 0 || newH == 0) return;
 
     AURA_LOG_INFO("MirrorWindowWin32",
-        "Applying pending swapchain resize: {}×{}", newW, newH);
+        "Applying pending swapchain resize: {}x{}", newW, newH);
 
     // SwapchainResize::execute() waits for GPU idle, calls ResizeBuffers,
     // then re-creates RTVs from m_rtvHeap.
@@ -148,7 +148,7 @@ void MirrorWindowWin32::applyPendingResize() {
 
     if (!ok) {
         AURA_LOG_ERROR("MirrorWindowWin32",
-            "SwapchainResize::execute failed for {}×{}", newW, newH);
+            "SwapchainResize::execute failed for {}x{}", newW, newH);
         return;
     }
 
@@ -220,19 +220,19 @@ IDXGISwapChain4* MirrorWindowWin32::createSwapChain(
                         "(maxLum={:.0f} nits).", hdrCaps.maxLuminanceNits);
                 } else {
                     AURA_LOG_WARN("MirrorWindowWin32",
-                        "SetColorSpace1(HDR10) failed: {:08X} — using SDR.", (uint32_t)hrCS);
+                        "SetColorSpace1(HDR10) failed: {:08X} -- using SDR.", (uint32_t)hrCS);
                 }
             } else {
-                // SDR: use standard sRGB — explicit set ensures correctness
+                // SDR: use standard sRGB -- explicit set ensures correctness
                 swapChain4->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
                 AURA_LOG_DEBUG("MirrorWindowWin32",
-                    "SDR monitor detected — sRGB color space applied.");
+                    "SDR monitor detected -- sRGB color space applied.");
             }
         }
     }
 
     AURA_LOG_INFO("MirrorWindowWin32",
-        "Swapchain created: {}×{} / {} buffers / FLIP_DISCARD",
+        "Swapchain created: {}x{} / {} buffers / FLIP_DISCARD",
         m_width, m_height, bufferCount);
 
     return swapChain4;
@@ -272,7 +272,7 @@ void MirrorWindowWin32::toggleFullscreen() {
 }
 
 // -----------------------------------------------------------------------------
-// Task 179: Always-on-top — wires the SettingsModel alwaysOnTop toggle to
+// Task 179: Always-on-top -- wires the SettingsModel alwaysOnTop toggle to
 //           the Win32 HWND z-order (HWND_TOPMOST / HWND_NOTOPMOST).
 void MirrorWindowWin32::setAlwaysOnTop(bool onTop) {
     if (m_alwaysOnTop.load() == onTop) return;
@@ -341,7 +341,7 @@ long __stdcall MirrorWindowWin32::WndProc(
                 self->toggleFullscreen();
                 return 0;
 
-            // Task 110: DPI change — resize to suggested rect and update scale factor.
+            // Task 110: DPI change -- resize to suggested rect and update scale factor.
             // Fires when window is dragged between monitors of different DPI, or when
             // the user changes their display scale in Windows settings.
             case WM_DPICHANGED: {

@@ -1,5 +1,5 @@
-// =============================================================================
-// UpdateService.cpp — HTTPS update check using WinHTTP
+﻿// =============================================================================
+// UpdateService.cpp -- HTTPS update check using WinHTTP
 //
 // Checks https://auracastpro.com/api/version every 24 hours.
 // Response format:
@@ -23,6 +23,8 @@
 #include <thread>
 #include <chrono>
 #include <sstream>
+#include <condition_variable>
+#include <mutex>
 
 using json = nlohmann::json;
 
@@ -32,6 +34,8 @@ struct UpdateService::Impl {
     std::thread    checkThread;
     std::string    currentVersion;
     UpdateCallback onUpdateAvailable; // persistent callback set by caller
+    std::mutex     waitMutex;
+    std::condition_variable waitCv;
 };
 
 UpdateService::UpdateService() : m_impl(std::make_unique<Impl>()) {}
@@ -56,16 +60,17 @@ void UpdateService::startAutoCheck(const std::string& currentVersion) {
             checkNow(m_impl->currentVersion, [this](const UpdateInfo& info) {
                 if (info.available) {
                     AURA_LOG_INFO("UpdateService",
-                        "Update available: v{} — {}",
+                        "Update available: v{} -- {}",
                         info.latestVersion, info.downloadUrl);
                     // Fire persistent callback (wired to HubWindow in main.cpp)
                     if (m_impl->onUpdateAvailable)
                         m_impl->onUpdateAvailable(info);
                 }
             });
-            // Wait 24 hours between checks
-            for (int i = 0; i < 24 * 60 && m_running.load(); i++)
-                std::this_thread::sleep_for(std::chrono::minutes(1));
+            std::unique_lock lock(m_impl->waitMutex);
+            m_impl->waitCv.wait_for(lock, std::chrono::hours(24), [this]() {
+                return !m_running.load();
+            });
         }
     });
 }
@@ -135,7 +140,7 @@ std::thread([currentVersion, cb, running, compareVersionsCopy]() {
                 info.isCritical    = j.value("is_critical",   false);
                 info.available     = compareVersionsCopy(info.latestVersion, currentVersion) > 0;
                 if (cb) cb(info);
-            } catch (...) { /* parse error — ignore */ }
+            } catch (...) { /* parse error -- ignore */ }
         }
 
         WinHttpCloseHandle(request);
@@ -155,6 +160,7 @@ int UpdateService::compareVersions(const std::string& v1, const std::string& v2)
 
 void UpdateService::shutdown() {
     m_running.store(false);
+    m_impl->waitCv.notify_all();
     if (m_impl->checkThread.joinable()) m_impl->checkThread.join();
 }
 

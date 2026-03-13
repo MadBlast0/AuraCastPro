@@ -1,5 +1,5 @@
-// =============================================================================
-// ClipboardBridge.cpp — Task 150: Bidirectional clipboard sharing
+﻿// =============================================================================
+// ClipboardBridge.cpp -- Task 150: Bidirectional clipboard sharing
 // =============================================================================
 #include "../pch.h"  // PCH
 #include "ClipboardBridge.h"
@@ -16,7 +16,7 @@
 namespace aura {
 
 // =============================================================================
-// Hidden clipboard listener window — receives WM_CLIPBOARDUPDATE
+// Hidden clipboard listener window -- receives WM_CLIPBOARDUPDATE
 // =============================================================================
 struct ClipboardBridge::Impl {
     HWND      listenerWnd{nullptr};
@@ -25,7 +25,7 @@ struct ClipboardBridge::Impl {
     std::string lastPushedText;    // prevents echo loops
     std::mutex  mutex;
 
-    // Pointer to the active ClipboardBridge — set in startMonitoring()
+    // Pointer to the active ClipboardBridge -- set in startMonitoring()
     // so the WndProc uses the same instance that main.cpp created (not the singleton).
     static ClipboardBridge* s_activeInstance;
 
@@ -43,7 +43,7 @@ struct ClipboardBridge::Impl {
                     if (text != self->lastPushedText) {
                         self->lastPushedText = text;
                         AURA_LOG_DEBUG("ClipboardBridge",
-                            "Clipboard changed ({} chars) — auto-syncing to device.",
+                            "Clipboard changed ({} chars) -- auto-syncing to device.",
                             text.size());
                         bridge->pushToDevice();
                     }
@@ -71,7 +71,7 @@ void ClipboardBridge::startMonitoring() {
     m_impl->running.store(true);
 
     // Clipboard listener windows must run on a dedicated thread with a
-    // message pump — the WM_CLIPBOARDUPDATE message is thread-affine.
+    // message pump -- the WM_CLIPBOARDUPDATE message is thread-affine.
     m_impl->monitorThread = std::thread([this]() {
         // Register a minimal message-only window class
         WNDCLASSEXW wc{};
@@ -84,7 +84,7 @@ void ClipboardBridge::startMonitoring() {
         m_impl->listenerWnd = CreateWindowExW(
             0, L"AuraCastProClipboard", nullptr, 0,
             0, 0, 0, 0,
-            HWND_MESSAGE,  // message-only window — invisible
+            HWND_MESSAGE,  // message-only window -- invisible
             nullptr, GetModuleHandleW(nullptr), nullptr);
 
         if (!m_impl->listenerWnd) {
@@ -142,7 +142,7 @@ void ClipboardBridge::pushToDevice() {
     // AirPlay2Host calls clipboardBridge.setReceivedCallback and also
     // wires the send path via:
     //   aura::ClipboardBridge::instance().pushToDevice()
-    //   → m_airplay2Host->sendClipboardToDevice(text)
+    //   -> m_airplay2Host->sendClipboardToDevice(text)
     // This is done in main.cpp via a lambda capture.
     // Here we just fire the callback to notify the protocol layer.
     if (m_callback) {
@@ -164,7 +164,7 @@ void ClipboardBridge::receiveFromDevice(const std::string& text) {
 
     if (writeWindowsClipboard(text)) {
         AURA_LOG_INFO("ClipboardBridge",
-            "Received {} chars from device → written to Windows clipboard.",
+            "Received {} chars from device -> written to Windows clipboard.",
             text.size());
     }
 }
@@ -215,16 +215,16 @@ bool ClipboardBridge::writeWindowsClipboard(const std::string& text) {
 
     wchar_t* dst = static_cast<wchar_t*>(GlobalLock(hMem));
     if (!dst) {
-        GlobalFree(hMem);   // GlobalLock failed — we still own the memory, must free it
+        GlobalFree(hMem);   // GlobalLock failed -- we still own the memory, must free it
         CloseClipboard();
         return false;
     }
     wcscpy_s(dst, ws.size() + 1, ws.c_str());
     GlobalUnlock(hMem);
 
-    // After SetClipboardData succeeds Windows owns hMem — do NOT call GlobalFree
+    // After SetClipboardData succeeds Windows owns hMem -- do NOT call GlobalFree
     if (!SetClipboardData(CF_UNICODETEXT, hMem)) {
-        GlobalFree(hMem);   // SetClipboardData failed — we still own it, free it
+        GlobalFree(hMem);   // SetClipboardData failed -- we still own it, free it
         CloseClipboard();
         return false;
     }

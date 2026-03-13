@@ -1,5 +1,5 @@
-// =============================================================================
-// HardwareProfiler.cpp — GPU, CPU, and RAM capability detection
+﻿// =============================================================================
+// HardwareProfiler.cpp -- GPU, CPU, and RAM capability detection
 // Uses DXGI to enumerate adapters and Windows API for CPU/RAM info.
 // =============================================================================
 
@@ -74,7 +74,7 @@ void HardwareProfiler::detectGPUs() {
         DXGI_ADAPTER_DESC1 desc{};
         adapter->GetDesc1(&desc);
 
-        // Skip software/WARP adapters — we want real hardware only
+        // Skip software/WARP adapters -- we want real hardware only
         if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) continue;
 
         GpuInfo gpu;
@@ -162,7 +162,7 @@ void HardwareProfiler::checkHWCodecSupport(GpuInfo& gpu) {
 
     if (gpu.vendorId == "10DE") {       // NVIDIA
         gpu.supportsHWDecodeHEVC = true; // All Maxwell+ GPUs (2014+)
-        gpu.supportsHWDecodeAV1  = true; // All Ampere+ GPUs (2020+) — may be false on older cards
+        gpu.supportsHWDecodeAV1  = true; // All Ampere+ GPUs (2020+) -- may be false on older cards
     } else if (gpu.vendorId == "1002") { // AMD
         gpu.supportsHWDecodeHEVC = true; // All GCN 3+ GPUs (2015+)
         gpu.supportsHWDecodeAV1  = true; // RDNA2+ GPUs (2020+)

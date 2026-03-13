@@ -1,6 +1,6 @@
 #pragma once
 // =============================================================================
-// StreamRecorder.h — Fragmented MP4 recording via FFmpeg
+// StreamRecorder.h -- Fragmented MP4 recording via FFmpeg
 // =============================================================================
 #include <string>
 #include <memory>
@@ -26,8 +26,11 @@ public:
     void pauseRecording();
     void resumeRecording();
 
-    // Feed compressed video packets (stream copy — no re-encode)
+    // Feed compressed video packets (stream copy -- no re-encode)
     void onVideoPacket(const uint8_t* data, size_t size, int64_t pts, bool isKeyframe);
+    void feedVideoPacket(const uint8_t* data, size_t size, int64_t pts, bool isKeyframe) {
+        onVideoPacket(data, size, pts, isKeyframe);
+    }
 
     // Feed raw PCM audio (encoded to AAC internally)
     void onAudioSamples(const float* samples, uint32_t numFrames,

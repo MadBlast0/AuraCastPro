@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// LicenseClient.h — Online license activation and subscription heartbeat
+// LicenseClient.h -- Online license activation and subscription heartbeat
 // =============================================================================
 #include <string>
 #include <functional>
@@ -30,7 +30,7 @@ public:
     void activate(const std::string& key, const std::string& email,
                   std::function<void(ActivationResponse)> callback);
 
-    // Deactivate (for machine transfer) — synchronous
+    // Deactivate (for machine transfer) -- synchronous
     bool deactivate(const std::string& key);
 
     // Send heartbeat for subscription licenses (async, silent)

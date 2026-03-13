@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// CastV2Host.h — Google Cast V2 receiver: TLS + Protobuf
+// CastV2Host.h -- Google Cast V2 receiver: TLS + Protobuf
 // =============================================================================
 #include <functional>
 #include <string>
