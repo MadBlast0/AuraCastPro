@@ -15,6 +15,7 @@
     <file alias="qml/FirstRunWizard.qml">qml/FirstRunWizard.qml</file>
     <file alias="qml/LicensePage.qml">qml/LicensePage.qml</file>
     <file alias="qml/Theme.qml">qml/Theme.qml</file>
+    <file alias="qml/qmldir">qml/qmldir</file>
     <file alias="qml/SplashProgress.qml">qml/SplashProgress.qml</file>
     <!-- Fonts — Roboto Mono (Apache 2.0). See assets/fonts/README.txt to download. -->
     <!-- Aliases kept as Inter-*/JetBrains* for Theme.qml compatibility -->

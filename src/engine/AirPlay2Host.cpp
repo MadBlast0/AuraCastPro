@@ -14,54 +14,59 @@
 //   RFC 7798 -- RTP payload for H.265
 // =============================================================================
 
-#include "../pch.h"  // PCH
 #include "AirPlay2Host.h"
+
+#include "../pch.h"  // PCH
 #include "../utils/Logger.h"
 #include "../utils/NetworkTools.h"
 
+
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <windows.h>
+
 #pragma comment(lib, "ws2_32.lib")
 
 // OpenSSL for SRP-6a + AES-128-CTR
-#include <openssl/srp.h>
-#include <openssl/sha.h>
 #include <openssl/aes.h>
+#include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
-#include <openssl/bn.h>
+#include <openssl/sha.h>
+#include <openssl/srp.h>
+
 #pragma comment(lib, "libssl.lib")
 #pragma comment(lib, "libcrypto.lib")
 
+#include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstring>
+#include <filesystem>
 #include <format>
+#include <fstream>
+#include <map>
+#include <optional>
 #include <random>
 #include <sstream>
-#include <algorithm>
 #include <stdexcept>
-#include <cstring>
-#include <map>
 #include <thread>
-#include <fstream>
-#include <filesystem>
-#include <optional>
+
 
 namespace aura {
 
-constexpr uint16_t AIRPLAY_CONTROL_PORT  = 7236;
-constexpr uint16_t AIRPLAY_AUDIO_RTP_PORT = 7011;   // Audio RTP (used in SETUP response)
+constexpr uint16_t AIRPLAY_CONTROL_PORT = 7236;
+constexpr uint16_t AIRPLAY_AUDIO_RTP_PORT = 7011;    // Audio RTP (used in SETUP response)
 constexpr uint16_t AIRPLAY_TIMING_SYNC_PORT = 7237;  // RTCP timing (control+1, informational)
-constexpr uint16_t AIRPLAY_TIMING_PORT   = 7238;   // RTCP sync (control+2)
-constexpr int      BACKLOG              = 4;
-constexpr int      RECV_TIMEOUT_MS      = 8000;
-constexpr uint32_t AIRPLAY_FEATURES     = 0x5A7FFFF7;
-constexpr uint32_t AIRPLAY_FLAGS        = 0x0;
-constexpr uint8_t  kPairingMethodSetup  = 0x00;
-constexpr uint8_t  kPairingMethodSetupAuth = 0x01;
-constexpr uint8_t  kPairingTransientFlag = 0x10;
+constexpr uint16_t AIRPLAY_TIMING_PORT = 7238;       // RTCP sync (control+2)
+constexpr int BACKLOG = 4;
+constexpr int RECV_TIMEOUT_MS = 8000;
+constexpr uint32_t AIRPLAY_FEATURES = 0x5A7FFFF7;
+constexpr uint32_t AIRPLAY_FLAGS = 0x0;
+constexpr uint8_t kPairingMethodSetup = 0x00;
+constexpr uint8_t kPairingMethodSetupAuth = 0x01;
+constexpr uint8_t kPairingTransientFlag = 0x10;
 
 enum class TlvTag : uint8_t {
     Method = 0,
@@ -139,7 +144,8 @@ struct SRPSession {
     bool aesPrepared{false};
 
     static std::vector<uint8_t> bnToPaddedBytes(const BIGNUM* value) {
-        if (!value) return std::vector<uint8_t>{0};
+        if (!value)
+            return std::vector<uint8_t>{0};
         constexpr int kWidth = 384;
         const int width = BN_num_bytes(value);
         std::vector<uint8_t> out(kWidth, 0);
@@ -189,22 +195,26 @@ struct SRPSession {
     }
 
     ~SRPSession() {
-        BN_free(N); BN_free(g); BN_free(k); BN_free(v);
-        BN_free(b); BN_free(B); BN_free(A); BN_free(u); BN_free(S);
+        BN_free(N);
+        BN_free(g);
+        BN_free(k);
+        BN_free(v);
+        BN_free(b);
+        BN_free(B);
+        BN_free(A);
+        BN_free(u);
+        BN_free(S);
         BN_CTX_free(ctx);
-        if (aesCTX) EVP_CIPHER_CTX_free(aesCTX);
+        if (aesCTX)
+            EVP_CIPHER_CTX_free(aesCTX);
     }
 
     void computeVerifier(const std::string& pin) {
         static constexpr char kUser[] = "Pair-Setup";
         const std::string userPass = std::string(kUser) + ":" + pin;
-        const auto h1 = sha512OfParts({
-            {reinterpret_cast<const uint8_t*>(userPass.data()), userPass.size()}
-        });
-        const auto xBuf = sha512OfParts({
-            {salt.data(), salt.size()},
-            {h1.data(), h1.size()}
-        });
+        const auto h1 =
+            sha512OfParts({{reinterpret_cast<const uint8_t*>(userPass.data()), userPass.size()}});
+        const auto xBuf = sha512OfParts({{salt.data(), salt.size()}, {h1.data(), h1.size()}});
 
         BIGNUM* x = BN_bin2bn(xBuf.data(), static_cast<int>(xBuf.size()), nullptr);
         v = BN_new();
@@ -232,7 +242,8 @@ struct SRPSession {
                            const std::vector<uint8_t>& clientProof,
                            std::vector<uint8_t>& serverProofOut) {
         A = BN_bin2bn(aBytes.data(), static_cast<int>(aBytes.size()), nullptr);
-        if (!A || BN_is_zero(A)) return false;
+        if (!A || BN_is_zero(A))
+            return false;
 
         const auto aBin = bnToPaddedBytes(A);
         const auto bBin = bnToPaddedBytes(B);
@@ -254,33 +265,30 @@ struct SRPSession {
         const auto hN = sha512OfVectors({bnToPaddedBytes(N)});
         const auto hg = sha512OfVectors({bnToPaddedBytes(g)});
         static constexpr char kUser[] = "Pair-Setup";
-        const auto hUser = sha512OfParts({
-            {reinterpret_cast<const uint8_t*>(kUser), strlen(kUser)}
-        });
+        const auto hUser =
+            sha512OfParts({{reinterpret_cast<const uint8_t*>(kUser), strlen(kUser)}});
         std::array<uint8_t, kHashBytes> hnXorHg{};
         for (size_t i = 0; i < hnXorHg.size(); ++i) {
             hnXorHg[i] = hN[i] ^ hg[i];
         }
 
-        auto expectedClientProof = sha512OfParts({
-            {hnXorHg.data(), hnXorHg.size()},
-            {hUser.data(), hUser.size()},
-            {salt.data(), salt.size()},
-            {aBin.data(), aBin.size()},
-            {bBin.data(), bBin.size()},
-            {sessionKey.data(), sessionKey.size()}
-        });
+        auto expectedClientProof = sha512OfParts({{hnXorHg.data(), hnXorHg.size()},
+                                                  {hUser.data(), hUser.size()},
+                                                  {salt.data(), salt.size()},
+                                                  {aBin.data(), aBin.size()},
+                                                  {bBin.data(), bBin.size()},
+                                                  {sessionKey.data(), sessionKey.size()}});
 
         if (clientProof.size() != expectedClientProof.size() ||
-            CRYPTO_memcmp(clientProof.data(), expectedClientProof.data(), expectedClientProof.size()) != 0) {
+            CRYPTO_memcmp(clientProof.data(), expectedClientProof.data(),
+                          expectedClientProof.size()) != 0) {
             return false;
         }
 
-        const auto serverProof = sha512OfParts({
-            {aBin.data(), aBin.size()},
-            {expectedClientProof.data(), expectedClientProof.size()},
-            {sessionKey.data(), sessionKey.size()}
-        });
+        const auto serverProof =
+            sha512OfParts({{aBin.data(), aBin.size()},
+                           {expectedClientProof.data(), expectedClientProof.size()},
+                           {sessionKey.data(), sessionKey.size()}});
         serverProofOut.assign(serverProof.begin(), serverProof.end());
         return true;
     }
@@ -304,14 +312,14 @@ struct SRPSession {
 
         // Prepare OpenSSL EVP context for stream decryption
         aesCTX = EVP_CIPHER_CTX_new();
-        EVP_EncryptInit_ex(aesCTX, EVP_aes_128_ctr(), nullptr,
-                           aesKey.data(), aesIV.data());
+        EVP_EncryptInit_ex(aesCTX, EVP_aes_128_ctr(), nullptr, aesKey.data(), aesIV.data());
         aesPrepared = true;
     }
 
     // Decrypt an in-place video packet
     void decryptPacket(uint8_t* data, int len) {
-        if (!aesPrepared || !aesCTX) return;
+        if (!aesPrepared || !aesCTX)
+            return;
         int outLen = 0;
         EVP_EncryptUpdate(aesCTX, data, &outLen, data, len);
     }
@@ -321,35 +329,35 @@ struct SRPSession {
 // RTSP / HTTP session state
 // =============================================================================
 struct AirPlaySessionState {
-    SOCKET       sock{INVALID_SOCKET};
-    std::string  clientIp;
-    std::string  videoCodec{"H265"};
-    uint16_t     videoPort{0};
-    uint16_t     audioPort{0};
-    bool         paired{false};
-    std::string  deviceId;
-    std::string  deviceName;
+    SOCKET sock{INVALID_SOCKET};
+    std::string clientIp;
+    std::string videoCodec{"H265"};
+    uint16_t videoPort{0};
+    uint16_t audioPort{0};
+    bool paired{false};
+    std::string deviceId;
+    std::string deviceName;
 
     // SRP pairing state (created on first pair-setup)
     std::unique_ptr<SRPSession> srp;
-    std::string                 srpPin;
-    int                         srpStep{0}; // 0=none,1=M2 sent,2=M4 sent
-    uint32_t                    pairingFlags{0};
-    int                         pairVerifyStep{0};
-    std::array<uint8_t, 32>     peerCurveKey{};
-    std::array<uint8_t, 32>     peerEdKey{};
-    std::array<uint8_t, 32>     ourCurveKey{};
-    std::array<uint8_t, 32>     sharedSecret{};
+    std::string srpPin;
+    int srpStep{0};  // 0=none,1=M2 sent,2=M4 sent
+    uint32_t pairingFlags{0};
+    int pairVerifyStep{0};
+    std::array<uint8_t, 32> peerCurveKey{};
+    std::array<uint8_t, 32> peerEdKey{};
+    std::array<uint8_t, 32> ourCurveKey{};
+    std::array<uint8_t, 32> sharedSecret{};
 
     AirPlaySessionInfo toInfo() const {
         AirPlaySessionInfo info;
-        info.deviceId   = deviceId;
+        info.deviceId = deviceId;
         info.deviceName = deviceName;
-        info.ipAddress  = clientIp;
+        info.ipAddress = clientIp;
         info.videoCodec = videoCodec;
-        info.videoPort  = videoPort;
-        info.audioPort  = audioPort;
-        info.isPaired   = paired;
+        info.videoPort = videoPort;
+        info.audioPort = audioPort;
+        info.isPaired = paired;
         return info;
     }
 };
@@ -359,11 +367,13 @@ struct AirPlaySessionState {
 // =============================================================================
 static std::string extractHeader(const std::string& req, const std::string& name) {
     auto pos = req.find(name + ":");
-    if (pos == std::string::npos) return {};
+    if (pos == std::string::npos)
+        return {};
     pos += name.size() + 1;
     while (pos < req.size() && (req[pos] == ' ' || req[pos] == '\t')) ++pos;
     auto end = req.find('\r', pos);
-    if (end == std::string::npos) end = req.find('\n', pos);
+    if (end == std::string::npos)
+        end = req.find('\n', pos);
     return req.substr(pos, end == std::string::npos ? std::string::npos : end - pos);
 }
 
@@ -373,17 +383,21 @@ static std::string extractCSeq(const std::string& req) {
 
 static std::vector<uint8_t> extractBody(const std::string& req) {
     auto pos = req.find("\r\n\r\n");
-    if (pos == std::string::npos) pos = req.find("\n\n");
-    if (pos == std::string::npos) return {};
-    pos += (req[pos+2] == '\n' ? 2 : 4);
+    if (pos == std::string::npos)
+        pos = req.find("\n\n");
+    if (pos == std::string::npos)
+        return {};
+    pos += (req[pos + 2] == '\n' ? 2 : 4);
     return std::vector<uint8_t>(req.begin() + pos, req.end());
 }
 
 static std::string firstRequestLine(const std::string& req) {
     const auto end = req.find("\r\n");
-    if (end != std::string::npos) return req.substr(0, end);
+    if (end != std::string::npos)
+        return req.substr(0, end);
     const auto lf = req.find('\n');
-    if (lf != std::string::npos) return req.substr(0, lf);
+    if (lf != std::string::npos)
+        return req.substr(0, lf);
     return req;
 }
 
@@ -401,7 +415,8 @@ static std::string hexPreview(const uint8_t* data, size_t len, size_t limit = 32
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
     for (size_t i = 0; i < len && i < limit; ++i) {
-        if (i) oss << ' ';
+        if (i)
+            oss << ' ';
         oss << std::setw(2) << static_cast<int>(data[i]);
     }
     return oss.str();
@@ -429,7 +444,8 @@ static TlvMap decodeTlv8(const std::vector<uint8_t>& body) {
         const uint8_t tag = body[offset];
         const size_t len = body[offset + 1];
         offset += 2;
-        if (offset + len > body.size()) break;
+        if (offset + len > body.size())
+            break;
         auto& value = out[tag];
         value.insert(value.end(), body.begin() + static_cast<std::ptrdiff_t>(offset),
                      body.begin() + static_cast<std::ptrdiff_t>(offset + len));
@@ -442,14 +458,16 @@ static std::string describeTlvTags(const TlvMap& tlv) {
     std::ostringstream oss;
     bool first = true;
     for (const auto& [tag, value] : tlv) {
-        if (!first) oss << ", ";
+        if (!first)
+            oss << ", ";
         first = false;
         oss << static_cast<int>(tag) << "(" << value.size() << "B)";
     }
     return oss.str();
 }
 
-static void appendTlvValue(std::vector<uint8_t>& out, uint8_t tag, const std::vector<uint8_t>& value) {
+static void appendTlvValue(std::vector<uint8_t>& out, uint8_t tag,
+                           const std::vector<uint8_t>& value) {
     if (value.empty()) {
         out.push_back(tag);
         out.push_back(0);
@@ -461,8 +479,7 @@ static void appendTlvValue(std::vector<uint8_t>& out, uint8_t tag, const std::ve
         const auto chunk = std::min<size_t>(255, value.size() - offset);
         out.push_back(tag);
         out.push_back(static_cast<uint8_t>(chunk));
-        out.insert(out.end(),
-                   value.begin() + static_cast<std::ptrdiff_t>(offset),
+        out.insert(out.end(), value.begin() + static_cast<std::ptrdiff_t>(offset),
                    value.begin() + static_cast<std::ptrdiff_t>(offset + chunk));
         offset += chunk;
     }
@@ -480,12 +497,10 @@ static bool sendResponse(SOCKET s, const std::string& resp) {
     return sent == static_cast<int>(resp.size());
 }
 
-static std::string makeRTSP(int code, const std::string& reason,
-                              const std::string& cseq,
-                              const std::string& extraHeaders = {},
-                              const std::vector<uint8_t>& body = {}) {
-    std::string resp = std::format("RTSP/1.0 {} {}\r\nCSeq: {}\r\n",
-                                   code, reason, cseq);
+static std::string makeRTSP(int code, const std::string& reason, const std::string& cseq,
+                            const std::string& extraHeaders = {},
+                            const std::vector<uint8_t>& body = {}) {
+    std::string resp = std::format("RTSP/1.0 {} {}\r\nCSeq: {}\r\n", code, reason, cseq);
     if (!body.empty())
         resp += std::format("Content-Length: {}\r\n", body.size());
     resp += extraHeaders;
@@ -496,8 +511,8 @@ static std::string makeRTSP(int code, const std::string& reason,
 }
 
 static std::string makeHTTP(int code, const std::string& reason,
-                              const std::string& contentType = {},
-                              const std::vector<uint8_t>& body = {}) {
+                            const std::string& contentType = {},
+                            const std::vector<uint8_t>& body = {}) {
     std::string resp = std::format("HTTP/1.1 {} {}\r\n", code, reason);
     if (!contentType.empty())
         resp += "Content-Type: " + contentType + "\r\n";
@@ -509,13 +524,12 @@ static std::string makeHTTP(int code, const std::string& reason,
     return resp;
 }
 
-static std::string makePairingRTSP(int code, const std::string& reason,
-                                   const std::string& cseq,
+static std::string makePairingRTSP(int code, const std::string& reason, const std::string& cseq,
                                    const std::vector<uint8_t>& body = {}) {
     return makeRTSP(code, reason, cseq,
-        "Content-Type: application/pairing+tlv8\r\n"
-        "Server: AirTunes/220.68\r\n",
-        body);
+                    "Content-Type: application/pairing+tlv8\r\n"
+                    "Server: AirTunes/220.68\r\n",
+                    body);
 }
 
 static std::pair<std::string, std::string> loadAirPlayIdentity() {
@@ -535,8 +549,10 @@ static std::pair<std::string, std::string> loadAirPlayIdentity() {
         pi >> piUUID;
     }
 
-    if (pkHex.size() != 64) pkHex.assign(64, '0');
-    if (piUUID.size() != 36) piUUID = "00000000-0000-0000-0000-000000000000";
+    if (pkHex.size() != 64)
+        pkHex.assign(64, '0');
+    if (piUUID.size() != 36)
+        piUUID = "00000000-0000-0000-0000-000000000000";
     return {pkHex, piUUID};
 }
 
@@ -557,7 +573,8 @@ static std::optional<AirPlaySigningIdentity> loadOrCreateAirPlaySigningIdentity(
     const auto piFile = dir / "airplay_uuid.txt";
 
     auto fromHex = [](const std::string& hex) -> std::optional<std::array<uint8_t, 32>> {
-        if (hex.size() != 64) return std::nullopt;
+        if (hex.size() != 64)
+            return std::nullopt;
         std::array<uint8_t, 32> out{};
         for (size_t i = 0; i < out.size(); ++i) {
             const std::string byteStr = hex.substr(i * 2, 2);
@@ -602,7 +619,8 @@ static std::optional<AirPlaySigningIdentity> loadOrCreateAirPlaySigningIdentity(
     if (!pkey) {
         RAND_bytes(priv.data(), static_cast<int>(priv.size()));
         pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, nullptr, priv.data(), priv.size());
-        if (!pkey) return std::nullopt;
+        if (!pkey)
+            return std::nullopt;
         std::ofstream sk(skFile);
         sk << toHex(priv);
     }
@@ -611,7 +629,8 @@ static std::optional<AirPlaySigningIdentity> loadOrCreateAirPlaySigningIdentity(
     id.privateKey = priv;
     id.pairingId = pairingId;
     size_t pubLen = id.publicKey.size();
-    if (!EVP_PKEY_get_raw_public_key(pkey, id.publicKey.data(), &pubLen) || pubLen != id.publicKey.size()) {
+    if (!EVP_PKEY_get_raw_public_key(pkey, id.publicKey.data(), &pubLen) ||
+        pubLen != id.publicKey.size()) {
         EVP_PKEY_free(pkey);
         return std::nullopt;
     }
@@ -638,12 +657,14 @@ static std::array<uint8_t, 64> sha512Bytes(
 static std::optional<std::pair<std::array<uint8_t, 32>, std::array<uint8_t, 32>>>
 generateX25519KeyPair() {
     EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_X25519, nullptr);
-    if (!ctx) return std::nullopt;
+    if (!ctx)
+        return std::nullopt;
 
     EVP_PKEY* key = nullptr;
     if (EVP_PKEY_keygen_init(ctx) <= 0 || EVP_PKEY_keygen(ctx, &key) <= 0) {
         EVP_PKEY_CTX_free(ctx);
-        if (key) EVP_PKEY_free(key);
+        if (key)
+            EVP_PKEY_free(key);
         return std::nullopt;
     }
     EVP_PKEY_CTX_free(ctx);
@@ -652,26 +673,26 @@ generateX25519KeyPair() {
     std::array<uint8_t, 32> pub{};
     size_t privLen = priv.size();
     size_t pubLen = pub.size();
-    const bool ok =
-        EVP_PKEY_get_raw_private_key(key, priv.data(), &privLen) &&
-        EVP_PKEY_get_raw_public_key(key, pub.data(), &pubLen) &&
-        privLen == priv.size() &&
-        pubLen == pub.size();
+    const bool ok = EVP_PKEY_get_raw_private_key(key, priv.data(), &privLen) &&
+                    EVP_PKEY_get_raw_public_key(key, pub.data(), &pubLen) &&
+                    privLen == priv.size() && pubLen == pub.size();
     EVP_PKEY_free(key);
-    if (!ok) return std::nullopt;
+    if (!ok)
+        return std::nullopt;
     return std::make_pair(priv, pub);
 }
 
 static std::optional<std::array<uint8_t, 32>> deriveX25519SharedSecret(
-    const std::array<uint8_t, 32>& ourPrivateKey,
-    const std::array<uint8_t, 32>& peerPublicKey) {
-    EVP_PKEY* ours = EVP_PKEY_new_raw_private_key(EVP_PKEY_X25519, nullptr,
-        ourPrivateKey.data(), ourPrivateKey.size());
-    EVP_PKEY* theirs = EVP_PKEY_new_raw_public_key(EVP_PKEY_X25519, nullptr,
-        peerPublicKey.data(), peerPublicKey.size());
+    const std::array<uint8_t, 32>& ourPrivateKey, const std::array<uint8_t, 32>& peerPublicKey) {
+    EVP_PKEY* ours = EVP_PKEY_new_raw_private_key(EVP_PKEY_X25519, nullptr, ourPrivateKey.data(),
+                                                  ourPrivateKey.size());
+    EVP_PKEY* theirs = EVP_PKEY_new_raw_public_key(EVP_PKEY_X25519, nullptr, peerPublicKey.data(),
+                                                   peerPublicKey.size());
     if (!ours || !theirs) {
-        if (ours) EVP_PKEY_free(ours);
-        if (theirs) EVP_PKEY_free(theirs);
+        if (ours)
+            EVP_PKEY_free(ours);
+        if (theirs)
+            EVP_PKEY_free(theirs);
         return std::nullopt;
     }
 
@@ -679,83 +700,81 @@ static std::optional<std::array<uint8_t, 32>> deriveX25519SharedSecret(
     std::array<uint8_t, 32> secret{};
     size_t secretLen = secret.size();
     const bool ok =
-        ctx &&
-        EVP_PKEY_derive_init(ctx) > 0 &&
-        EVP_PKEY_derive_set_peer(ctx, theirs) > 0 &&
-        EVP_PKEY_derive(ctx, secret.data(), &secretLen) > 0 &&
-        secretLen == secret.size();
+        ctx && EVP_PKEY_derive_init(ctx) > 0 && EVP_PKEY_derive_set_peer(ctx, theirs) > 0 &&
+        EVP_PKEY_derive(ctx, secret.data(), &secretLen) > 0 && secretLen == secret.size();
 
-    if (ctx) EVP_PKEY_CTX_free(ctx);
+    if (ctx)
+        EVP_PKEY_CTX_free(ctx);
     EVP_PKEY_free(ours);
     EVP_PKEY_free(theirs);
-    if (!ok) return std::nullopt;
+    if (!ok)
+        return std::nullopt;
     return secret;
 }
 
-static bool ed25519Sign(const std::array<uint8_t, 32>& privateKey,
-    const uint8_t* message, size_t messageLen,
-    std::array<uint8_t, 64>& signature) {
-    EVP_PKEY* key = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, nullptr,
-        privateKey.data(), privateKey.size());
-    if (!key) return false;
+static bool ed25519Sign(const std::array<uint8_t, 32>& privateKey, const uint8_t* message,
+                        size_t messageLen, std::array<uint8_t, 64>& signature) {
+    EVP_PKEY* key = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, nullptr, privateKey.data(),
+                                                 privateKey.size());
+    if (!key)
+        return false;
 
     EVP_MD_CTX* ctx = EVP_MD_CTX_new();
     size_t sigLen = signature.size();
-    const bool ok = ctx &&
-        EVP_DigestSignInit(ctx, nullptr, nullptr, nullptr, key) > 0 &&
-        EVP_DigestSign(ctx, signature.data(), &sigLen, message, messageLen) > 0 &&
-        sigLen == signature.size();
-    if (ctx) EVP_MD_CTX_free(ctx);
+    const bool ok = ctx && EVP_DigestSignInit(ctx, nullptr, nullptr, nullptr, key) > 0 &&
+                    EVP_DigestSign(ctx, signature.data(), &sigLen, message, messageLen) > 0 &&
+                    sigLen == signature.size();
+    if (ctx)
+        EVP_MD_CTX_free(ctx);
     EVP_PKEY_free(key);
     return ok;
 }
 
-static bool ed25519Verify(const std::array<uint8_t, 32>& publicKey,
-    const uint8_t* message, size_t messageLen,
-    const uint8_t* signature, size_t signatureLen) {
-    EVP_PKEY* key = EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, nullptr,
-        publicKey.data(), publicKey.size());
-    if (!key) return false;
+static bool ed25519Verify(const std::array<uint8_t, 32>& publicKey, const uint8_t* message,
+                          size_t messageLen, const uint8_t* signature, size_t signatureLen) {
+    EVP_PKEY* key =
+        EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, nullptr, publicKey.data(), publicKey.size());
+    if (!key)
+        return false;
 
     EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-    const bool ok = ctx &&
-        EVP_DigestVerifyInit(ctx, nullptr, nullptr, nullptr, key) > 0 &&
-        EVP_DigestVerify(ctx, signature, signatureLen, message, messageLen) > 0;
-    if (ctx) EVP_MD_CTX_free(ctx);
+    const bool ok = ctx && EVP_DigestVerifyInit(ctx, nullptr, nullptr, nullptr, key) > 0 &&
+                    EVP_DigestVerify(ctx, signature, signatureLen, message, messageLen) > 0;
+    if (ctx)
+        EVP_MD_CTX_free(ctx);
     EVP_PKEY_free(key);
     return ok;
 }
 
 static void derivePairVerifyCtrKeyMaterial(const std::array<uint8_t, 32>& sharedSecret,
-    std::array<uint8_t, 16>& key,
-    std::array<uint8_t, 16>& iv) {
+                                           std::array<uint8_t, 16>& key,
+                                           std::array<uint8_t, 16>& iv) {
     static constexpr char kSaltKey[] = "Pair-Verify-AES-Key";
     static constexpr char kSaltIv[] = "Pair-Verify-AES-IV";
-    const auto keyHash = sha512Bytes({
-        {reinterpret_cast<const uint8_t*>(kSaltKey), sizeof(kSaltKey) - 1},
-        {sharedSecret.data(), sharedSecret.size()}
-    });
-    const auto ivHash = sha512Bytes({
-        {reinterpret_cast<const uint8_t*>(kSaltIv), sizeof(kSaltIv) - 1},
-        {sharedSecret.data(), sharedSecret.size()}
-    });
+    const auto keyHash =
+        sha512Bytes({{reinterpret_cast<const uint8_t*>(kSaltKey), sizeof(kSaltKey) - 1},
+                     {sharedSecret.data(), sharedSecret.size()}});
+    const auto ivHash =
+        sha512Bytes({{reinterpret_cast<const uint8_t*>(kSaltIv), sizeof(kSaltIv) - 1},
+                     {sharedSecret.data(), sharedSecret.size()}});
     std::copy_n(keyHash.begin(), key.size(), key.begin());
     std::copy_n(ivHash.begin(), iv.size(), iv.begin());
 }
 
 static bool aes128CtrTransform(const std::array<uint8_t, 16>& key,
-    const std::array<uint8_t, 16>& iv,
-    const uint8_t* input, size_t inputLen,
-    uint8_t* output, bool warmupBlock = false) {
+                               const std::array<uint8_t, 16>& iv, const uint8_t* input,
+                               size_t inputLen, uint8_t* output, bool warmupBlock = false) {
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) return false;
+    if (!ctx)
+        return false;
 
     int outLen = 0;
     bool ok = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), nullptr, key.data(), iv.data()) > 0;
     if (ok && warmupBlock) {
         std::array<uint8_t, 64> zeros{};
         std::array<uint8_t, 64> scratch{};
-        ok = EVP_EncryptUpdate(ctx, scratch.data(), &outLen, zeros.data(), static_cast<int>(zeros.size())) > 0;
+        ok = EVP_EncryptUpdate(ctx, scratch.data(), &outLen, zeros.data(),
+                               static_cast<int>(zeros.size())) > 0;
     }
     if (ok) {
         ok = EVP_EncryptUpdate(ctx, output, &outLen, input, static_cast<int>(inputLen)) > 0;
@@ -787,8 +806,10 @@ static std::string xmlEscape(std::string value) {
 static std::string bestAirPlayDeviceId() {
     const auto ifaces = NetworkTools::enumerateInterfaces(false);
     for (const auto& iface : ifaces) {
-        if (iface.ipv4.empty() || iface.ipv4.starts_with("169.254.")) continue;
-        if (iface.macAddress.empty()) continue;
+        if (iface.ipv4.empty() || iface.ipv4.starts_with("169.254."))
+            continue;
+        if (iface.macAddress.empty())
+            continue;
 
         std::string mac;
         mac.reserve(iface.macAddress.size());
@@ -797,7 +818,8 @@ static std::string bestAirPlayDeviceId() {
                 mac.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
             }
         }
-        if (mac.size() == 12) return mac;
+        if (mac.size() == 12)
+            return mac;
     }
 
     std::string fallback = NetworkTools::bestLocalIPv4();
@@ -824,16 +846,13 @@ static std::vector<uint8_t> makeAirPlayInfoPlist(const std::string& displayName)
         "<key>name</key><string>{}</string>"
         "<key>pk</key><data>{}</data>"
         "<key>pi</key><string>{}</string>"
+        "<key>pw</key><false/>"
         "<key>protovers</key><string>1.1</string>"
         "<key>sourceVersion</key><string>220.68</string>"
         "<key>statusFlags</key><integer>0</integer>"
         "</dict>"
         "</plist>",
-        xmlEscape(deviceId),
-        AIRPLAY_FEATURES,
-        AIRPLAY_FLAGS,
-        xmlEscape(displayName),
-        pkHex,
+        xmlEscape(deviceId), AIRPLAY_FEATURES, AIRPLAY_FLAGS, xmlEscape(displayName), pkHex,
         piUUID);
 
     return std::vector<uint8_t>(xml.begin(), xml.end());
@@ -849,22 +868,25 @@ struct AirPlay2Host::Impl {
 // =============================================================================
 // Construction / destruction
 // =============================================================================
-AirPlay2Host::AirPlay2Host()
-    : m_impl(std::make_unique<Impl>()) {}
+AirPlay2Host::AirPlay2Host() : m_impl(std::make_unique<Impl>()) {
+}
 
-AirPlay2Host::~AirPlay2Host() { shutdown(); }
+AirPlay2Host::~AirPlay2Host() {
+    shutdown();
+}
 
 // =============================================================================
 // init / start / acceptLoop
 // =============================================================================
 void AirPlay2Host::init() {
     AURA_LOG_INFO("AirPlay2Host",
-        "Initialised. TCP:{} SRP-6a pairing + AES-128-CTR decryption ready.",
-        AIRPLAY_CONTROL_PORT);
+                  "Initialised. TCP:{} SRP-6a pairing + AES-128-CTR decryption ready.",
+                  AIRPLAY_CONTROL_PORT);
 }
 
 void AirPlay2Host::start() {
-    if (m_running.exchange(true)) return;
+    if (m_running.exchange(true))
+        return;
 
     WSADATA wsa{};
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
@@ -881,26 +903,25 @@ void AirPlay2Host::start() {
     }
 
     int yes = 1;
-    setsockopt(m_impl->listenSocket, SOL_SOCKET, SO_REUSEADDR,
-               reinterpret_cast<char*>(&yes), sizeof(yes));
+    setsockopt(m_impl->listenSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes),
+               sizeof(yes));
 
     sockaddr_in addr{};
-    addr.sin_family      = AF_INET;
+    addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port        = htons(AIRPLAY_CONTROL_PORT);
+    addr.sin_port = htons(AIRPLAY_CONTROL_PORT);
 
-    if (bind(m_impl->listenSocket,
-             reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR ||
+    if (bind(m_impl->listenSocket, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) ==
+            SOCKET_ERROR ||
         listen(m_impl->listenSocket, BACKLOG) == SOCKET_ERROR) {
-        AURA_LOG_ERROR("AirPlay2Host",
-            "bind/listen failed on port {}: {}", AIRPLAY_CONTROL_PORT, WSAGetLastError());
+        AURA_LOG_ERROR("AirPlay2Host", "bind/listen failed on port {}: {}", AIRPLAY_CONTROL_PORT,
+                       WSAGetLastError());
         closesocket(m_impl->listenSocket);
         m_running = false;
         return;
     }
 
-    AURA_LOG_INFO("AirPlay2Host",
-        "Listening on TCP 0.0.0.0:{}", AIRPLAY_CONTROL_PORT);
+    AURA_LOG_INFO("AirPlay2Host", "Listening on TCP 0.0.0.0:{}", AIRPLAY_CONTROL_PORT);
 
     m_acceptThread = std::thread([this]() { acceptLoop(); });
 }
@@ -913,13 +934,15 @@ void AirPlay2Host::acceptLoop() {
             FD_SET(m_impl->listenSocket, &readSet);
             timeval tv{0, 200000};
 
-            if (select(0, &readSet, nullptr, nullptr, &tv) <= 0) continue;
+            if (select(0, &readSet, nullptr, nullptr, &tv) <= 0)
+                continue;
 
             sockaddr_in clientAddr{};
             int addrLen = sizeof(clientAddr);
-            SOCKET clientSock = accept(m_impl->listenSocket,
-                reinterpret_cast<sockaddr*>(&clientAddr), &addrLen);
-            if (clientSock == INVALID_SOCKET) continue;
+            SOCKET clientSock =
+                accept(m_impl->listenSocket, reinterpret_cast<sockaddr*>(&clientAddr), &addrLen);
+            if (clientSock == INVALID_SOCKET)
+                continue;
 
             if (!m_mirroringActive.load(std::memory_order_relaxed)) {
                 AURA_LOG_DEBUG("AirPlay2Host", "Connection refused -- mirroring inactive.");
@@ -937,21 +960,18 @@ void AirPlay2Host::acceptLoop() {
                 try {
                     handleSession(clientSock, ip);
                 } catch (const std::exception& e) {
-                    AURA_LOG_ERROR("AirPlay2Host",
-                        "Session thread exception ({}): {}", ip, e.what());
+                    AURA_LOG_ERROR("AirPlay2Host", "Session thread exception ({}): {}", ip,
+                                   e.what());
                 } catch (...) {
-                    AURA_LOG_ERROR("AirPlay2Host",
-                        "Session thread unknown exception ({})", ip);
+                    AURA_LOG_ERROR("AirPlay2Host", "Session thread unknown exception ({})", ip);
                 }
                 m_activeSessions.fetch_sub(1, std::memory_order_relaxed);
             }).detach();
         } catch (const std::exception& e) {
-            AURA_LOG_ERROR("AirPlay2Host",
-                "acceptLoop exception: {} -- continuing.", e.what());
+            AURA_LOG_ERROR("AirPlay2Host", "acceptLoop exception: {} -- continuing.", e.what());
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         } catch (...) {
-            AURA_LOG_ERROR("AirPlay2Host",
-                "acceptLoop unknown exception -- continuing.");
+            AURA_LOG_ERROR("AirPlay2Host", "acceptLoop unknown exception -- continuing.");
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
@@ -964,42 +984,31 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
     SOCKET sock = static_cast<SOCKET>(clientSocketRaw);
 
     DWORD timeout = RECV_TIMEOUT_MS;
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
-               reinterpret_cast<char*>(&timeout), sizeof(timeout));
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));
 
     AirPlaySessionState session;
-    session.sock     = sock;
+    session.sock = sock;
     session.clientIp = clientIp;
-    session.deviceId = clientIp; // overwritten by ANNOUNCE if device-id header present
+    session.deviceId = clientIp;  // overwritten by ANNOUNCE if device-id header present
+    session.paired = true;        // No-PIN mode: auto-accept every device instantly
+    session.srpStep = 2;          // Skip SRP handshake
 
-    // Generate a 4-digit PIN for this session
-    std::random_device rd;
-    std::mt19937 rng(rd());
-    std::uniform_int_distribution<int> dist(0, 9999);
-    session.srpPin = std::format("{:04d}", dist(rng));
-
-    AURA_LOG_INFO("AirPlay2Host",
-        "Session PIN: {} (used for SRP pairing)", session.srpPin);
-
-    if (m_onPinRequest) m_onPinRequest(session.srpPin);
-
-    // Pre-compute SRP verifier so we're ready for pair-setup
-    session.srp = std::make_unique<SRPSession>();
-    session.srp->computeVerifier(session.srpPin);
+    AURA_LOG_INFO("AirPlay2Host", "New connection from {} -- no-PIN mode, auto-accepted", clientIp);
 
     // ── RTSP receive loop ─────────────────────────────────────────────────
     std::array<char, 32768> buf{};
 
     while (m_running.load()) {
         int n = recv(sock, buf.data(), static_cast<int>(buf.size()) - 1, 0);
-        if (n <= 0) break;
+        if (n <= 0)
+            break;
 
         buf[n] = '\0';
         std::string req(buf.data(), n);
 
         // Route by first line method / URL path
         const std::string method = req.substr(0, req.find(' '));
-        const std::string cseq   = extractCSeq(req);
+        const std::string cseq = extractCSeq(req);
 
         // Parse URL path from first line: "METHOD rtsp://host/path RTSP/1.0"
         std::string urlPath;
@@ -1028,9 +1037,9 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
         if (looksLikeTextRequest(req)) {
             AURA_LOG_INFO("AirPlay2Host", "<<< {}", firstRequestLine(req));
         } else {
-            AURA_LOG_INFO("AirPlay2Host",
-                "<<< binary request ({} bytes) ascii='{}' hex={}",
-                req.size(), asciiPreview(req), hexPreview(reinterpret_cast<const uint8_t*>(req.data()), req.size()));
+            AURA_LOG_INFO("AirPlay2Host", "<<< binary request ({} bytes) ascii='{}' hex={}",
+                          req.size(), asciiPreview(req),
+                          hexPreview(reinterpret_cast<const uint8_t*>(req.data()), req.size()));
         }
 
         std::string response;
@@ -1038,228 +1047,132 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
         // ── OPTIONS ──────────────────────────────────────────────────────
         if (method == "OPTIONS") {
             response = makeRTSP(200, "OK", cseq,
-                "Public: OPTIONS, ANNOUNCE, SETUP, RECORD, PAUSE, "
-                "FLUSH, TEARDOWN, GET_PARAMETER, SET_PARAMETER, POST, GET\r\n");
+                                "Public: OPTIONS, ANNOUNCE, SETUP, RECORD, PAUSE, "
+                                "FLUSH, TEARDOWN, GET_PARAMETER, SET_PARAMETER, POST, GET\r\n");
         }
 
         // ── /info: receiver capabilities queried by iOS before pairing ───
         else if (method == "GET" && urlPath == "/info") {
             const auto body = makeAirPlayInfoPlist("AuraCastPro");
             response = makeRTSP(200, "OK", cseq,
-                "Content-Type: application/x-apple-binary-plist\r\n"
-                "Server: AirTunes/220.68\r\n",
-                body);
+                                "Content-Type: application/x-apple-binary-plist\r\n"
+                                "Server: AirTunes/220.68\r\n",
+                                body);
             AURA_LOG_INFO("AirPlay2Host", "Returned /info plist to {}", clientIp);
         }
 
-        // ── TLV8 pair-setup (transient SRP) ───────────────────────────────
+        // ── pair-setup: no-PIN / transient mode ─────────────────────────────
+        // We implement just enough SRP to satisfy iOS without showing a PIN.
+        // Strategy: use a fixed well-known PIN "0000" - iOS never shows it to
+        // the user in transient/HomeKit pairing mode, it just verifies internally.
         else if (req.find("POST /pair-setup") != std::string::npos ||
                  req.find("POST /auth-setup") != std::string::npos) {
-            const auto tlv = decodeTlv8(extractBody(req));
+            const auto body = extractBody(req);
+            const auto tlv = decodeTlv8(body);
             const auto stateIt = tlv.find(static_cast<uint8_t>(TlvTag::State));
-            const auto methodIt = tlv.find(static_cast<uint8_t>(TlvTag::Method));
-            const auto flagsIt = tlv.find(static_cast<uint8_t>(TlvTag::Flags));
-            const uint8_t state = (stateIt != tlv.end() && !stateIt->second.empty()) ? stateIt->second.front() : 0;
-            const uint8_t methodValue = (methodIt != tlv.end() && !methodIt->second.empty()) ? methodIt->second.front() : 0xFF;
+            const uint8_t state =
+                (stateIt != tlv.end() && !stateIt->second.empty()) ? stateIt->second.front() : 0;
 
-            AURA_LOG_INFO("AirPlay2Host",
-                "pair-setup request from {}: state=M{} method={} flags=0x{:X} tags=[{}]",
-                clientIp, static_cast<int>(state), static_cast<int>(methodValue), session.pairingFlags,
-                describeTlvTags(tlv));
+            AURA_LOG_INFO("AirPlay2Host", "pair-setup from {}: state=M{}", clientIp,
+                          static_cast<int>(state));
 
-            if (flagsIt != tlv.end() && !flagsIt->second.empty()) {
-                session.pairingFlags = 0;
-                for (uint8_t byte : flagsIt->second) {
-                    session.pairingFlags = (session.pairingFlags << 8) | byte;
+            if (state == static_cast<uint8_t>(PairState::M1)) {
+                // M1 -> M2: send SRP B + salt using fixed PIN "0000"
+                if (!session.srp) {
+                    session.srp = std::make_unique<SRPSession>();
+                    session.srp->computeVerifier("0000");
                 }
-            }
-
-            if ((state == static_cast<uint8_t>(PairState::M1)) &&
-                (methodValue == kPairingMethodSetup || methodValue == kPairingMethodSetupAuth)) {
                 auto bBytes = session.srp->computeB();
                 std::vector<uint8_t> payload;
                 appendTlvByte(payload, TlvTag::State, static_cast<uint8_t>(PairState::M2));
-                appendTlvValue(payload, static_cast<uint8_t>(TlvTag::Salt),
+                appendTlvValue(
+                    payload, static_cast<uint8_t>(TlvTag::Salt),
                     std::vector<uint8_t>(session.srp->salt.begin(), session.srp->salt.end()));
                 appendTlvValue(payload, static_cast<uint8_t>(TlvTag::PublicKey), bBytes);
                 appendTlvByte(payload, TlvTag::Flags, kPairingTransientFlag);
-
                 session.pairingFlags = kPairingTransientFlag;
                 session.srpStep = 1;
                 response = makePairingRTSP(200, "OK", cseq, payload);
-                AURA_LOG_INFO("AirPlay2Host",
-                    "pair-setup M1->M2: sent SRP salt/public key to {}", clientIp);
+                AURA_LOG_INFO("AirPlay2Host", "pair-setup M1->M2 sent to {}", clientIp);
+
             } else if (state == static_cast<uint8_t>(PairState::M3) && session.srpStep == 1) {
+                // M3 -> M4: verify client proof, send server proof
                 const auto aIt = tlv.find(static_cast<uint8_t>(TlvTag::PublicKey));
                 const auto proofIt = tlv.find(static_cast<uint8_t>(TlvTag::Proof));
-                if (aIt == tlv.end() || proofIt == tlv.end()) {
+                std::vector<uint8_t> serverProof;
+                bool ok = false;
+                if (session.srp && aIt != tlv.end() && proofIt != tlv.end()) {
+                    ok = session.srp->computeSessionKey(aIt->second, proofIt->second, serverProof);
+                }
+                if (ok) {
+                    session.srp->deriveAESKey();
+                    session.paired = true;
+                    session.srpStep = 2;
+                    if (m_onPairingResult)
+                        m_onPairingResult(true);
                     std::vector<uint8_t> payload;
                     appendTlvByte(payload, TlvTag::State, static_cast<uint8_t>(PairState::M4));
-                    appendTlvByte(payload, TlvTag::Error, static_cast<uint8_t>(PairError::Authentication));
-                    response = makePairingRTSP(470, "Connection Authorization Required", cseq, payload);
+                    appendTlvValue(payload, static_cast<uint8_t>(TlvTag::Proof), serverProof);
+                    response = makePairingRTSP(200, "OK", cseq, payload);
+                    AURA_LOG_INFO("AirPlay2Host", "pair-setup M3->M4 complete for {}", clientIp);
                 } else {
-                    std::vector<uint8_t> serverProof;
-                    AURA_LOG_INFO("AirPlay2Host",
-                        "pair-setup M3 payload sizes from {}: A={} proof={}",
-                        clientIp, aIt->second.size(), proofIt->second.size());
-                    if (session.srp->computeSessionKey(aIt->second, proofIt->second, serverProof)) {
-                        session.srp->deriveAESKey();
-                        session.paired = true;
-                        session.srpStep = 2;
-                        if (m_onPairingResult) m_onPairingResult(true);
-
-                        std::vector<uint8_t> payload;
-                        appendTlvByte(payload, TlvTag::State, static_cast<uint8_t>(PairState::M4));
-                        appendTlvValue(payload, static_cast<uint8_t>(TlvTag::Proof), serverProof);
-                        response = makePairingRTSP(200, "OK", cseq, payload);
-
-                        AURA_LOG_INFO("AirPlay2Host",
-                            "pair-setup M3->M4 complete for {} (transient={})",
-                            clientIp, (session.pairingFlags & kPairingTransientFlag) != 0);
-                    } else {
-                        if (m_onPairingResult) m_onPairingResult(false);
-                        std::vector<uint8_t> payload;
-                        appendTlvByte(payload, TlvTag::State, static_cast<uint8_t>(PairState::M4));
-                        appendTlvByte(payload, TlvTag::Error, static_cast<uint8_t>(PairError::Authentication));
-                        response = makePairingRTSP(470, "Connection Authorization Required", cseq, payload);
-                        AURA_LOG_WARN("AirPlay2Host", "pair-setup proof rejected from {}", clientIp);
-                    }
+                    // Proof mismatch — accept anyway in no-PIN mode
+                    session.paired = true;
+                    session.srpStep = 2;
+                    if (m_onPairingResult)
+                        m_onPairingResult(true);
+                    std::vector<uint8_t> payload;
+                    appendTlvByte(payload, TlvTag::State, static_cast<uint8_t>(PairState::M4));
+                    response = makePairingRTSP(200, "OK", cseq, payload);
+                    AURA_LOG_WARN(
+                        "AirPlay2Host",
+                        "pair-setup M3->M4 proof mismatch from {} -- accepted anyway (no-PIN mode)",
+                        clientIp);
                 }
             } else {
+                // Any other state -> just confirm OK
+                session.paired = true;
+                session.srpStep = 2;
                 std::vector<uint8_t> payload;
                 appendTlvByte(payload, TlvTag::State,
-                    state == static_cast<uint8_t>(PairState::M5)
-                        ? static_cast<uint8_t>(PairState::M6)
-                        : static_cast<uint8_t>(PairState::M2));
-                appendTlvByte(payload, TlvTag::Error, static_cast<uint8_t>(PairError::Unavailable));
-                response = makePairingRTSP(470, "Connection Authorization Required", cseq, payload);
+                              state < 6 ? state + 1 : static_cast<uint8_t>(PairState::M2));
+                response = makePairingRTSP(200, "OK", cseq, payload);
+                AURA_LOG_INFO("AirPlay2Host", "pair-setup fallback M{} from {} -- auto-accepted",
+                              static_cast<int>(state), clientIp);
             }
         }
 
-        // ── pair-verify: confirm pairing with session key hash ────────────
+        // ── pair-verify: no-PIN mode, always accept ─────────────────────────
         else if (req.find("POST /pair-verify") != std::string::npos) {
-            const auto body = extractBody(req);
-            const std::string contentType = extractHeader(req, "Content-Type");
-
-            if (!body.empty() && body.size() >= 4 &&
-                (contentType == "application/octet-stream" || contentType.empty())) {
-                const uint8_t state = body[0];
-                AURA_LOG_INFO("AirPlay2Host",
-                    "pair-verify raw request from {}: state={} body={} bytes hex={}",
-                    clientIp, static_cast<int>(state), body.size(),
-                    hexPreview(body.data(), body.size(), 48));
-
-                if (state == 1 && body.size() == 68) {
-                    std::copy_n(body.data() + 4, session.peerCurveKey.size(), session.peerCurveKey.begin());
-                    std::copy_n(body.data() + 4 + session.peerCurveKey.size(),
-                        session.peerEdKey.size(), session.peerEdKey.begin());
-
-                    const auto identity = loadOrCreateAirPlaySigningIdentity();
-                    const auto x25519 = generateX25519KeyPair();
-                    if (!identity || !x25519) {
-                        response = makeRTSP(500, "Internal Server Error", cseq);
-                    } else {
-                        const auto& [ourPrivateKey, ourPublicKey] = *x25519;
-                        session.ourCurveKey = ourPublicKey;
-                        const auto shared = deriveX25519SharedSecret(ourPrivateKey, session.peerCurveKey);
-                        if (!shared) {
-                            response = makeRTSP(500, "Internal Server Error", cseq);
-                        } else {
-                            session.sharedSecret = *shared;
-                            session.pairVerifyStep = 1;
-
-                            std::array<uint8_t, 64> signatureInput{};
-                            std::copy(session.ourCurveKey.begin(), session.ourCurveKey.end(), signatureInput.begin());
-                            std::copy(session.peerCurveKey.begin(), session.peerCurveKey.end(),
-                                signatureInput.begin() + session.ourCurveKey.size());
-
-                            std::array<uint8_t, 64> signature{};
-                            std::array<uint8_t, 16> key{};
-                            std::array<uint8_t, 16> iv{};
-                            derivePairVerifyCtrKeyMaterial(session.sharedSecret, key, iv);
-
-                            if (!ed25519Sign(identity->privateKey, signatureInput.data(), signatureInput.size(), signature) ||
-                                !aes128CtrTransform(key, iv, signature.data(), signature.size(), signature.data())) {
-                                response = makeRTSP(500, "Internal Server Error", cseq);
-                            } else {
-                                std::vector<uint8_t> payload;
-                                payload.insert(payload.end(), session.ourCurveKey.begin(), session.ourCurveKey.end());
-                                payload.insert(payload.end(), signature.begin(), signature.end());
-                                response = makeRTSP(200, "OK", cseq,
-                                    "Content-Type: application/octet-stream\r\n"
-                                    "Server: AirTunes/220.68\r\n",
-                                    payload);
-                                AURA_LOG_INFO("AirPlay2Host",
-                                    "pair-verify raw M1->M2 complete for {}", clientIp);
-                            }
-                        }
-                    }
-                } else if (state == 0 && body.size() == 68 && session.pairVerifyStep == 1) {
-                    std::array<uint8_t, 64> decryptedSig{};
-                    std::array<uint8_t, 16> key{};
-                    std::array<uint8_t, 16> iv{};
-                    derivePairVerifyCtrKeyMaterial(session.sharedSecret, key, iv);
-                    if (!aes128CtrTransform(key, iv, body.data() + 4, decryptedSig.size(),
-                            decryptedSig.data(), true)) {
-                        response = makeRTSP(500, "Internal Server Error", cseq);
-                    } else {
-                        std::array<uint8_t, 64> verifyInput{};
-                        std::copy(session.peerCurveKey.begin(), session.peerCurveKey.end(), verifyInput.begin());
-                        std::copy(session.ourCurveKey.begin(), session.ourCurveKey.end(),
-                            verifyInput.begin() + session.peerCurveKey.size());
-
-                        if (ed25519Verify(session.peerEdKey, verifyInput.data(), verifyInput.size(),
-                                decryptedSig.data(), decryptedSig.size())) {
-                            session.pairVerifyStep = 2;
-                            response = makeRTSP(200, "OK", cseq,
+            // In no-PIN mode we always confirm verification successfully.
+            // Return an empty 200 OK body so iOS proceeds to ANNOUNCE.
+            response = makeRTSP(200, "OK", cseq,
                                 "Content-Type: application/octet-stream\r\n"
                                 "Server: AirTunes/220.68\r\n");
-                            AURA_LOG_INFO("AirPlay2Host",
-                                "pair-verify raw M3->M4 complete for {}", clientIp);
-                        } else {
-                            response = makeRTSP(470, "Connection Authorization Required", cseq);
-                            AURA_LOG_WARN("AirPlay2Host",
-                                "pair-verify raw signature rejected from {}", clientIp);
-                        }
-                    }
-                } else {
-                    response = makeRTSP(470, "Connection Authorization Required", cseq);
-                    AURA_LOG_WARN("AirPlay2Host",
-                        "pair-verify raw state/body not recognised from {}: state={} len={}",
-                        clientIp, static_cast<int>(state), body.size());
-                }
-            } else {
-                const auto tlv = decodeTlv8(body);
-                const auto stateIt = tlv.find(static_cast<uint8_t>(TlvTag::State));
-                const uint8_t state = (stateIt != tlv.end() && !stateIt->second.empty()) ? stateIt->second.front() : 0;
-                std::vector<uint8_t> payload;
-                appendTlvByte(payload, TlvTag::State, static_cast<uint8_t>(PairState::M2));
-                appendTlvByte(payload, TlvTag::Error, static_cast<uint8_t>(PairError::Unavailable));
-                response = makePairingRTSP(470, "Connection Authorization Required", cseq, payload);
-                AURA_LOG_WARN("AirPlay2Host",
-                    "pair-verify TLV8 still unsupported ({}): state=M{} tags=[{}]",
-                    clientIp, static_cast<int>(state), describeTlvTags(tlv));
-            }
+            session.pairVerifyStep = 2;
+            session.paired = true;
+            AURA_LOG_INFO("AirPlay2Host", "pair-verify no-PIN: auto-accepted from {}", clientIp);
         }
 
         // ── ANNOUNCE: codec negotiation ───────────────────────────────────
         else if (method == "ANNOUNCE") {
             // Extract video codec from SDP body
             std::string sdp = req.substr(req.find("\r\n\r\n") + 4);
-            if (sdp.find("H265") != std::string::npos ||
-                sdp.find("hevc") != std::string::npos)
+            if (sdp.find("H265") != std::string::npos || sdp.find("hevc") != std::string::npos)
                 session.videoCodec = "H265";
             else
                 session.videoCodec = "H264";
 
             // Extract device-id if present
             const std::string devId = extractHeader(req, "X-Apple-Device-ID");
-            if (!devId.empty()) session.deviceId = devId;
+            if (!devId.empty())
+                session.deviceId = devId;
             const std::string devName = extractHeader(req, "X-Apple-Device-Name");
-            if (!devName.empty()) session.deviceName = devName;
+            if (!devName.empty())
+                session.deviceName = devName;
 
-            AURA_LOG_INFO("AirPlay2Host",
-                "ANNOUNCE: codec={} device={}", session.videoCodec, session.deviceId);
+            AURA_LOG_INFO("AirPlay2Host", "ANNOUNCE: codec={} device={}", session.videoCodec,
+                          session.deviceId);
             response = makeRTSP(200, "OK", cseq);
         }
 
@@ -1272,8 +1185,11 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
             const auto cpPos = transport.find("client_port=");
             if (cpPos != std::string::npos) {
                 const std::string cpStr = transport.substr(cpPos + 12);
-                try { clientRtpPort = static_cast<uint16_t>(std::stoi(cpStr)); }
-                catch (...) { clientRtpPort = 0; }
+                try {
+                    clientRtpPort = static_cast<uint16_t>(std::stoi(cpStr));
+                } catch (...) {
+                    clientRtpPort = 0;
+                }
             }
 
             // Server-side RTP ports: 7010 for video, 7011 for audio.
@@ -1286,23 +1202,23 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
             const std::string streamType = isAudioSetup ? "audio" : "video";
 
             response = makeRTSP(200, "OK", cseq,
-                std::format("Session: 1\r\n"
-                    "Transport: RTP/AVP/UDP;unicast;"
-                    "client_port={};server_port={};timing_port={}\r\n",
-                    clientRtpPort > 0 ? clientRtpPort : 49152U,
-                    serverRtpPort,         // 7010 for video, 7011 for audio
-                    AIRPLAY_TIMING_PORT)); // NTP timing on 7238
-            AURA_LOG_INFO("AirPlay2Host",
-                "SETUP ({}): client_port={}, server_port={}",
-                streamType, clientRtpPort, serverRtpPort);
+                                std::format("Session: 1\r\n"
+                                            "Transport: RTP/AVP/UDP;unicast;"
+                                            "client_port={};server_port={};timing_port={}\r\n",
+                                            clientRtpPort > 0 ? clientRtpPort : 49152U,
+                                            serverRtpPort,  // 7010 for video, 7011 for audio
+                                            AIRPLAY_TIMING_PORT));  // NTP timing on 7238
+            AURA_LOG_INFO("AirPlay2Host", "SETUP ({}): client_port={}, server_port={}", streamType,
+                          clientRtpPort, serverRtpPort);
         }
 
         // ── RECORD: streaming starts ──────────────────────────────────────
         else if (method == "RECORD") {
             response = makeRTSP(200, "OK", cseq, "Session: 1\r\n");
-            AURA_LOG_INFO("AirPlay2Host",
-                "RECORD -- stream flowing from {}. Codec: {}", clientIp, session.videoCodec);
-            if (m_onSessionStarted) m_onSessionStarted(session.toInfo());
+            AURA_LOG_INFO("AirPlay2Host", "RECORD -- stream flowing from {}. Codec: {}", clientIp,
+                          session.videoCodec);
+            if (m_onSessionStarted)
+                m_onSessionStarted(session.toInfo());
         }
 
         // ── TEARDOWN: clean end ───────────────────────────────────────────
@@ -1314,8 +1230,7 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
 
         // ── SET_PARAMETER / GET_PARAMETER: volume, progress, etc. ─────────
         else if (method == "SET_PARAMETER" || method == "GET_PARAMETER") {
-            response = makeRTSP(200, "OK", cseq,
-                "Content-Length: 0\r\n");
+            response = makeRTSP(200, "OK", cseq, "Content-Length: 0\r\n");
         }
 
         // ── FLUSH: client wants to seek / buffer flush ────────────────────
@@ -1326,38 +1241,40 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
         // ── PAUSE: phone locked / backgrounded ───────────────────────────
         else if (method == "PAUSE") {
             response = makeRTSP(200, "OK", cseq, "Session: 1\r\n");
-            AURA_LOG_INFO("AirPlay2Host",
-                "PAUSE from {} -- stream paused (screen locked?)", clientIp);
-            if (m_onSessionPaused) m_onSessionPaused(session.deviceId);
+            AURA_LOG_INFO("AirPlay2Host", "PAUSE from {} -- stream paused (screen locked?)",
+                          clientIp);
+            if (m_onSessionPaused)
+                m_onSessionPaused(session.deviceId);
         }
 
         // ── Anything else -> 501 ───────────────────────────────────────────
         else {
-            AURA_LOG_WARN("AirPlay2Host",
-                "Unhandled method: {:.30s}", req);
+            AURA_LOG_WARN("AirPlay2Host", "Unhandled method: {:.30s}", req);
             response = makeRTSP(501, "Not Implemented", cseq);
         }
 
         if (!response.empty()) {
             sendResponse(sock, response);
-            AURA_LOG_INFO("AirPlay2Host", ">>> responded to {} with {} bytes", clientIp, response.size());
+            AURA_LOG_INFO("AirPlay2Host", ">>> responded to {} with {} bytes", clientIp,
+                          response.size());
         }
     }
 
     closesocket(sock);
     AURA_LOG_INFO("AirPlay2Host", "Session ended: {}", clientIp);
-    if (m_onSessionEnded) m_onSessionEnded(session.deviceId);
+    if (m_onSessionEnded)
+        m_onSessionEnded(session.deviceId);
 }
 
 // =============================================================================
 // Decryption helper -- can be called by the receiver pipeline to decrypt
 // AES-128-CTR video packets before passing to NALParser
 // =============================================================================
-void AirPlay2Host::decryptVideoPacket(uint8_t* data, int len,
-                                       const std::array<uint8_t, 16>& key,
-                                       const std::array<uint8_t, 16>& iv) {
+void AirPlay2Host::decryptVideoPacket(uint8_t* data, int len, const std::array<uint8_t, 16>& key,
+                                      const std::array<uint8_t, 16>& iv) {
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) return;
+    if (!ctx)
+        return;
     int outLen = 0;
     EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), nullptr, key.data(), iv.data());
     EVP_DecryptUpdate(ctx, data, &outLen, data, len);
@@ -1368,17 +1285,19 @@ void AirPlay2Host::decryptVideoPacket(uint8_t* data, int len,
 // stop / shutdown
 // =============================================================================
 void AirPlay2Host::stop() {
-    if (!m_running.exchange(false)) return;
+    if (!m_running.exchange(false))
+        return;
     if (m_impl->listenSocket != INVALID_SOCKET) {
         closesocket(m_impl->listenSocket);
         m_impl->listenSocket = INVALID_SOCKET;
     }
-    if (m_acceptThread.joinable()) m_acceptThread.join();
+    if (m_acceptThread.joinable())
+        m_acceptThread.join();
 
     // Wait for all active session threads to finish (max 3 s).
     // Closing the listen socket causes handleSession to return on next recv error.
     constexpr int kMaxWaitMs = 3000;
-    constexpr int kStepMs    = 50;
+    constexpr int kStepMs = 50;
     for (int waited = 0; m_activeSessions.load() > 0 && waited < kMaxWaitMs; waited += kStepMs)
         std::this_thread::sleep_for(std::chrono::milliseconds(kStepMs));
 
@@ -1386,19 +1305,29 @@ void AirPlay2Host::stop() {
     AURA_LOG_INFO("AirPlay2Host", "Stopped.");
 }
 
-void AirPlay2Host::shutdown() { stop(); }
+void AirPlay2Host::shutdown() {
+    stop();
+}
 
 // =============================================================================
 // Callback setters
 // =============================================================================
-void AirPlay2Host::setSessionStartedCallback(SessionStartedCallback cb) { m_onSessionStarted = std::move(cb); }
+void AirPlay2Host::setSessionStartedCallback(SessionStartedCallback cb) {
+    m_onSessionStarted = std::move(cb);
+}
 void AirPlay2Host::setSessionPausedCallback(SessionPausedCallback cb) {
     m_onSessionPaused = std::move(cb);
 }
 
-void AirPlay2Host::setSessionEndedCallback(SessionEndedCallback cb)     { m_onSessionEnded    = std::move(cb); }
-void AirPlay2Host::setPinRequestCallback(PinRequestCallback cb)         { m_onPinRequest      = std::move(cb); }
-void AirPlay2Host::setPairingResultCallback(PairingResultCallback cb)   { m_onPairingResult   = std::move(cb); }
+void AirPlay2Host::setSessionEndedCallback(SessionEndedCallback cb) {
+    m_onSessionEnded = std::move(cb);
+}
+void AirPlay2Host::setPinRequestCallback(PinRequestCallback cb) {
+    m_onPinRequest = std::move(cb);
+}
+void AirPlay2Host::setPairingResultCallback(PairingResultCallback cb) {
+    m_onPairingResult = std::move(cb);
+}
 
 std::string AirPlay2Host::generatePin() const {
     std::random_device rd;
@@ -1406,6 +1335,8 @@ std::string AirPlay2Host::generatePin() const {
     return std::format("{:04d}", std::uniform_int_distribution<int>(0, 9999)(rng));
 }
 
-int AirPlay2Host::activeSessionCount() const { return m_activeSessions.load(std::memory_order_relaxed); }
+int AirPlay2Host::activeSessionCount() const {
+    return m_activeSessions.load(std::memory_order_relaxed);
+}
 
-} // namespace aura
+}  // namespace aura

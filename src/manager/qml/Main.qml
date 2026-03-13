@@ -1,47 +1,28 @@
 // =============================================================================
-// Main.qml -- AuraCastPro root window
+// Main.qml -- AuraCastPro root window - clean no-friction layout
 // =============================================================================
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "."
 
-Item {
+Rectangle {
     id: root
     width: 1100
-    height: 720
-
-    Rectangle {
-        anchors.fill: parent
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#121923" }
-            GradientStop { position: 0.55; color: Theme.bgBase }
-            GradientStop { position: 1.0; color: "#0c1117" }
-        }
-    }
-
-    FontLoader {
-        id: fontRegular
-        source: "qrc:/fonts/Inter-Regular.ttf"
-        onStatusChanged: if (status === FontLoader.Error)
-            console.warn("Inter Regular not found -- using fallback")
-    }
-    FontLoader {
-        id: fontBold
-        source: "qrc:/fonts/Inter-Bold.ttf"
-        onStatusChanged: if (status === FontLoader.Error)
-            console.warn("Inter Bold not found -- using fallback")
-    }
+    height: 700
+    color: Theme.bgBase
 
     RowLayout {
         anchors.fill: parent
         spacing: 0
 
+        // ── Sidebar ────────────────────────────────────────────────────────
         Rectangle {
-            width: 220
+            width: 200
             Layout.fillHeight: true
             color: Theme.bgPanel
 
+            // Right border
             Rectangle {
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -52,13 +33,13 @@ Item {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 0
                 spacing: 0
 
+                // Logo area
                 Rectangle {
-                    height: 88
+                    height: 80
                     Layout.fillWidth: true
-                    color: "#121923"
+                    color: "#0e131a"
 
                     Rectangle {
                         anchors.left: parent.left
@@ -70,40 +51,41 @@ Item {
 
                     Column {
                         anchors.left: parent.left
-                        anchors.leftMargin: 22
+                        anchors.leftMargin: 20
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 4
+                        spacing: 3
 
                         Text {
-                            text: qsTr("AuraCast Pro")
+                            text: "AuraCast Pro"
                             font.family: Theme.fontSans
-                            font.pixelSize: 22
-                            font.weight: Font.DemiBold
+                            font.pixelSize: 18
+                            font.weight: Font.Bold
                             color: Theme.textPrimary
                         }
-
                         Text {
-                            text: qsTr("Mirror your devices with less friction")
+                            text: "v1.0.0"
                             font.family: Theme.fontSans
                             font.pixelSize: Theme.fontSizeXS
-                            color: Theme.textSecondary
+                            color: Theme.textDisabled
                         }
                     }
                 }
 
-                Item { height: 18 }
+                Item { height: 16 }
 
+                // Nav items
                 Repeater {
                     model: [
-                        { label: qsTr("Dashboard"), page: 0 },
-                        { label: qsTr("Devices"), page: 1 },
-                        { label: qsTr("Settings"), page: 2 },
-                        { label: qsTr("Diagnostics"), page: 3 }
+                        { icon: "⬛", label: "Dashboard",   page: 0 },
+                        { icon: "📱", label: "Devices",     page: 1 },
+                        { icon: "⚙️",  label: "Settings",   page: 2 },
+                        { icon: "📊", label: "Diagnostics", page: 3 }
                     ]
 
                     delegate: NavItem {
-                        label: modelData.label
-                        page: modelData.page
+                        icon:    modelData.icon
+                        label:   modelData.label
+                        page:    modelData.page
                         current: stack.currentIndex === modelData.page
                         onClicked: stack.currentIndex = modelData.page
                     }
@@ -111,10 +93,11 @@ Item {
 
                 Item { Layout.fillHeight: true }
 
+                // Status footer
                 Rectangle {
-                    height: 74
+                    height: 68
                     Layout.fillWidth: true
-                    color: Theme.bgPanel
+                    color: "transparent"
 
                     Rectangle {
                         anchors.left: parent.left
@@ -124,58 +107,51 @@ Item {
                         color: Theme.borderSubtle
                     }
 
-                    Column {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 22
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 4
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 20
+                        anchors.rightMargin: 14
+                        spacing: 10
 
+                        Rectangle {
+                            width: 8; height: 8; radius: 4
+                            color: {
+                                var s = hubModel ? hubModel.connectionStatus.toLowerCase() : ""
+                                if (s === "mirroring" || s === "connected") return Theme.accentGreen
+                                if (s === "connecting") return Theme.accentYellow
+                                if (s === "error") return Theme.accentRed
+                                return Theme.textDisabled
+                            }
+                        }
                         Text {
-                            text: hubModel ? hubModel.connectionStatus : qsTr("Idle")
+                            Layout.fillWidth: true
+                            text: hubModel ? hubModel.connectionStatus : "Idle"
                             font.family: Theme.fontSans
                             font.pixelSize: Theme.fontSizeSM
                             font.weight: Font.Medium
-                            color: Theme.statusColour(hubModel ? hubModel.connectionStatus.toLowerCase() : qsTr("idle"))
-                        }
-
-                        Text {
-                            text: qsTr("v1.0.0")
-                            font.family: Theme.fontSans
-                            font.pixelSize: Theme.fontSizeXS
-                            color: Theme.textDisabled
+                            color: Theme.textSecondary
+                            elide: Text.ElideRight
                         }
                     }
                 }
             }
         }
 
-        Item {
+        // ── Main content ───────────────────────────────────────────────────
+        StackLayout {
+            id: stack
             Layout.fillWidth: true
             Layout.fillHeight: true
+            currentIndex: 0
 
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 18
-                radius: Theme.radiusLG
-                color: Qt.rgba(1, 1, 1, 0.02)
-                border.color: Theme.borderSubtle
-                border.width: 1
-            }
-
-            StackLayout {
-                id: stack
-                anchors.fill: parent
-                anchors.margins: 18
-                currentIndex: 0
-
-                Dashboard {}
-                DeviceList {}
-                SettingsPage {}
-                DiagnosticsPanel {}
-            }
+            Dashboard {}
+            DeviceList {}
+            SettingsPage {}
+            DiagnosticsPanel {}
         }
     }
 
+    // First run wizard overlay
     Loader {
         id: firstRunLoader
         anchors.fill: parent
@@ -192,91 +168,68 @@ Item {
         }
     }
 
-    function toggleMirroring() {
-        if (hubModel) {
-            if (hubModel.isMirroring) hubModel.stopMirroring()
-            else hubModel.startMirroring()
-        }
-    }
-
-    function toggleRecording() {
-        hubModel.toggleRecording()
-    }
-
-    function toggleFullscreen() {
-    }
-
-    function showDiagnostics() {
-        stack.currentIndex = 3
-    }
-
-    function checkUpdates() {
-        aboutDialog.open()
-    }
-
-    function showAbout() {
-        aboutDialog.open()
-    }
-
-    function showPairingDialog(deviceName, pin) {
-        pairingDialog.deviceName = deviceName
-        pairingDialog.pinCode = pin
-        pairingDialog.open()
-    }
-
-    function onPairingSuccess() {
-        pairingDialog.close()
-    }
-
+    // About dialog
     AboutDialog {
         id: aboutDialog
         anchors.centerIn: parent
     }
 
-    PairingDialog {
-        id: pairingDialog
-        anchors.centerIn: parent
-        property string deviceName: ""
-        property string pinCode: ""
+    // Public functions used by HubWindow
+    function showDiagnostics()   { stack.currentIndex = 3 }
+    function checkUpdates()      { aboutDialog.open() }
+    function showAbout()         { aboutDialog.open() }
+    function toggleRecording()   { if (hubModel) hubModel.toggleRecording() }
+    function toggleFullscreen()  {}
 
-        Connections {
-            target: hubModel
-            function onPairingResult(success) {
-                if (success) pairingDialog.showSuccess()
-                else pairingDialog.showFailed()
-            }
-        }
-    }
+    // No pairing dialog — PIN-free
 
-    component NavItem: Rectangle {
+    // ── Nav item component ────────────────────────────────────────────────
+    component NavItem: Item {
+        property string icon:  ""
         property string label: ""
-        property int page: 0
-        property bool current: false
+        property int    page:  0
+        property bool   current: false
         signal clicked()
 
-        height: 48
+        height: 46
         Layout.fillWidth: true
-        color: current ? Theme.bgElevated : "transparent"
-        radius: Theme.radiusMD
-        border.color: current ? Theme.borderActive : "transparent"
-        border.width: 1
 
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: 22
-            text: label
-            font.family: Theme.fontSans
-            font.pixelSize: Theme.fontSizeMD
-            font.weight: current ? Font.DemiBold : Font.Medium
-            color: current ? Theme.textPrimary : Theme.textSecondary
-        }
-
-        MouseArea {
+        Rectangle {
             anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: parent.clicked()
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
+            radius: Theme.radiusMD
+            color: current ? Theme.bgElevated : "transparent"
+            border.color: current ? Theme.borderActive : "transparent"
+            border.width: 1
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 14
+                spacing: 10
+
+                Text {
+                    text: parent.parent.icon || ""
+                    font.pixelSize: 14
+                    visible: false  // hide emoji, just use text label
+                }
+                Text {
+                    text: parent.parent.label
+                    font.family: Theme.fontSans
+                    font.pixelSize: Theme.fontSizeSM
+                    font.weight: current ? Font.DemiBold : Font.Normal
+                    color: current ? Theme.textPrimary : Theme.textSecondary
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: parent.parent.clicked()
+                onEntered: if (!current) parent.color = Qt.rgba(1,1,1,0.03)
+                onExited:  if (!current) parent.color = "transparent"
+            }
         }
     }
 }
