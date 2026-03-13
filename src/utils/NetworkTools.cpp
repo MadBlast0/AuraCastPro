@@ -115,16 +115,22 @@ std::string NetworkTools::bestLocalIPv4() {
     for (const auto& iface : ifaces) {
         // Skip APIPA addresses (169.254.x.x)
         if (iface.ipv4.starts_with("169.254.")) continue;
+        // Skip localhost
+        if (iface.ipv4 == "127.0.0.1") continue;
         // Skip Microsoft Teredo/ISATAP virtual adapters
         if (iface.name.find("Teredo") != std::string::npos) continue;
         if (iface.name.find("ISATAP") != std::string::npos) continue;
+        // Skip VirtualBox/VMware adapters
+        if (iface.name.find("VirtualBox") != std::string::npos) continue;
+        if (iface.name.find("VMware") != std::string::npos) continue;
 
-        AURA_LOG_DEBUG("NetworkTools", "Best local IP: {} on {}", iface.ipv4, iface.name);
+        AURA_LOG_INFO("NetworkTools", "Selected network interface: {} ({}) - IP: {}", 
+                      iface.name, iface.isWireless ? "Wireless" : "Wired", iface.ipv4);
         return iface.ipv4;
     }
 
-    AURA_LOG_WARN("NetworkTools", "No suitable local IP found, falling back to 127.0.0.1");
-    return "127.0.0.1";
+    AURA_LOG_ERROR("NetworkTools", "No suitable local IP found! Check network connection.");
+    return "";
 }
 
 // -----------------------------------------------------------------------------

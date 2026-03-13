@@ -441,7 +441,9 @@ void MDNSService::start() {
         m_running = false;
         WSACleanup();
         m_runtime->winsockStarted = false;
-        AURA_LOG_ERROR("MDNSService", "No usable LAN IPv4 address found for mDNS.");
+        AURA_LOG_ERROR("MDNSService", 
+            "No usable LAN IPv4 address found for mDNS. Please check your network connection.\n"
+            "Make sure you're connected to Wi-Fi or Ethernet.");
         return;
     }
 
@@ -462,7 +464,11 @@ void MDNSService::start() {
     bindAddr.sin_port = htons(kMDNSPort);
     bindAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(sock, reinterpret_cast<const sockaddr*>(&bindAddr), sizeof(bindAddr)) != 0) {
-        AURA_LOG_ERROR("MDNSService", "bind(5353) failed for built-in mDNS: {}", WSAGetLastError());
+        const int err = WSAGetLastError();
+        AURA_LOG_ERROR("MDNSService", 
+            "bind(5353) failed for built-in mDNS: {} (0x{:X})\n"
+            "Port 5353 may be in use by another service (Bonjour, iTunes, etc.)\n"
+            "Try closing other apps or restarting your computer.", err, err);
         closesocket(sock);
         m_running = false;
         WSACleanup();
@@ -630,8 +636,12 @@ void MDNSService::start() {
     });
 
     AURA_LOG_INFO("MDNSService",
-        "Built-in mDNS responder started on UDP 5353. iPhones should now see '{}' in Screen Mirroring.",
-        m_displayName);
+        "Built-in mDNS responder started on UDP 5353 ({}). \n"
+        "Your PC '{}' should now appear in:\n"
+        "  • iPhone/iPad: Control Center → Screen Mirroring\n"
+        "  • Android: Quick Settings → Cast\n"
+        "Make sure your phone and PC are on the SAME Wi-Fi network!",
+        m_runtime->localIp, m_displayName);
 }
 
 void MDNSService::stop() {

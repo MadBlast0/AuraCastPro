@@ -2,14 +2,9 @@
 // main.cpp -- AuraCastPro complete startup + shutdown sequence
 // =============================================================================
 #include "pch.h"  // PCH
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #include <mfapi.h>    // MFStartup, MFShutdown, MF_VERSION
 #include <mfidl.h>    // IMFMediaSource (used by VideoDecoder)
 #include <objbase.h>  // CoInitializeEx, CoUninitialize
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
 
 
 #pragma comment(lib, "mf.lib")
@@ -1234,7 +1229,7 @@ int main(int argc, char* argv[]) {
             [](const QString& deviceId) {
                 if (g_adb) {
                     g_adb->startMirroring(
-                        deviceId.toStdString(), [](const uint8_t* data, size_t len, bool isKey) {
+                        deviceId.toStdString(), [](const uint8_t* data, size_t len, bool /*isKey*/) {
                             if (!g_nalParser || len == 0)
                                 return;
                             g_nalParser->feedPacket(std::span<const uint8_t>(data, len));

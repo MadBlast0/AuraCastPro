@@ -2,11 +2,13 @@
 <qresource prefix="/">
     <!-- QML files -->
     <file alias="qml/Main.qml">qml/Main.qml</file>
+    <file alias="qml/AppHeader.qml">qml/AppHeader.qml</file>
     <file alias="qml/Dashboard.qml">qml/Dashboard.qml</file>
     <file alias="qml/DeviceList.qml">qml/DeviceList.qml</file>
     <file alias="qml/DeviceCard.qml">qml/DeviceCard.qml</file>
     <file alias="qml/BitrateGraph.qml">qml/BitrateGraph.qml</file>
     <file alias="qml/LatencyGraph.qml">qml/LatencyGraph.qml</file>
+    <file alias="qml/StatsPage.qml">qml/StatsPage.qml</file>
     <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
     <file alias="qml/PairingDialog.qml">qml/PairingDialog.qml</file>
     <file alias="qml/AboutDialog.qml">qml/AboutDialog.qml</file>
@@ -33,19 +35,5 @@
     <!-- Documents -->
     <file alias="doc/PrivacyPolicy.txt">../../doc/user/PrivacyPolicy.txt</file>
     <file alias="doc/THIRD_PARTY_LICENSES.txt">../../installer/THIRD_PARTY_LICENSES.txt</file>
-        <file>qml/UpdateDialog.qml</file>
-            <file>qml/ErrorDialog.qml</file>
-            <file>qml/RecordingControls.qml</file>
-            <file>qml/MirrorViewPage.qml</file>
-            <file>qml/HotkeysPage.qml</file>
-            <file>qml/TroubleshootingPage.qml</file>
-            <file>qml/WelcomeWizard.qml</file>
-            <file>qml/HubPage.qml</file>
-            <file>qml/AboutPage.qml</file>
-            <file>qml/ConnectionGuide.qml</file>
-            <file>qml/DeviceListView.qml</file>
-            <file>qml/StatsBadge.qml</file>
-            <file>qml/ThemeEngine.qml</file>
-            <file>qml/SplashScreen.qml</file>
-    </qresource>
+</qresource>
 </RCC>

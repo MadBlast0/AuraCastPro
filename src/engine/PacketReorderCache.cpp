@@ -33,8 +33,6 @@ void PacketReorderCache::insert(OrderedPacket packet) {
 
     // Initialise expected sequence on first packet
     if (!m_started) {
-        // CAS to set started -- handles race between init and first insert
-        bool expected = false;
         // Simple: if multiple packets arrive simultaneously, both are fine
         m_nextExpected = packet.sequenceNumber;
         m_started = true;

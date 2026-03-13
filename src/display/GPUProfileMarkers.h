@@ -94,6 +94,10 @@ public:
                     const char* name)
         : m_list(list)
     {
+#ifdef NDEBUG
+        (void)colour;
+        (void)name;
+#endif
         AURA_GPU_BEGIN(m_list, colour, name);
     }
     ~GpuProfileScope() {

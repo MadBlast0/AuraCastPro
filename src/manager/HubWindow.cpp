@@ -45,6 +45,9 @@ HubWindow::HubWindow(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("AuraCastPro");
     resize(1280, 800);
     setMinimumSize(900, 600);
+    
+    // Remove native title bar - keep solid background
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 }
 
 HubWindow::~HubWindow() {
@@ -97,6 +100,12 @@ void HubWindow::setupQmlEngine() {
 
     // Register the qml/ prefix so Theme singleton is found
     m_view->engine()->addImportPath(QStringLiteral("qrc:/"));
+    m_view->engine()->addImportPath(QStringLiteral("qrc:/qml"));
+    
+    // Register Theme as a singleton type
+    qmlRegisterSingletonType(QUrl("qrc:/qml/Theme.qml"), "AuraCastPro", 1, 0, "Theme");
+    
+    AURA_LOG_INFO("HubWindow", "QML import paths configured, Theme singleton registered");
 
     // Expose all subsystems as context properties accessible from QML
     QQmlContext* ctx = m_view->rootContext();
@@ -147,73 +156,8 @@ void HubWindow::wireSignals() {
 
 // ── Menu bar ──────────────────────────────────────────────────────────────────
 void HubWindow::setupMenuBar() {
-    QMenuBar* bar = menuBar();
-
-    // ── File ──────────────────────────────────────────────────────────────────
-    QMenu* fileMenu = bar->addMenu("&File");
-
-    auto* actMirror = fileMenu->addAction("&Start Mirroring\tCtrl+Shift+M");
-    connect(actMirror, &QAction::triggered, this, [this]() { invokeQml("toggleMirroring"); });
-
-    auto* actRecord = fileMenu->addAction("Start &Recording\tCtrl+Shift+R");
-    connect(actRecord, &QAction::triggered, this, [this]() { invokeQml("toggleRecording"); });
-
-    fileMenu->addSeparator();
-    auto* actQuit = fileMenu->addAction("&Quit");
-    connect(actQuit, &QAction::triggered, this, &HubWindow::requestQuit);
-
-    // ── View ──────────────────────────────────────────────────────────────────
-    QMenu* viewMenu = bar->addMenu("&View");
-
-    auto* actFullscreen = viewMenu->addAction("&Fullscreen\tCtrl+Shift+F");
-    connect(actFullscreen, &QAction::triggered, this, [this]() { invokeQml("toggleFullscreen"); });
-
-    auto* actTop = viewMenu->addAction("Always on &Top");
-    actTop->setCheckable(true);
-    if (m_settings)
-        actTop->setChecked(m_settings->alwaysOnTop());
-    connect(actTop, &QAction::toggled, this, [this](bool on) {
-        if (m_settings)
-            m_settings->setAlwaysOnTop(on);
-    });
-
-    auto* actOverlay = viewMenu->addAction("Stats &Overlay\tCtrl+Shift+O");
-    actOverlay->setCheckable(true);
-    connect(actOverlay, &QAction::toggled, this, [this](bool on) {
-        if (m_overlay)
-            m_overlay->setVisible(on);
-    });
-
-    // ── Help ──────────────────────────────────────────────────────────────────
-    QMenu* helpMenu = bar->addMenu("&Help");
-
-    // Task 228: Open the User Guide (opens with system default app for .md files)
-    auto* actUserGuide = helpMenu->addAction("&User Guide");
-    actUserGuide->setShortcut(QKeySequence::HelpContents);  // F1
-    connect(actUserGuide, &QAction::triggered, this, [this]() {
-        // Signal QML to show inline help if it supports it
-        invokeQml("showUserGuide");
-        // Also open the file with the system viewer (works even if QML has no handler)
-        QString guidePath = QCoreApplication::applicationDirPath() + "/../doc/user/UserGuide.md";
-        if (!QFile::exists(guidePath))
-            guidePath = QCoreApplication::applicationDirPath() + "/UserGuide.md";
-        if (QFile::exists(guidePath))
-            QDesktopServices::openUrl(QUrl::fromLocalFile(guidePath));
-        else
-            QDesktopServices::openUrl(QUrl("https://auracastpro.com/support/userguide"));
-    });
-
-    helpMenu->addSeparator();
-
-    auto* actLogs = helpMenu->addAction("View &Logs");
-    connect(actLogs, &QAction::triggered, this, [this]() { invokeQml("showDiagnostics"); });
-
-    auto* actUpdate = helpMenu->addAction("Check for &Updates");
-    connect(actUpdate, &QAction::triggered, this, [this]() { invokeQml("checkUpdates"); });
-
-    helpMenu->addSeparator();
-    auto* actAbout = helpMenu->addAction("&About AuraCastPro");
-    connect(actAbout, &QAction::triggered, this, [this]() { invokeQml("showAbout"); });
+    // Hide the native menu bar - all controls will be in the app UI
+    menuBar()->hide();
 }
 
 // ── System Tray ───────────────────────────────────────────────────────────────

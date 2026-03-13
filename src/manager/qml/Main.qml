@@ -1,155 +1,172 @@
 // =============================================================================
-// Main.qml -- AuraCastPro root window - clean no-friction layout
+// Main.qml -- AuraCastPro root window - macOS-style with rounded corners
 // =============================================================================
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import "."
+import AuraCastPro 1.0
 
 Rectangle {
     id: root
     width: 1100
     height: 700
-    color: Theme.bgBase
+    color: "#0f141b"
+    
+    // Note: Rounded corners don't work on Windows frameless windows
+    // This is a Qt/Windows limitation
 
-    RowLayout {
-        anchors.fill: parent
-        spacing: 0
+        RowLayout {
+            anchors.fill: parent
+            spacing: 0
 
-        // ── Sidebar ────────────────────────────────────────────────────────
-        Rectangle {
-            width: 200
-            Layout.fillHeight: true
-            color: Theme.bgPanel
-
-            // Right border
+            // ── Sidebar ────────────────────────────────────────────────────────
             Rectangle {
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: 1
-                color: Theme.borderSubtle
-            }
+                width: 200
+                Layout.fillHeight: true
+                color: "#151c25"
 
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 0
-
-                // Logo area
+                // Right border
                 Rectangle {
-                    height: 80
-                    Layout.fillWidth: true
-                    color: "#0e131a"
-
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        height: 1
-                        color: Theme.borderSubtle
-                    }
-
-                    Column {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 20
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 3
-
-                        Text {
-                            text: "AuraCast Pro"
-                            font.family: Theme.fontSans
-                            font.pixelSize: 18
-                            font.weight: Font.Bold
-                            color: Theme.textPrimary
-                        }
-                        Text {
-                            text: "v1.0.0"
-                            font.family: Theme.fontSans
-                            font.pixelSize: Theme.fontSizeXS
-                            color: Theme.textDisabled
-                        }
-                    }
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 1
+                    color: "#2b3645"
                 }
 
-                Item { height: 16 }
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: 0
 
-                // Nav items
-                Repeater {
-                    model: [
-                        { icon: "⬛", label: "Dashboard",   page: 0 },
-                        { icon: "📱", label: "Devices",     page: 1 },
-                        { icon: "⚙️",  label: "Settings",   page: 2 },
-                        { icon: "📊", label: "Diagnostics", page: 3 }
-                    ]
-
-                    delegate: NavItem {
-                        icon:    modelData.icon
-                        label:   modelData.label
-                        page:    modelData.page
-                        current: stack.currentIndex === modelData.page
-                        onClicked: stack.currentIndex = modelData.page
-                    }
-                }
-
-                Item { Layout.fillHeight: true }
-
-                // Status footer
-                Rectangle {
-                    height: 68
-                    Layout.fillWidth: true
-                    color: "transparent"
-
+                    // Logo area
                     Rectangle {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        height: 1
-                        color: Theme.borderSubtle
-                    }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 20
-                        anchors.rightMargin: 14
-                        spacing: 10
+                        height: 80
+                        Layout.fillWidth: true
+                        color: "#0e131a"
 
                         Rectangle {
-                            width: 8; height: 8; radius: 4
-                            color: {
-                                var s = hubModel ? hubModel.connectionStatus.toLowerCase() : ""
-                                if (s === "mirroring" || s === "connected") return Theme.accentGreen
-                                if (s === "connecting") return Theme.accentYellow
-                                if (s === "error") return Theme.accentRed
-                                return Theme.textDisabled
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            height: 1
+                            color: "#2b3645"
+                        }
+
+                        Column {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 20
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 3
+
+                            Text {
+                                text: "AuraCast Pro"
+                                font.family: "Inter"
+                                font.pixelSize: 18
+                                font.weight: Font.Bold
+                                color: "#e8eef7"
+                            }
+                            Text {
+                                text: "v1.0.0"
+                                font.family: "Inter"
+                                font.pixelSize: 10
+                                color: "#6f7d90"
                             }
                         }
-                        Text {
-                            Layout.fillWidth: true
-                            text: hubModel ? hubModel.connectionStatus : "Idle"
-                            font.family: Theme.fontSans
-                            font.pixelSize: Theme.fontSizeSM
-                            font.weight: Font.Medium
-                            color: Theme.textSecondary
-                            elide: Text.ElideRight
+                    }
+
+                    Item { height: 16 }
+
+                    // Nav items
+                    Repeater {
+                        model: [
+                            { icon: "⬛", label: "Dashboard",   page: 0 },
+                            { icon: "📱", label: "Devices",     page: 1 },
+                            { icon: "📊", label: "Statistics",  page: 2 },
+                            { icon: "⚙️",  label: "Settings",   page: 3 },
+                            { icon: "🔧", label: "Diagnostics", page: 4 }
+                        ]
+
+                        delegate: NavItem {
+                            icon:    modelData.icon
+                            label:   modelData.label
+                            page:    modelData.page
+                            current: stack.currentIndex === modelData.page
+                            onClicked: stack.currentIndex = modelData.page
+                        }
+                    }
+
+                    Item { Layout.fillHeight: true }
+
+                    // Status footer
+                    Rectangle {
+                        height: 68
+                        Layout.fillWidth: true
+                        color: "transparent"
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            height: 1
+                            color: "#2b3645"
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 20
+                            anchors.rightMargin: 14
+                            spacing: 10
+
+                            Rectangle {
+                                width: 8; height: 8; radius: 4
+                                color: {
+                                    var s = hubModel ? hubModel.connectionStatus.toLowerCase() : ""
+                                    if (s === "mirroring" || s === "connected") return "#7dd7b0"
+                                    if (s === "connecting") return "#e6c37a"
+                                    if (s === "error") return "#f28b82"
+                                    return "#6f7d90"
+                                }
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: hubModel ? hubModel.connectionStatus : "Idle"
+                                font.family: "Inter"
+                                font.pixelSize: 12
+                                font.weight: Font.Medium
+                                color: "#9cacbf"
+                                elide: Text.ElideRight
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // ── Main content ───────────────────────────────────────────────────
-        StackLayout {
-            id: stack
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            currentIndex: 0
+            // ── Main content ───────────────────────────────────────────────────
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: 0
 
-            Dashboard {}
-            DeviceList {}
-            SettingsPage {}
-            DiagnosticsPanel {}
+                // Top header bar
+                AppHeader {
+                    Layout.fillWidth: true
+                }
+
+                // Content area
+                StackLayout {
+                    id: stack
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    currentIndex: 0
+
+                    Dashboard {}
+                    DeviceList {}
+                    StatsPage {}
+                    SettingsPage {}
+                    DiagnosticsPanel {}
+                }
+            }
         }
-    }
 
     // First run wizard overlay
     Loader {
@@ -181,8 +198,6 @@ Rectangle {
     function toggleRecording()   { if (hubModel) hubModel.toggleRecording() }
     function toggleFullscreen()  {}
 
-    // No pairing dialog — PIN-free
-
     // ── Nav item component ────────────────────────────────────────────────
     component NavItem: Item {
         property string icon:  ""
@@ -191,34 +206,34 @@ Rectangle {
         property bool   current: false
         signal clicked()
 
-        height: 46
+        height: 36
         Layout.fillWidth: true
 
         Rectangle {
+            id: navBg
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
-            radius: Theme.radiusMD
-            color: current ? Theme.bgElevated : "transparent"
-            border.color: current ? Theme.borderActive : "transparent"
-            border.width: 1
+            radius: 8
+            color: current ? "#223044" : "transparent"
+            border.width: 0
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 14
+                anchors.leftMargin: 12
                 spacing: 10
 
                 Text {
-                    text: parent.parent.icon || ""
+                    text: icon || ""
                     font.pixelSize: 14
-                    visible: false  // hide emoji, just use text label
+                    visible: false
                 }
                 Text {
-                    text: parent.parent.label
-                    font.family: Theme.fontSans
-                    font.pixelSize: Theme.fontSizeSM
+                    text: label
+                    font.family: "Inter"
+                    font.pixelSize: 13
                     font.weight: current ? Font.DemiBold : Font.Normal
-                    color: current ? Theme.textPrimary : Theme.textSecondary
+                    color: current ? "#e8eef7" : "#9cacbf"
                 }
             }
 
@@ -227,8 +242,8 @@ Rectangle {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: parent.parent.clicked()
-                onEntered: if (!current) parent.color = Qt.rgba(1,1,1,0.03)
-                onExited:  if (!current) parent.color = "transparent"
+                onEntered: if (!current) navBg.color = Qt.rgba(1,1,1,0.03)
+                onExited:  if (!current) navBg.color = "transparent"
             }
         }
     }

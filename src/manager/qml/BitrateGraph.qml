@@ -3,9 +3,9 @@ import "."
 
 Rectangle {
     id: root
-    radius: Theme.radiusLG
-    color: Theme.bgCard
-    border.color: Theme.borderNormal
+    radius: 12
+    color: "#1c2531"
+    border.color: "#3b4a5f"
     border.width: 1
 
     Text {
@@ -13,21 +13,21 @@ Rectangle {
         x: 16
         y: 14
         text: qsTr("Bitrate")
-        font.family: Theme.fontSans
-        font.pixelSize: Theme.fontSizeSM
+        font.family: "Inter"
+        font.pixelSize: 12
         font.weight: Font.Medium
-        color: Theme.textSecondary
+        color: "#9cacbf"
     }
 
     Text {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: 16
-        text: statsModel ? Theme.formatBitrate(statsModel.bitrateKbps) : "--"
-        font.family: Theme.fontSans
-        font.pixelSize: Theme.fontSizeMD
+        text: statsModel ? (statsModel.bitrateKbps >= 1000 ? (statsModel.bitrateKbps / 1000).toFixed(1) + " Mbps" : statsModel.bitrateKbps.toFixed(0) + " kbps") : "--"
+        font.family: "Inter"
+        font.pixelSize: 14
         font.weight: Font.DemiBold
-        color: statsModel ? Theme.bitrateColour(statsModel.bitrateKbps) : Theme.textDisabled
+        color: statsModel ? (statsModel.bitrateKbps >= 10000 ? "#7dd7b0" : statsModel.bitrateKbps >= 3000 ? "#e6c37a" : "#f28b82") : "#6f7d90"
     }
 
     Canvas {
@@ -65,7 +65,8 @@ Rectangle {
             var yScale = (height - 8) / maxV
             var xStep = width / Math.max(n - 1, 1)
 
-            ctx.strokeStyle = "rgba(255,255,255,0.07)"
+            // Grid lines
+            ctx.strokeStyle = "rgba(255,255,255,0.05)"
             ctx.lineWidth = 1
             for (var g = 1; g <= 3; g++) {
                 var gy = (height / 4) * g
@@ -75,9 +76,10 @@ Rectangle {
                 ctx.stroke()
             }
 
+            // Gradient fill under line
             var grad = ctx.createLinearGradient(0, 0, 0, height)
-            grad.addColorStop(0, "rgba(123,179,255,0.28)")
-            grad.addColorStop(1, "rgba(123,179,255,0.02)")
+            grad.addColorStop(0, "rgba(123,179,255,0.25)")
+            grad.addColorStop(1, "rgba(123,179,255,0.0)")
             ctx.fillStyle = grad
             ctx.beginPath()
             ctx.moveTo(0, height)
@@ -87,10 +89,11 @@ Rectangle {
             ctx.closePath()
             ctx.fill()
 
+            // Line
             var cur = history[n - 1]
-            ctx.strokeStyle = cur >= 10000 ? Theme.accentGreen
-                            : cur >= 3000 ? Theme.accentYellow
-                            : Theme.accentRed
+            ctx.strokeStyle = cur >= 10000 ? "#7dd7b0"
+                            : cur >= 3000 ? "#e6c37a"
+                            : "#f28b82"
             ctx.lineWidth = 2.5
             ctx.lineJoin = "round"
             ctx.lineCap = "round"

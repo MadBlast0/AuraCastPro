@@ -257,14 +257,17 @@ qt6_add_executable(AuraCastPro WIN32 ${SOURCES})
 qt6_add_qml_module(AuraCastPro
     URI AuraCastPro
     VERSION 1.0
+    RESOURCE_PREFIX /
     QML_FILES
         src/manager/qml/Main.qml
         src/manager/qml/Theme.qml
+        src/manager/qml/AppHeader.qml
         src/manager/qml/Dashboard.qml
         src/manager/qml/DeviceList.qml
         src/manager/qml/DeviceCard.qml
         src/manager/qml/BitrateGraph.qml
         src/manager/qml/LatencyGraph.qml
+        src/manager/qml/StatsPage.qml
         src/manager/qml/SettingsPage.qml
         src/manager/qml/PairingDialog.qml
         src/manager/qml/AboutDialog.qml
@@ -273,6 +276,8 @@ qt6_add_qml_module(AuraCastPro
         src/manager/qml/FirstRunWizard.qml
         src/manager/qml/StatsOverlay.qml
         src/manager/qml/LicensePage.qml
+    SOURCES
+        src/manager/qml/qmldir
 )
 
 target_include_directories(AuraCastPro PRIVATE

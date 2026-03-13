@@ -264,8 +264,6 @@ bool ADBBridge::startMirroring(const std::string& serial, StreamCallback videoCa
     MirrorSession* rawSession = session.get();
     session->streamThread = std::thread([rawSession, videoCallback]() {
         std::vector<uint8_t> buf(1024 * 1024);
-        uint64_t pts = 0;
-        uint64_t frameIntervalUs = 16667; // ~60fps
 
         while (rawSession->running.load()) {
             // scrcpy V2 packet: 12-byte header + NAL data

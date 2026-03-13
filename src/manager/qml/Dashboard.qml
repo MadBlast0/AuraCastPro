@@ -1,21 +1,21 @@
 // =============================================================================
-// Dashboard.qml — AuraCastPro main view
-// Always-on discovery, no manual connect button needed.
+// Dashboard.qml — AuraCastPro main view - devices only
 // =============================================================================
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import "."
+import AuraCastPro 1.0
 
 Item {
     id: root
+    clip: true
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
         spacing: 22
 
-        // ── Header ──────────────────────────────────────────────────────────
+        // Header
         RowLayout {
             Layout.fillWidth: true
             spacing: 0
@@ -76,27 +76,7 @@ Item {
             }
         }
 
-        // ── Stats row ──────────────────────────────────────────────────────
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 12
-
-            Repeater {
-                model: [
-                    { label: "Bitrate",     value: statsModel ? Theme.formatBitrate(statsModel.bitrateKbps) : "—" },
-                    { label: "Latency",     value: statsModel ? statsModel.latencyMs.toFixed(0) + " ms" : "—" },
-                    { label: "FPS",         value: statsModel ? statsModel.fps.toFixed(1) : "—" },
-                    { label: "Packet Loss", value: statsModel ? statsModel.packetLossPct.toFixed(1) + "%" : "—" }
-                ]
-                delegate: StatCard {
-                    Layout.fillWidth: true
-                    label: modelData.label
-                    value: modelData.value
-                }
-            }
-        }
-
-        // ── Device panel ───────────────────────────────────────────────────
+        // Device panel
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -104,6 +84,7 @@ Item {
             color: Theme.bgCard
             border.color: Theme.borderNormal
             border.width: 1
+            clip: true
 
             ColumnLayout {
                 anchors.fill: parent
@@ -123,39 +104,32 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     visible: !deviceManager || deviceManager.devices.length === 0
+                    clip: true
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 14
+                        spacing: 18
+                        width: Math.min(parent.width - 40, 400)
 
-                        Item {
-                            width: 64; height: 64
+                        Rectangle {
+                            width: 64
+                            height: 64
+                            radius: 32
                             anchors.horizontalCenter: parent.horizontalCenter
-
-                            Rectangle {
-                                anchors.fill: parent; radius: 32
-                                color: "transparent"
-                                border.color: Theme.borderNormal; border.width: 2
+                            color: "transparent"
+                            border.color: Theme.accent
+                            border.width: 2
+                            
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { to: 0.3; duration: 1200 }
+                                NumberAnimation { to: 1.0; duration: 1200 }
                             }
-                            Rectangle {
-                                width: 64; height: 64; radius: 32
-                                color: "transparent"
-                                border.color: Theme.accent; border.width: 2
-                                layer.enabled: true
-                                Rectangle {
-                                    width: 32; height: 32
-                                    color: Theme.bgCard
-                                    anchors.right: parent.right
-                                    anchors.bottom: parent.bottom
-                                }
-                                RotationAnimation on rotation {
-                                    loops: Animation.Infinite
-                                    from: 0; to: 360; duration: 1800
-                                }
-                            }
+                            
                             Text {
                                 anchors.centerIn: parent
-                                text: "\uD83D\uDCE1"; font.pixelSize: 22
+                                text: "\uD83D\uDCE1"
+                                font.pixelSize: 28
                             }
                         }
 
@@ -167,6 +141,7 @@ Item {
                             color: Theme.textPrimary
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
+                        
                         Text {
                             text: "Open AirPlay or Cast on any device\non the same Wi-Fi to connect instantly."
                             font.family: Theme.fontSans
@@ -174,6 +149,8 @@ Item {
                             color: Theme.textSecondary
                             horizontalAlignment: Text.AlignHCenter
                             anchors.horizontalCenter: parent.horizontalCenter
+                            wrapMode: Text.WordWrap
+                            width: parent.width
                         }
                     }
                 }
@@ -253,46 +230,6 @@ Item {
                         }
                     }
                 }
-            }
-        }
-
-        // ── Graphs ─────────────────────────────────────────────────────────
-        RowLayout {
-            Layout.fillWidth: true
-            height: 140
-            spacing: 14
-            BitrateGraph { Layout.fillWidth: true; Layout.fillHeight: true }
-            LatencyGraph  { Layout.fillWidth: true; Layout.fillHeight: true }
-        }
-    }
-
-    component StatCard: Rectangle {
-        id: card
-        property string label: ""
-        property string value: "\u2014"
-        height: 88
-        radius: Theme.radiusMD
-        color: Theme.bgCard
-        border.color: Theme.borderNormal
-        border.width: 1
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 16
-            spacing: 6
-            Text {
-                text: card.label
-                font.family: Theme.fontSans
-                font.pixelSize: Theme.fontSizeXS
-                font.weight: Font.Medium
-                color: Theme.textSecondary
-            }
-            Item { Layout.fillHeight: true }
-            Text {
-                text: card.value
-                font.family: Theme.fontSans
-                font.pixelSize: Theme.fontSizeH2
-                font.weight: Font.Bold
-                color: Theme.textPrimary
             }
         }
     }

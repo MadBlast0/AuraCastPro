@@ -38,7 +38,10 @@ BonjourRuntime& runtime() {
     }
 
     rt.attempted = true;
+    
+    // Check if mDNSResponder.dll from douwan exists in current directory
     const char* candidates[] = {
+        "mDNSResponder.dll",
         "dnssd.dll",
         "C:\\Windows\\System32\\dnssd.dll",
         "C:\\Program Files\\Bonjour\\dnssd.dll",

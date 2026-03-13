@@ -59,7 +59,7 @@ bool DeviceLostRecovery::checkAndRecover(HRESULT presentResult,
         static_cast<uint32_t>(reason),
         hresultToString(reason));
 
-    bool ok = doRecovery(reason, device);
+    doRecovery(reason, device);
 
     m_recovering.store(false);
     return true; // recovery was triggered (whether it succeeded or not)

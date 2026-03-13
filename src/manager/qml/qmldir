@@ -1,2 +1,17 @@
 module AuraCastPro
 singleton Theme 1.0 Theme.qml
+AppHeader 1.0 AppHeader.qml
+BitrateGraph 1.0 BitrateGraph.qml
+LatencyGraph 1.0 LatencyGraph.qml
+Dashboard 1.0 Dashboard.qml
+DeviceList 1.0 DeviceList.qml
+DeviceCard 1.0 DeviceCard.qml
+StatsPage 1.0 StatsPage.qml
+SettingsPage 1.0 SettingsPage.qml
+PairingDialog 1.0 PairingDialog.qml
+AboutDialog 1.0 AboutDialog.qml
+DiagnosticsPanel 1.0 DiagnosticsPanel.qml
+SplashProgress 1.0 SplashProgress.qml
+FirstRunWizard 1.0 FirstRunWizard.qml
+StatsOverlay 1.0 StatsOverlay.qml
+LicensePage 1.0 LicensePage.qml
