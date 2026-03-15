@@ -1,0 +1,1100 @@
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import "."
+
+Item {
+    id: root
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 28
+        spacing: 20
+
+        // Header
+        Text {
+            text: "Settings"
+            font.family: Theme.fontSans
+            font.pixelSize: Theme.fontSizeH2
+            font.weight: Font.Bold
+            color: Theme.textPrimary
+        }
+
+        // Tab Bar
+        Rectangle {
+            Layout.fillWidth: true
+            height: 48
+            color: "transparent"
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                Repeater {
+                    model: ["Display", "Recording", "Network", "Device", "Hardware", "Advanced"]
+                    
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: tabBar.currentIndex === index ? Theme.bgElevated : "transparent"
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontSizeSM
+                            font.weight: tabBar.currentIndex === index ? Font.DemiBold : Font.Normal
+                            color: tabBar.currentIndex === index ? Theme.textPrimary : Theme.textSecondary
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: tabBar.currentIndex = index
+                        }
+                    }
+                }
+            }
+            
+            // Bottom border line
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: Theme.borderNormal
+            }
+        }
+
+        // Tab Content
+        StackLayout {
+            id: tabBar
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            currentIndex: 0
+
+            // Display Tab
+            ScrollView {
+                clip: true
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 20
+
+                    // Global Mirroring Settings Card
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "Global Mirroring Settings"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 4
+                            
+                            Text {
+                                text: "These settings apply to all mirroring protocols (iOS/AirPlay, Android/Cast)"
+                                font.family: Theme.fontSans
+                                font.pixelSize: Theme.fontSizeXS
+                                color: Theme.textSecondary
+                                wrapMode: Text.WordWrap
+                                Layout.bottomMargin: 12
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Resolution"
+                                StyledComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["Native", "2160p (4K)", "1440p (2K)", "1080p (Full HD)", "720p (HD)", "360p"]
+                                    currentIndex: settingsModel ? settingsModel.maxResolutionIndex : 1
+                                    onActivated: {
+                                        if (settingsModel) {
+                                            settingsModel.maxResolutionIndex = currentIndex
+                                            // Update actual resolution values
+                                            switch(currentIndex) {
+                                                case 0: settingsModel.maxWidth = 0; settingsModel.maxHeight = 0; break; // Native
+                                                case 1: settingsModel.maxWidth = 3840; settingsModel.maxHeight = 2160; break; // 4K
+                                                case 2: settingsModel.maxWidth = 2560; settingsModel.maxHeight = 1440; break; // 2K
+                                                case 3: settingsModel.maxWidth = 1920; settingsModel.maxHeight = 1080; break; // 1080p
+                                                case 4: settingsModel.maxWidth = 1280; settingsModel.maxHeight = 720; break; // 720p
+                                                case 5: settingsModel.maxWidth = 640; settingsModel.maxHeight = 360; break; // 360p
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Frame Rate"
+                                StyledComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["Auto", "120 FPS", "90 FPS", "60 FPS", "30 FPS", "24 FPS"]
+                                    currentIndex: settingsModel ? settingsModel.fpsCapIndex : 0
+                                    onActivated: {
+                                        if (settingsModel) {
+                                            settingsModel.fpsCapIndex = currentIndex
+                                            // Update actual FPS value
+                                            switch(currentIndex) {
+                                                case 0: settingsModel.maxFps = 0; break; // Auto
+                                                case 1: settingsModel.maxFps = 120; break;
+                                                case 2: settingsModel.maxFps = 90; break;
+                                                case 3: settingsModel.maxFps = 60; break;
+                                                case 4: settingsModel.maxFps = 30; break;
+                                                case 5: settingsModel.maxFps = 24; break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Bitrate"
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    StyledSlider {
+                                        id: bitrateSlider
+                                        Layout.fillWidth: true
+                                        from: 2000
+                                        to: 200000
+                                        value: settingsModel ? settingsModel.maxBitrateKbps : 20000
+                                        stepSize: 1000
+                                        onMoved: if (settingsModel) settingsModel.maxBitrateKbps = Math.round(value)
+                                    }
+                                    Text {
+                                        text: Math.round(bitrateSlider.value / 1000) + " MB/s"
+                                        font.family: Theme.fontSans
+                                        font.pixelSize: Theme.fontSizeSM
+                                        color: Theme.textPrimary
+                                        Layout.preferredWidth: 80
+                                    }
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Color Space"
+                                StyledComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["sRGB", "Display P3", "Rec. 709", "Rec. 2020", "Adobe RGB"]
+                                    currentIndex: 0
+                                    // Note: Color space not yet implemented in backend
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Hardware Encoder"
+                                StyledComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["Auto", "Direct3D 12", "Direct3D 11", "OpenGL", "Vulkan", "Software"]
+                                    currentIndex: settingsModel && settingsModel.encoderPreference === "auto" ? 0 : 0
+                                    onActivated: {
+                                        if (settingsModel) {
+                                            switch(currentIndex) {
+                                                case 0: settingsModel.encoderPreference = "auto"; break;
+                                                case 1: settingsModel.encoderPreference = "d3d12"; break;
+                                                case 2: settingsModel.encoderPreference = "d3d11"; break;
+                                                case 3: settingsModel.encoderPreference = "opengl"; break;
+                                                case 4: settingsModel.encoderPreference = "vulkan"; break;
+                                                case 5: settingsModel.encoderPreference = "software"; break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Hardware Decode"
+                                StyledSwitch {
+                                    checked: settingsModel ? settingsModel.hardwareDecodeEnabled : true
+                                    onToggled: if (settingsModel) settingsModel.hardwareDecodeEnabled = checked
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "HDR"
+                                StyledSwitch {
+                                    checked: settingsModel ? settingsModel.hdrEnabled : false
+                                    onToggled: if (settingsModel) settingsModel.hdrEnabled = checked
+                                }
+                            }
+                        }
+                    }
+                    
+                    Item { height: 20 }
+                }
+            }
+
+            // Recording Tab
+            ScrollView {
+                clip: true
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 20
+
+                    // Recording Controls Card
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "Recording"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 12
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                height: 56
+                                radius: Theme.radiusMD
+                                color: Theme.accentRed
+                                border.color: Qt.darker(Theme.accentRed, 1.2)
+                                border.width: 2
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 10
+
+                                    Rectangle {
+                                        width: 16
+                                        height: 16
+                                        radius: 8
+                                        color: "white"
+                                    }
+
+                                    Text {
+                                        text: "Start Recording"
+                                        font.family: Theme.fontSans
+                                        font.pixelSize: Theme.fontSizeMD
+                                        font.weight: Font.Bold
+                                        color: "white"
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (hubModel) hubModel.toggleRecording()
+                                }
+                            }
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Output Folder"
+                                value: settingsModel ? settingsModel.recordingFolder : "~/Videos"
+                            }
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Format"
+                                value: settingsModel ? settingsModel.recordingFormat : "MP4 (H.265)"
+                            }
+                            
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Video Encoder"
+                                value: settingsModel ? settingsModel.videoEncoder : "NVIDIA NVENC H.264"
+                            }
+                            
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Audio Encoder"
+                                value: settingsModel ? settingsModel.audioEncoder : "FFmpeg AAC"
+                            }
+                        }
+                    }
+                    
+                    // Recording Settings Card
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "Recording Settings"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 16
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Quality"
+                                StyledComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["Source", "High", "Medium", "Low"]
+                                    currentIndex: {
+                                        if (!settingsModel) return 0
+                                        var q = settingsModel.recordingQuality.toLowerCase()
+                                        if (q === "source") return 0
+                                        if (q === "high") return 1
+                                        if (q === "medium") return 2
+                                        if (q === "low") return 3
+                                        return 0
+                                    }
+                                    onActivated: {
+                                        if (settingsModel) {
+                                            switch(currentIndex) {
+                                                case 0: settingsModel.recordingQuality = "source"; break;
+                                                case 1: settingsModel.recordingQuality = "high"; break;
+                                                case 2: settingsModel.recordingQuality = "medium"; break;
+                                                case 3: settingsModel.recordingQuality = "low"; break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Bitrate"
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    StyledSlider {
+                                        id: recordBitrateSlider
+                                        Layout.fillWidth: true
+                                        from: 1000
+                                        to: 100000
+                                        value: settingsModel ? settingsModel.bitrate : 50000
+                                        stepSize: 1000
+                                        onMoved: if (settingsModel) settingsModel.bitrate = Math.round(value)
+                                    }
+                                    Text {
+                                        text: Math.round(recordBitrateSlider.value / 1000) + " Mbps"
+                                        font.family: Theme.fontSans
+                                        font.pixelSize: Theme.fontSizeSM
+                                        color: Theme.textPrimary
+                                        Layout.preferredWidth: 80
+                                    }
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Auto Record"
+                                StyledSwitch {
+                                    checked: settingsModel ? settingsModel.autoRecord : false
+                                    onToggled: if (settingsModel) settingsModel.autoRecord = checked
+                                }
+                            }
+                        }
+                    }
+                    
+                    Item { height: 20 }
+                }
+            }
+
+            // Network Tab
+            ScrollView {
+                clip: true
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 20
+
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "Network"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 12
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "AirPlay Port"
+                                value: settingsModel ? settingsModel.airplayPort.toString() : "7236"
+                            }
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Cast Port"
+                                value: settingsModel ? settingsModel.castPort.toString() : "8009"
+                            }
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Max Bitrate"
+                                value: settingsModel ? Math.round(settingsModel.maxBitrateMbps) + " Mbps" : "20 Mbps"
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "FEC Enabled"
+                                StyledSwitch {
+                                    checked: settingsModel ? settingsModel.fecEnabled : true
+                                    onToggled: if (settingsModel) settingsModel.fecEnabled = checked
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Jitter Buffer"
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    StyledSlider {
+                                        id: jitterSlider
+                                        Layout.fillWidth: true
+                                        from: 0
+                                        to: 200
+                                        value: settingsModel ? settingsModel.jitterBufferMs : 50
+                                        stepSize: 10
+                                        onMoved: if (settingsModel) settingsModel.jitterBufferMs = Math.round(value)
+                                    }
+                                    Text {
+                                        text: Math.round(jitterSlider.value) + " ms"
+                                        font.family: Theme.fontSans
+                                        font.pixelSize: Theme.fontSizeSM
+                                        color: Theme.textPrimary
+                                        Layout.preferredWidth: 60
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    Item { height: 20 }
+                }
+            }
+
+            // Device Tab
+            ScrollView {
+                clip: true
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 20
+
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "View Options"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 12
+
+                            ToggleRow {
+                                Layout.fillWidth: true
+                                label: "Dark Mode"
+                                description: "Use dark color theme"
+                                checked: settingsModel ? settingsModel.darkMode : true
+                                onToggled: if (settingsModel) settingsModel.darkMode = checked
+                            }
+
+                            ToggleRow {
+                                Layout.fillWidth: true
+                                label: "Always On Top"
+                                description: "Keep window above other windows"
+                                checked: settingsModel ? settingsModel.alwaysOnTop : false
+                                onToggled: if (settingsModel) settingsModel.alwaysOnTop = checked
+                            }
+                            
+                            ToggleRow {
+                                Layout.fillWidth: true
+                                label: "Start with Windows"
+                                description: "Launch automatically on system startup"
+                                checked: settingsModel ? settingsModel.startWithWindows : false
+                                onToggled: if (settingsModel) settingsModel.startWithWindows = checked
+                            }
+                            
+                            ToggleRow {
+                                Layout.fillWidth: true
+                                label: "Minimize to Tray"
+                                description: "Hide to system tray when minimized"
+                                checked: settingsModel ? settingsModel.minimiseToTray : true
+                                onToggled: if (settingsModel) settingsModel.minimiseToTray = checked
+                            }
+                        }
+                    }
+                    
+                    Item { height: 20 }
+                }
+            }
+
+            // Hardware Tab
+            ScrollView {
+                clip: true
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 20
+
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "Hardware"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 12
+                            
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "GPU"
+                                value: settingsModel ? settingsModel.gpuName : "Unknown"
+                            }
+                            
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "OS Version"
+                                value: settingsModel ? settingsModel.osVersion : "Unknown"
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "GPU Frame Buffer"
+                                StyledSpinBox {
+                                    from: 2
+                                    to: 8
+                                    value: settingsModel ? settingsModel.gpuFrameBufferCount : 4
+                                    onValueModified: if (settingsModel) settingsModel.gpuFrameBufferCount = value
+                                }
+                            }
+                        }
+                    }
+                    
+                    Item { height: 20 }
+                }
+            }
+
+            // Advanced Tab
+            ScrollView {
+                clip: true
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 20
+
+                    // Quick Actions Card
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "Quick Actions"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 12
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 12
+
+                                ActionButton {
+                                    Layout.fillWidth: true
+                                    text: "📖 User Guide"
+                                    onClicked: Qt.openUrlExternally("https://auracastpro.com/guide")
+                                }
+                                ActionButton {
+                                    Layout.fillWidth: true
+                                    text: "📋 View Logs"
+                                    onClicked: if (hubModel) hubModel.exportLogs()
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 12
+
+                                ActionButton {
+                                    Layout.fillWidth: true
+                                    text: "🔄 Check Updates"
+                                    onClicked: { /* Check for updates */ }
+                                }
+                                ActionButton {
+                                    Layout.fillWidth: true
+                                    text: "🔄 Reset Settings"
+                                    onClicked: if (settingsModel) settingsModel.resetToDefaults()
+                                }
+                            }
+                        }
+                    }
+
+                    // About Card
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "About"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 12
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Version"
+                                value: settingsModel ? settingsModel.appVersion : "1.0.0"
+                            }
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "Build Date"
+                                value: settingsModel ? settingsModel.buildDate : "Unknown"
+                            }
+
+                            InfoRow {
+                                Layout.fillWidth: true
+                                label: "License"
+                                value: licenseManager ? licenseManager.edition : "Free"
+                            }
+                        }
+                    }
+                    
+                    // Advanced Settings Card
+                    SettingsCard {
+                        Layout.fillWidth: true
+                        title: "Advanced"
+                        
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: 16
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Log Level"
+                                StyledComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["trace", "debug", "info", "warn", "error"]
+                                    currentIndex: {
+                                        if (!settingsModel) return 2
+                                        var level = settingsModel.logLevel.toLowerCase()
+                                        if (level === "trace") return 0
+                                        if (level === "debug") return 1
+                                        if (level === "info") return 2
+                                        if (level === "warn") return 3
+                                        if (level === "error") return 4
+                                        return 2
+                                    }
+                                    onActivated: {
+                                        if (settingsModel) {
+                                            settingsModel.logLevel = model[currentIndex]
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            SettingRow {
+                                Layout.fillWidth: true
+                                label: "Telemetry"
+                                StyledSwitch {
+                                    checked: settingsModel ? settingsModel.telemetryEnabled : false
+                                    onToggled: if (settingsModel) settingsModel.telemetryEnabled = checked
+                                }
+                            }
+                        }
+                    }
+                    
+                    Item { height: 20 }
+                }
+            }
+        }
+    }
+
+    // Settings Card Component
+    component SettingsCard: Rectangle {
+        property string title: ""
+        default property alias content: contentColumn.data
+        
+        implicitHeight: contentColumn.height + 40
+        radius: 12
+        color: Theme.bgCard
+        border.color: Theme.borderNormal
+        border.width: 1
+
+        ColumnLayout {
+            id: contentColumn
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 20
+            spacing: 16
+
+            Text {
+                text: title
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontSizeMD
+                font.weight: Font.DemiBold
+                color: Theme.textPrimary
+                visible: title !== ""
+            }
+        }
+    }
+
+    // Setting Row Component (label + control)
+    component SettingRow: RowLayout {
+        property string label: ""
+        default property alias control: controlContainer.data
+        
+        spacing: 16
+        
+        Text {
+            text: label
+            font.family: Theme.fontSans
+            font.pixelSize: Theme.fontSizeSM
+            color: Theme.textSecondary
+            Layout.preferredWidth: 140
+        }
+        
+        Item {
+            id: controlContainer
+            Layout.fillWidth: true
+            implicitHeight: children[0] ? children[0].implicitHeight : 40
+        }
+    }
+
+    // Styled ComboBox Component
+    component StyledComboBox: StyledComboBox {
+        id: control
+        
+        delegate: ItemDelegate {
+            width: control.width
+            contentItem: Text {
+                text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
+                color: Theme.textPrimary
+                font: control.font
+                elide: Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
+            }
+            highlighted: control.highlightedIndex === index
+            background: Rectangle {
+                color: highlighted ? Theme.bgHover : Theme.bgInput
+            }
+        }
+        
+        indicator: Canvas {
+            id: canvas
+            x: control.width - width - control.rightPadding
+            y: control.topPadding + (control.availableHeight - height) / 2
+            width: 12
+            height: 8
+            contextType: "2d"
+
+            Connections {
+                target: control
+                function onPressedChanged() { canvas.requestPaint(); }
+            }
+
+            onPaint: {
+                context.reset();
+                context.moveTo(0, 0);
+                context.lineTo(width, 0);
+                context.lineTo(width / 2, height);
+                context.closePath();
+                context.fillStyle = Theme.textSecondary;
+                context.fill();
+            }
+        }
+        
+        contentItem: Text {
+            leftPadding: 12
+            rightPadding: control.indicator.width + control.spacing
+            text: control.displayText
+            font: control.font
+            color: Theme.textPrimary
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+        }
+        
+        background: Rectangle {
+            implicitWidth: 200
+            implicitHeight: 36
+            color: Theme.bgInput
+            border.color: control.pressed ? Theme.borderActive : Theme.borderNormal
+            border.width: 1
+            radius: 6
+        }
+        
+        popup: Popup {
+            y: control.height - 1
+            width: control.width
+            implicitHeight: contentItem.implicitHeight
+            padding: 1
+
+            contentItem: ListView {
+                clip: true
+                implicitHeight: contentHeight
+                model: control.popup.visible ? control.delegateModel : null
+                currentIndex: control.highlightedIndex
+                
+                ScrollIndicator.vertical: ScrollIndicator { }
+            }
+
+            background: Rectangle {
+                color: Theme.bgInput
+                border.color: Theme.borderNormal
+                border.width: 1
+                radius: 6
+            }
+        }
+    }
+
+    // Styled Switch Component
+    component StyledSwitch: StyledSwitch {
+        id: control
+        
+        indicator: Rectangle {
+            implicitWidth: 48
+            implicitHeight: 26
+            x: control.leftPadding
+            y: parent.height / 2 - height / 2
+            radius: 13
+            color: control.checked ? Theme.accent : Theme.bgInput
+            border.color: control.checked ? Theme.accent : Theme.borderNormal
+            border.width: 1
+
+            Rectangle {
+                x: control.checked ? parent.width - width - 3 : 3
+                y: 3
+                width: 20
+                height: 20
+                radius: 10
+                color: "white"
+
+                Behavior on x {
+                    NumberAnimation { duration: 150 }
+                }
+            }
+        }
+        
+        contentItem: Text {
+            rightPadding: control.indicator.width + control.spacing
+            text: control.text
+            font: control.font
+            opacity: enabled ? 1.0 : 0.3
+            color: Theme.textPrimary
+            verticalAlignment: Text.AlignVCenter
+        }
+    }
+
+    // Styled Slider Component
+    component StyledSlider: StyledSlider {
+        id: control
+        
+        background: Rectangle {
+            x: control.leftPadding
+            y: control.topPadding + control.availableHeight / 2 - height / 2
+            implicitWidth: 200
+            implicitHeight: 4
+            width: control.availableWidth
+            height: implicitHeight
+            radius: 2
+            color: Theme.bgInput
+            border.color: Theme.borderSubtle
+            border.width: 1
+
+            Rectangle {
+                width: control.visualPosition * parent.width
+                height: parent.height
+                color: Theme.accent
+                radius: 2
+            }
+        }
+
+        handle: Rectangle {
+            x: control.leftPadding + control.visualPosition * (control.availableWidth - width)
+            y: control.topPadding + control.availableHeight / 2 - height / 2
+            implicitWidth: 18
+            implicitHeight: 18
+            radius: 9
+            color: control.pressed ? Theme.accent : "white"
+            border.color: Theme.accent
+            border.width: 2
+        }
+    }
+
+    // Styled SpinBox Component
+    component StyledSpinBox: StyledSpinBox {
+        id: control
+        
+        contentItem: TextInput {
+            z: 2
+            text: control.textFromValue(control.value, control.locale)
+            font: control.font
+            color: Theme.textPrimary
+            selectionColor: Theme.accent
+            selectedTextColor: Theme.textInverse
+            horizontalAlignment: Qt.AlignHCenter
+            verticalAlignment: Qt.AlignVCenter
+            readOnly: !control.editable
+            validator: control.validator
+            inputMethodHints: Qt.ImhFormattedNumbersOnly
+        }
+
+        up.indicator: Rectangle {
+            x: control.mirrored ? 0 : parent.width - width
+            height: parent.height
+            implicitWidth: 32
+            implicitHeight: 32
+            color: control.up.pressed ? Theme.bgHover : Theme.bgInput
+            border.color: Theme.borderNormal
+            border.width: 1
+            radius: 6
+
+            Text {
+                text: "+"
+                font.pixelSize: 16
+                color: Theme.textPrimary
+                anchors.centerIn: parent
+            }
+        }
+
+        down.indicator: Rectangle {
+            x: control.mirrored ? parent.width - width : 0
+            height: parent.height
+            implicitWidth: 32
+            implicitHeight: 32
+            color: control.down.pressed ? Theme.bgHover : Theme.bgInput
+            border.color: Theme.borderNormal
+            border.width: 1
+            radius: 6
+
+            Text {
+                text: "-"
+                font.pixelSize: 16
+                color: Theme.textPrimary
+                anchors.centerIn: parent
+            }
+        }
+
+        background: Rectangle {
+            implicitWidth: 120
+            implicitHeight: 36
+            color: Theme.bgInput
+            border.color: Theme.borderNormal
+            border.width: 1
+            radius: 6
+        }
+    }
+
+    // Action Button Component
+    component ActionButton: Rectangle {
+        property string text: ""
+        signal clicked()
+        
+        height: 44
+        radius: 8
+        color: Theme.bgElevated
+        border.width: 0
+
+        Text {
+            anchors.centerIn: parent
+            text: parent.text
+            font.family: Theme.fontSans
+            font.pixelSize: 13
+            font.weight: Font.Medium
+            color: Theme.textPrimary
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: parent.clicked()
+            onEntered: parent.color = Theme.bgHover
+            onExited: parent.color = Theme.bgElevated
+        }
+    }
+
+    // Toggle Row Component
+    component ToggleRow: Rectangle {
+        property string label: ""
+        property string description: ""
+        property bool checked: false
+        signal toggled(bool checked)
+
+        height: 64
+        radius: Theme.radiusMD
+        color: Theme.bgElevated
+        border.color: Theme.borderSubtle
+        border.width: 1
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 2
+
+                Text {
+                    text: label
+                    font.family: Theme.fontSans
+                    font.pixelSize: Theme.fontSizeSM
+                    font.weight: Font.Medium
+                    color: Theme.textPrimary
+                }
+                Text {
+                    text: description
+                    font.family: Theme.fontSans
+                    font.pixelSize: Theme.fontSizeXS
+                    color: Theme.textSecondary
+                }
+            }
+
+            Rectangle {
+                width: 48
+                height: 26
+                radius: 13
+                color: checked ? Theme.accent : Theme.bgInput
+                border.color: checked ? Theme.accent : Theme.borderNormal
+                border.width: 1
+
+                Rectangle {
+                    width: 20
+                    height: 20
+                    radius: 10
+                    color: "white"
+                    x: checked ? parent.width - width - 3 : 3
+                    y: 3
+
+                    Behavior on x { NumberAnimation { duration: 150 } }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        checked = !checked
+                        toggled(checked)
+                    }
+                }
+            }
+        }
+    }
+
+    // Info Row Component
+    component InfoRow: Rectangle {
+        property string label: ""
+        property string value: ""
+
+        height: 48
+        radius: Theme.radiusMD
+        color: Theme.bgElevated
+        border.color: Theme.borderSubtle
+        border.width: 1
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            Text {
+                text: label
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontSizeSM
+                color: Theme.textSecondary
+                Layout.preferredWidth: 120
+            }
+
+            Text {
+                text: value
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontSizeSM
+                font.weight: Font.Medium
+                color: Theme.textPrimary
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
+        }
+    }
+}

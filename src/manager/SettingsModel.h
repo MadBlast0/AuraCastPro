@@ -61,6 +61,27 @@ class SettingsModel : public QObject {
     Q_PROPERTY(QString recordingFolder   READ recordingFolder   WRITE setRecordingFolder   NOTIFY recordingChanged)
     Q_PROPERTY(QString recordingQuality  READ recordingQuality  WRITE setRecordingQuality  NOTIFY recordingChanged)
     Q_PROPERTY(bool    autoRecord        READ autoRecord        WRITE setAutoRecord        NOTIFY recordingChanged)
+    Q_PROPERTY(bool    generateFileNameWithoutSpace READ generateFileNameWithoutSpace WRITE setGenerateFileNameWithoutSpace NOTIFY recordingChanged)
+    Q_PROPERTY(QString recordingFormat   READ recordingFormat   WRITE setRecordingFormat   NOTIFY recordingChanged)
+    Q_PROPERTY(QString videoEncoder      READ videoEncoder      WRITE setVideoEncoder      NOTIFY recordingChanged)
+    Q_PROPERTY(QString audioEncoder      READ audioEncoder      WRITE setAudioEncoder      NOTIFY recordingChanged)
+    Q_PROPERTY(int     audioTrackMask    READ audioTrackMask    WRITE setAudioTrackMask    NOTIFY recordingChanged)
+    Q_PROPERTY(QString rescaleFilter     READ rescaleFilter     WRITE setRescaleFilter     NOTIFY recordingChanged)
+    Q_PROPERTY(QString rescaleResolution READ rescaleResolution WRITE setRescaleResolution NOTIFY recordingChanged)
+    Q_PROPERTY(QString customMuxerSettings READ customMuxerSettings WRITE setCustomMuxerSettings NOTIFY recordingChanged)
+    Q_PROPERTY(bool    autoFileSplitting READ autoFileSplitting WRITE setAutoFileSplitting NOTIFY recordingChanged)
+    Q_PROPERTY(QString fileSplitMode     READ fileSplitMode     WRITE setFileSplitMode     NOTIFY recordingChanged)
+    Q_PROPERTY(QString rateControl       READ rateControl       WRITE setRateControl       NOTIFY recordingChanged)
+    Q_PROPERTY(int     bitrate           READ bitrate           WRITE setBitrate           NOTIFY recordingChanged)
+    Q_PROPERTY(int     keyframeInterval  READ keyframeInterval  WRITE setKeyframeInterval  NOTIFY recordingChanged)
+    Q_PROPERTY(QString encoderPreset     READ encoderPreset     WRITE setEncoderPreset     NOTIFY recordingChanged)
+    Q_PROPERTY(QString encoderTuning     READ encoderTuning     WRITE setEncoderTuning     NOTIFY recordingChanged)
+    Q_PROPERTY(QString multipassMode     READ multipassMode     WRITE setMultipassMode     NOTIFY recordingChanged)
+    Q_PROPERTY(QString encoderProfile    READ encoderProfile    WRITE setEncoderProfile    NOTIFY recordingChanged)
+    Q_PROPERTY(bool    lookAhead         READ lookAhead         WRITE setLookAhead         NOTIFY recordingChanged)
+    Q_PROPERTY(bool    adaptiveQuantization READ adaptiveQuantization WRITE setAdaptiveQuantization NOTIFY recordingChanged)
+    Q_PROPERTY(int     bFrames           READ bFrames           WRITE setBFrames           NOTIFY recordingChanged)
+    Q_PROPERTY(QString customEncoderOptions READ customEncoderOptions WRITE setCustomEncoderOptions NOTIFY recordingChanged)
 
     // ── Streaming ─────────────────────────────────────────────────────────────
     Q_PROPERTY(QString rtmpUrl             READ rtmpUrl             WRITE setRtmpUrl             NOTIFY streamingChanged)
@@ -150,6 +171,27 @@ public:
     QString recordingFolder()      const { return m_recordingFolder; }
     QString recordingQuality()     const { return m_recordingQuality; }
     bool    autoRecord()           const { return m_autoRecord; }
+    bool    generateFileNameWithoutSpace() const { return m_generateFileNameWithoutSpace; }
+    QString recordingFormat()      const { return m_recordingFormat; }
+    QString videoEncoder()         const { return m_videoEncoder; }
+    QString audioEncoder()         const { return m_audioEncoder; }
+    int     audioTrackMask()       const { return m_audioTrackMask; }
+    QString rescaleFilter()        const { return m_rescaleFilter; }
+    QString rescaleResolution()    const { return m_rescaleResolution; }
+    QString customMuxerSettings()  const { return m_customMuxerSettings; }
+    bool    autoFileSplitting()    const { return m_autoFileSplitting; }
+    QString fileSplitMode()        const { return m_fileSplitMode; }
+    QString rateControl()          const { return m_rateControl; }
+    int     bitrate()              const { return m_bitrate; }
+    int     keyframeInterval()     const { return m_keyframeInterval; }
+    QString encoderPreset()        const { return m_encoderPreset; }
+    QString encoderTuning()        const { return m_encoderTuning; }
+    QString multipassMode()        const { return m_multipassMode; }
+    QString encoderProfile()       const { return m_encoderProfile; }
+    bool    lookAhead()            const { return m_lookAhead; }
+    bool    adaptiveQuantization() const { return m_adaptiveQuantization; }
+    int     bFrames()              const { return m_bFrames; }
+    QString customEncoderOptions() const { return m_customEncoderOptions; }
 
     QString rtmpUrl()              const { return m_rtmpUrl; }
     QString streamKey() const {
@@ -208,6 +250,27 @@ public:
     void setRecordingFolder(const QString& v);
     void setRecordingQuality(const QString& v);
     void setAutoRecord(bool v);
+    void setGenerateFileNameWithoutSpace(bool v);
+    void setRecordingFormat(const QString& v);
+    void setVideoEncoder(const QString& v);
+    void setAudioEncoder(const QString& v);
+    void setAudioTrackMask(int v);
+    void setRescaleFilter(const QString& v);
+    void setRescaleResolution(const QString& v);
+    void setCustomMuxerSettings(const QString& v);
+    void setAutoFileSplitting(bool v);
+    void setFileSplitMode(const QString& v);
+    void setRateControl(const QString& v);
+    void setBitrate(int v);
+    void setKeyframeInterval(int v);
+    void setEncoderPreset(const QString& v);
+    void setEncoderTuning(const QString& v);
+    void setMultipassMode(const QString& v);
+    void setEncoderProfile(const QString& v);
+    void setLookAhead(bool v);
+    void setAdaptiveQuantization(bool v);
+    void setBFrames(int v);
+    void setCustomEncoderOptions(const QString& v);
 
     void setRtmpUrl(const QString& v);
     void setStreamKey(const QString& v);
@@ -295,6 +358,27 @@ private:
     QString m_recordingFolder{};       // set to Videos/AuraCastPro in ctor
     QString m_recordingQuality{"source"};
     bool    m_autoRecord{false};
+    bool    m_generateFileNameWithoutSpace{false};
+    QString m_recordingFormat{"Matroska Video (.mkv)"};
+    QString m_videoEncoder{"NVIDIA NVENC H.264"};
+    QString m_audioEncoder{"FFmpeg AAC"};
+    int     m_audioTrackMask{1};       // Track 1 enabled by default
+    QString m_rescaleFilter{"Lanczos (Sharpened scaling, 36 samples)"};
+    QString m_rescaleResolution{"1920x1080"};
+    QString m_customMuxerSettings{};
+    bool    m_autoFileSplitting{false};
+    QString m_fileSplitMode{"Split by Time"};
+    QString m_rateControl{"Constant Bitrate"};
+    int     m_bitrate{50000};          // 50000 Kbps
+    int     m_keyframeInterval{0};     // 0 = auto
+    QString m_encoderPreset{"P7: Slowest (Best Quality)"};
+    QString m_encoderTuning{"High Quality"};
+    QString m_multipassMode{"Two Passes (Quarter Resolution)"};
+    QString m_encoderProfile{"high"};
+    bool    m_lookAhead{true};
+    bool    m_adaptiveQuantization{true};
+    int     m_bFrames{2};
+    QString m_customEncoderOptions{};
 
     // Streaming
     QString m_rtmpUrl{};

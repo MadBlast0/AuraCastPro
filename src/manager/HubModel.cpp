@@ -128,6 +128,11 @@ void HubModel::setPairingPin(const QString& pin) {
     AURA_LOG_INFO("HubModel", "Pairing PIN set: {}.", pin.toStdString());
 }
 
+void HubModel::updateVideoFrame(const QImage& frame) {
+    m_videoFrame = frame;
+    emit videoFrameChanged();
+}
+
 void HubModel::toggleRecording() {
     m_isRecording = !m_isRecording;
     AURA_LOG_INFO("HubModel", "QML requested toggleRecording(). now={}",

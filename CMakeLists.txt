@@ -142,6 +142,7 @@ set(SOURCES
     src/utils/DiagnosticsExporter.cpp
     src/utils/WindowsEventLog.cpp
     src/utils/AppDataInit.cpp
+    src/utils/BinaryPlist.cpp
 
     # Engine
     src/engine/AirPlay2Host.cpp
@@ -150,6 +151,8 @@ set(SOURCES
     src/engine/ADBServerLifecycle.cpp
     src/engine/ProtocolHandshake.cpp
     src/engine/ReceiverSocket.cpp
+    src/engine/TimingServer.cpp
+    src/engine/MirroringListener.cpp
     src/engine/PacketReorderCache.cpp
     src/engine/FECRecovery.cpp
     src/engine/NALParser.cpp
@@ -229,6 +232,7 @@ set(SOURCES
     src/manager/WindowsServices.cpp
     src/manager/FirstRunAndSplash.cpp
     src/manager/ProxySettings.cpp
+    src/manager/VideoFrameProvider.cpp
     src/manager/resources.qrc
 
     # Licensing

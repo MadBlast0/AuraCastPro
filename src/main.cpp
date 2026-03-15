@@ -19,6 +19,11 @@
 #include <QStandardPaths>
 #include <QTimer>
 #include <QTranslator>
+#include <QPainter>
+#include <QImage>
+#include <QColor>
+#include <QFont>
+#include <QMetaObject>
 
 #include "version_info.h"  // Task 024: auto-generated version header
 
@@ -48,12 +53,14 @@
 #include "engine/FECRecovery.h"
 #include "engine/FrameTimingQueue.h"
 #include "engine/H265Demuxer.h"
+#include "engine/MirroringListener.h"
 #include "engine/NALParser.h"
 #include "engine/NetworkPredictor.h"
 #include "engine/PacketReorderCache.h"
 #include "engine/ProtocolHandshake.h"
 #include "engine/ReceiverSocket.h"
 #include "engine/ReconnectManager.h"
+#include "engine/TimingServer.h"
 #include "engine/UDPServerThreadPool.h"
 #include "engine/VideoDecoder.h"
 
@@ -151,6 +158,8 @@ static std::unique_ptr<aura::NVENCWrapper> g_nvenc;
 // a shared_ptr so neither dangling-ref the other.
 static std::shared_ptr<aura::ReceiverSocket> g_sharedSocket;
 static std::unique_ptr<aura::UDPServerThreadPool> g_udpPool;
+static std::unique_ptr<aura::TimingServer> g_timingServer;
+static std::unique_ptr<MirroringListener> g_mirroringListener;
 static std::unique_ptr<aura::PacketReorderCache> g_reorderCache;
 static std::unique_ptr<aura::FECRecovery> g_fec;
 static std::unique_ptr<aura::NALParser> g_nalParser;
@@ -239,6 +248,12 @@ static void shutdownAll() {
         if (g_airplay) {
             g_airplay->shutdown();
             g_airplay.reset();
+        }
+    });
+    safe("MirroringListener", [&] {
+        if (g_mirroringListener) {
+            g_mirroringListener->stop();
+            g_mirroringListener.reset();
         }
     });
     safe("CastV2Host", [&] {
@@ -369,6 +384,12 @@ static void shutdownAll() {
             g_udpPool.reset();
         }
     });
+    safe("TimingServer", [&] {
+        if (g_timingServer) {
+            g_timingServer->stop();
+            g_timingServer.reset();
+        }
+    });
     safe("ReceiverSocket", [&] { g_sharedSocket.reset(); });
     safe("VideoDecoder", [&] {
         if (g_videoDecoder) {
@@ -481,13 +502,46 @@ int main(int argc, char* argv[]) {
         shutdownAll();
     });
 
-    // Handle Ctrl+C / console close / Windows session end
+    // Handle Ctrl+C / console close / Windows session end / logoff / shutdown
     SetConsoleCtrlHandler(
-        [](DWORD) -> BOOL {
-            QMetaObject::invokeMethod(qApp, &QCoreApplication::quit, Qt::QueuedConnection);
-            return TRUE;
+        [](DWORD dwCtrlType) -> BOOL {
+            switch (dwCtrlType) {
+                case CTRL_C_EVENT:
+                case CTRL_BREAK_EVENT:
+                case CTRL_CLOSE_EVENT:
+                case CTRL_LOGOFF_EVENT:
+                case CTRL_SHUTDOWN_EVENT:
+                    AURA_LOG_INFO("main", "Console control event {} received, initiating graceful shutdown...", dwCtrlType);
+                    // Give the app time to send goodbye packets
+                    QMetaObject::invokeMethod(qApp, &QCoreApplication::quit, Qt::QueuedConnection);
+                    // Wait a bit for cleanup (especially mDNS goodbye packets)
+                    Sleep(500);
+                    return TRUE;
+                default:
+                    return FALSE;
+            }
         },
         TRUE);
+
+    // Last resort: atexit handler for unexpected termination
+    // Note: This won't catch SIGKILL (Task Manager "End Task"), but will catch normal exits
+    std::atexit([]() {
+        static bool alreadyCalled = false;
+        if (!alreadyCalled) {
+            alreadyCalled = true;
+            AURA_LOG_INFO("main", "atexit handler called -- emergency shutdown");
+            // Quick shutdown of critical services (especially mDNS)
+            if (g_mdns) {
+                g_mdns->stop();  // Sends goodbye packets
+            }
+            if (g_airplay) {
+                g_airplay->stop();
+            }
+            if (g_cast) {
+                g_cast->stop();
+            }
+        }
+    });
 
     // Task 178: --minimised flag -- written to registry for auto-start at login.
     // When set, the app starts hidden in the system tray (no main window shown).
@@ -666,7 +720,7 @@ int main(int argc, char* argv[]) {
                                                               aura::VideoCodec::H265);
         g_videoDecoder->init();
 
-        // Wire: decoder frame output -> mirror window + virtual camera
+        // Wire: decoder frame output -> mirror window + virtual camera + dashboard
         g_videoDecoder->setFrameCallback([](const aura::DecodedFrame& frame) {
             if (g_mirrorWindow) {
                 if (frame.texture)
@@ -703,6 +757,29 @@ int main(int argc, char* argv[]) {
                 g_networkStats->incrementTotalFrames();
                 if (frame.wasDropped)
                     g_networkStats->incrementDroppedFrames();
+            }
+            
+            // Update dashboard video preview (every 2nd frame to reduce overhead)
+            static int dashboardFrameCount = 0;
+            if (g_hubWindow && g_hubWindow->hubModel() && ++dashboardFrameCount % 2 == 0) {
+                // TODO: Convert D3D12 texture to QImage
+                // For now, create a placeholder showing we're receiving decoded frames
+                QImage previewFrame(frame.width, frame.height, QImage::Format_RGB888);
+                previewFrame.fill(QColor(40, 40, 60));
+                
+                QPainter painter(&previewFrame);
+                painter.setPen(Qt::white);
+                painter.setFont(QFont("Arial", 16, QFont::Bold));
+                painter.drawText(previewFrame.rect(), Qt::AlignCenter, 
+                                QString("Decoding Video\n%1x%2 @ %3 FPS\nFrame #%4")
+                                .arg(frame.width)
+                                .arg(frame.height)
+                                .arg(g_networkStats ? QString::number(g_networkStats->fps(), 'f', 1) : "?")
+                                .arg(frame.frameIndex));
+                
+                QMetaObject::invokeMethod(g_hubWindow->hubModel(), "updateVideoFrame",
+                                        Qt::QueuedConnection,
+                                        Q_ARG(QImage, previewFrame));
             }
         });
     });
@@ -885,6 +962,35 @@ int main(int argc, char* argv[]) {
         g_udpPool = std::make_unique<aura::UDPServerThreadPool>(g_sharedSocket,
                                                                 /* numThreads = */ 0 /*auto*/);
         // No init() -- ready after construction
+    });
+
+    // 9d. Timing server for AirPlay NTP sync on UDP port 7000
+    SAFE_INIT("TimingServer", {
+        g_timingServer = std::make_unique<aura::TimingServer>(7100);
+    });
+
+    // 9e. Mirroring listener for AirPlay video stream on TCP port 7001
+    SAFE_INIT("MirroringListener", {
+        g_mirroringListener = std::make_unique<MirroringListener>(7001);
+        g_mirroringListener->setVideoDataCallback([](const uint8_t* header, size_t headerSize,
+                                                      const uint8_t* payload, size_t payloadSize) {
+            // Video data received from iPad over TCP
+            static int frameCount = 0;
+            frameCount++;
+            
+            if (frameCount % 30 == 0) {
+                AURA_LOG_INFO("main", "Encrypted video frame received: header={} bytes, payload={} bytes (frame #{})", 
+                              headerSize, payloadSize, frameCount);
+            }
+            
+            // TODO: Wire this to the decryption pipeline
+            // The payload is encrypted with AES-128-CTR using keys from the AirPlay pairing
+            // Flow should be: decrypt -> NALParser -> H265Demuxer -> VideoDecoder -> Dashboard
+            // For now, the VideoDecoder will show a placeholder when it receives decoded frames
+        });
+        if (!g_mirroringListener->start()) {
+            AURA_LOG_ERROR("main", "Failed to start MirroringListener");
+        }
     });
 
     // -- Step 10: Virtual camera + recording ---------------------------------
@@ -1107,6 +1213,12 @@ int main(int argc, char* argv[]) {
                     Qt::QueuedConnection);
             }
         });
+        
+        // NEW: Notify ReconnectManager when video packets are received over TCP
+        g_airplay->setVideoPacketCallback([]() {
+            if (g_reconnect)
+                g_reconnect->onPacketReceived();
+        });
     });
 
     SAFE_INIT("CastV2Host", {
@@ -1322,6 +1434,10 @@ int main(int argc, char* argv[]) {
     SAFE_INIT("UDPPool.start", {
         if (g_udpPool)
             g_udpPool->start();
+    });
+    SAFE_INIT("TimingServer.start", {
+        if (g_timingServer)
+            g_timingServer->start();
     });
     // MirrorWindow should NOT be started automatically here; it's started when a device connects.
 

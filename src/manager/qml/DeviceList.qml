@@ -10,22 +10,23 @@ Item {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 20
+        spacing: 22
 
+        // Header
         ColumnLayout {
             spacing: 5
             Text {
                 text: "Devices"
-                font.family: Theme.fontSans
-                font.pixelSize: Theme.fontSizeH2
+                font.family: "Inter"
+                font.pixelSize: 24
                 font.weight: Font.Bold
-                color: Theme.textPrimary
+                color: "#e8eef7"
             }
             Text {
                 text: "All devices on your network. They connect automatically — no PIN needed."
-                font.family: Theme.fontSans
-                font.pixelSize: Theme.fontSizeSM
-                color: Theme.textSecondary
+                font.family: "Inter"
+                font.pixelSize: 13
+                color: "#9cacbf"
             }
         }
 
@@ -39,13 +40,13 @@ Item {
             delegate: Rectangle {
                 width: ListView.view.width
                 height: 76
-                radius: Theme.radiusMD
-                color: model.isConnected ? Qt.rgba(0.48, 0.70, 1.0, 0.06) : Theme.bgCard
-                border.color: model.isConnected ? Theme.borderActive : Theme.borderNormal
+                radius: 12
+                color: model.isConnected ? "rgba(123, 179, 255, 0.07)" : "#1c2531"
+                border.color: model.isConnected ? "#7bb3ff" : "#3b4a5f"
                 border.width: 1
 
-                Behavior on color { ColorAnimation { duration: Theme.animNormal } }
-                Behavior on border.color { ColorAnimation { duration: Theme.animNormal } }
+                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on border.color { ColorAnimation { duration: 200 } }
 
                 RowLayout {
                     anchors.fill: parent
@@ -56,18 +57,16 @@ Item {
                     // Protocol pill
                     Rectangle {
                         width: 52; height: 26; radius: 13
-                        color: model.isConnected
-                               ? Qt.rgba(0.48, 0.70, 1.0, 0.18)
-                               : Theme.bgElevated
-                        border.color: model.isConnected ? Theme.borderActive : Theme.borderSubtle
+                        color: model.isConnected ? "rgba(123, 179, 255, 0.18)" : "#223044"
+                        border.color: model.isConnected ? "#7bb3ff" : "#2b3645"
                         border.width: 1
                         Text {
                             anchors.centerIn: parent
                             text: model.protocol ? model.protocol.toUpperCase() : "?"
-                            font.family: Theme.fontSans
+                            font.family: "Inter"
                             font.pixelSize: 10
                             font.weight: Font.Bold
-                            color: model.isConnected ? Theme.accent : Theme.textSecondary
+                            color: model.isConnected ? "#7bb3ff" : "#9cacbf"
                         }
                     }
 
@@ -76,30 +75,27 @@ Item {
                         spacing: 4
                         Text {
                             text: model.name || "Unknown Device"
-                            font.family: Theme.fontSans
-                            font.pixelSize: Theme.fontSizeMD
+                            font.family: "Inter"
+                            font.pixelSize: 14
                             font.weight: Font.DemiBold
-                            color: Theme.textPrimary
+                            color: "#e8eef7"
                             elide: Text.ElideRight
                         }
                         Text {
                             text: (model.ipAddress || "") +
                                   (model.modelIdentifier ? "  ·  " + model.modelIdentifier : "")
-                            font.family: Theme.fontSans
-                            font.pixelSize: Theme.fontSizeSM
-                            color: Theme.textSecondary
+                            font.family: "Inter"
+                            font.pixelSize: 12
+                            color: "#9cacbf"
                             elide: Text.ElideRight
                         }
                     }
 
-                    // Status indicator — no manual connect button
+                    // Status indicator
                     Rectangle {
                         width: stateTxt.width + 22; height: 30; radius: 15
-                        color: {
-                            if (model.isConnected) return Qt.rgba(0.49, 0.84, 0.69, 0.15)
-                            return Qt.rgba(1, 1, 1, 0.04)
-                        }
-                        border.color: model.isConnected ? Theme.accentGreen : Theme.borderSubtle
+                        color: model.isConnected ? "rgba(125, 215, 176, 0.15)" : "rgba(255, 255, 255, 0.04)"
+                        border.color: model.isConnected ? "#7dd7b0" : "#2b3645"
                         border.width: 1
 
                         RowLayout {
@@ -107,16 +103,16 @@ Item {
                             spacing: 6
                             Rectangle {
                                 width: 6; height: 6; radius: 3
-                                color: model.isConnected ? Theme.accentGreen : Theme.textDisabled
+                                color: model.isConnected ? "#7dd7b0" : "#6f7d90"
                                 visible: model.isConnected
                             }
                             Text {
                                 id: stateTxt
                                 text: model.isConnected ? "Mirroring" : "Waiting"
-                                font.family: Theme.fontSans
-                                font.pixelSize: Theme.fontSizeSM
+                                font.family: "Inter"
+                                font.pixelSize: 12
                                 font.weight: Font.Medium
-                                color: model.isConnected ? Theme.accentGreen : Theme.textDisabled
+                                color: model.isConnected ? "#7dd7b0" : "#6f7d90"
                             }
                         }
                     }
@@ -128,9 +124,9 @@ Item {
                 anchors.centerIn: parent
                 visible: parent.count === 0
                 width: 300; height: 140
-                radius: Theme.radiusLG
-                color: Theme.bgCard
-                border.color: Theme.borderSubtle
+                radius: 12
+                color: "#1c2531"
+                border.color: "#3b4a5f"
                 border.width: 1
 
                 Column {
@@ -138,17 +134,17 @@ Item {
                     spacing: 10
                     Text {
                         text: "No devices yet"
-                        font.family: Theme.fontSans
-                        font.pixelSize: Theme.fontSizeMD
+                        font.family: "Inter"
+                        font.pixelSize: 14
                         font.weight: Font.DemiBold
-                        color: Theme.textPrimary
+                        color: "#e8eef7"
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
                     Text {
                         text: "Make sure your phone and PC\nare on the same Wi-Fi network."
-                        font.family: Theme.fontSans
-                        font.pixelSize: Theme.fontSizeSM
-                        color: Theme.textSecondary
+                        font.family: "Inter"
+                        font.pixelSize: 12
+                        color: "#9cacbf"
                         horizontalAlignment: Text.AlignHCenter
                         anchors.horizontalCenter: parent.horizontalCenter
                     }

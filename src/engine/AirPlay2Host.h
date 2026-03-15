@@ -13,6 +13,9 @@
 
 namespace aura {
 
+// Forward declarations
+struct AirPlaySessionState;
+
 struct AirPlaySessionInfo {
     std::string deviceId;
     std::string deviceName;
@@ -31,6 +34,7 @@ public:
     // Fired after SRP-6a verify completes: true = paired, false = wrong PIN
     using SessionPausedCallback   = std::function<void(const std::string& deviceId)>;
     using PairingResultCallback   = std::function<void(bool success)>;
+    using VideoPacketCallback     = std::function<void()>;  // Called when video packet received
 
     AirPlay2Host();
     ~AirPlay2Host();
@@ -49,6 +53,7 @@ public:
     void setSessionPausedCallback(SessionPausedCallback cb);
     void setPinRequestCallback(PinRequestCallback cb);
     void setPairingResultCallback(PairingResultCallback cb);  // NEW
+    void setVideoPacketCallback(VideoPacketCallback cb);      // NEW - for ReconnectManager
 
     // Decrypt an AES-128-CTR video packet in-place (called by receiver pipeline)
     static void decryptVideoPacket(uint8_t* data, int len,
@@ -72,9 +77,11 @@ private:
     SessionPausedCallback  m_onSessionPaused;
     PinRequestCallback     m_onPinRequest;
     PairingResultCallback  m_onPairingResult;  // NEW
+    VideoPacketCallback    m_onVideoPacketReceived;  // NEW
 
     void acceptLoop();
     void handleSession(int clientSocket, std::string clientIp);
+    void handleVideoStream(unsigned long long sock, struct AirPlaySessionState& session);
 };
 
 } // namespace aura

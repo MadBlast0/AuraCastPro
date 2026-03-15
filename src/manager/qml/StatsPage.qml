@@ -15,76 +15,74 @@ Item {
         spacing: 22
 
         // Header
-        ColumnLayout {
-            spacing: 5
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
             
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
+                spacing: 5
                 
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 5
+                Text {
+                    text: "Statistics"
+                    font.family: "Inter"
+                    font.pixelSize: 24
+                    font.weight: Font.Bold
+                    color: "#e8eef7"
+                }
+                Text {
+                    text: "Real-time performance metrics and network analysis"
+                    font.family: "Inter"
+                    font.pixelSize: 13
+                    color: "#9cacbf"
+                }
+            }
+            
+            Item { Layout.fillWidth: true }
+            
+            // Stats Overlay Toggle
+            Rectangle {
+                width: overlayContent.width + 20
+                height: 36
+                radius: 6
+                color: statsOverlayEnabled ? "#7bb3ff" : "#223044"
+                
+                property bool statsOverlayEnabled: false
+                
+                RowLayout {
+                    id: overlayContent
+                    anchors.centerIn: parent
+                    spacing: 8
                     
                     Text {
-                        text: "Network Statistics"
-                        font.family: Theme.fontSans
-                        font.pixelSize: Theme.fontSizeH2
-                        font.weight: Font.Bold
-                        color: Theme.textPrimary
+                        text: "📊"
+                        font.pixelSize: 13
                     }
+                    
                     Text {
-                        text: "Real-time performance metrics and network analysis"
-                        font.family: Theme.fontSans
-                        font.pixelSize: Theme.fontSizeSM
-                        color: Theme.textSecondary
+                        text: "Stats Overlay"
+                        font.family: "Inter"
+                        font.pixelSize: 13
+                        font.weight: Font.Medium
+                        color: parent.parent.statsOverlayEnabled ? "white" : "#e8eef7"
                     }
                 }
                 
-                // Stats Overlay Toggle - macOS style
-                Rectangle {
-                    width: overlayContent.width + 16
-                    height: 28
-                    radius: 6
-                    color: statsOverlayEnabled ? Theme.accent : Theme.bgElevated
-                    
-                    property bool statsOverlayEnabled: false
-                    
-                    RowLayout {
-                        id: overlayContent
-                        anchors.centerIn: parent
-                        spacing: 6
-                        
-                        Text {
-                            text: "📊"
-                            font.pixelSize: 13
-                            color: parent.parent.statsOverlayEnabled ? "white" : Theme.textPrimary
-                        }
-                        
-                        Text {
-                            text: "Stats Overlay"
-                            font.family: Theme.fontSans
-                            font.pixelSize: 13
-                            font.weight: Font.Medium
-                            color: parent.parent.statsOverlayEnabled ? "white" : Theme.textPrimary
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+                    onClicked: {
+                        parent.statsOverlayEnabled = !parent.statsOverlayEnabled
+                    }
+                    onEntered: {
+                        if (!parent.statsOverlayEnabled) {
+                            parent.color = "#263243"
                         }
                     }
-                    
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        hoverEnabled: true
-                        onClicked: {
-                            parent.statsOverlayEnabled = !parent.statsOverlayEnabled
-                        }
-                        onEntered: {
-                            if (!parent.statsOverlayEnabled) {
-                                parent.color = Theme.bgHover
-                            }
-                        }
-                        onExited: {
-                            if (!parent.statsOverlayEnabled) {
-                                parent.color = Theme.bgElevated
-                            }
+                    onExited: {
+                        if (!parent.statsOverlayEnabled) {
+                            parent.color = "#223044"
                         }
                     }
                 }
@@ -98,7 +96,7 @@ Item {
 
             Repeater {
                 model: [
-                    { label: "Bitrate",     value: statsModel ? Theme.formatBitrate(statsModel.bitrateKbps) : "—" },
+                    { label: "Bitrate",     value: statsModel ? (statsModel.bitrateKbps / 1000).toFixed(1) + " Mbps" : "—" },
                     { label: "Latency",     value: statsModel ? statsModel.latencyMs.toFixed(0) + " ms" : "—" },
                     { label: "FPS",         value: statsModel ? statsModel.fps.toFixed(1) : "—" },
                     { label: "Packet Loss", value: statsModel ? statsModel.packetLossPct.toFixed(1) + "%" : "—" }
@@ -136,8 +134,8 @@ Item {
         property string value: "\u2014"
         height: 88
         radius: 12
-        color: Theme.bgCard
-        border.color: Theme.borderNormal
+        color: "#1c2531"
+        border.color: "#3b4a5f"
         border.width: 1
         ColumnLayout {
             anchors.fill: parent
@@ -145,19 +143,19 @@ Item {
             spacing: 6
             Text {
                 text: card.label
-                font.family: Theme.fontSans
+                font.family: "Inter"
                 font.pixelSize: 11
                 font.weight: Font.Medium
-                color: Theme.textSecondary
+                color: "#9cacbf"
                 opacity: 0.8
             }
             Item { Layout.fillHeight: true }
             Text {
                 text: card.value
-                font.family: Theme.fontSans
+                font.family: "Inter"
                 font.pixelSize: 24
                 font.weight: Font.Bold
-                color: Theme.textPrimary
+                color: "#e8eef7"
             }
         }
     }

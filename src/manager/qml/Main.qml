@@ -38,42 +38,6 @@ Rectangle {
                     anchors.fill: parent
                     spacing: 0
 
-                    // Logo area
-                    Rectangle {
-                        height: 80
-                        Layout.fillWidth: true
-                        color: "#0e131a"
-
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            height: 1
-                            color: "#2b3645"
-                        }
-
-                        Column {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 20
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 3
-
-                            Text {
-                                text: "AuraCast Pro"
-                                font.family: "Inter"
-                                font.pixelSize: 18
-                                font.weight: Font.Bold
-                                color: "#e8eef7"
-                            }
-                            Text {
-                                text: "v1.0.0"
-                                font.family: "Inter"
-                                font.pixelSize: 10
-                                color: "#6f7d90"
-                            }
-                        }
-                    }
-
                     Item { height: 16 }
 
                     // Nav items
@@ -146,11 +110,6 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: 0
-
-                // Top header bar
-                AppHeader {
-                    Layout.fillWidth: true
-                }
 
                 // Content area
                 StackLayout {

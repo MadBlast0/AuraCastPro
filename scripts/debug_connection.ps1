@@ -17,14 +17,14 @@ if ($process) {
     exit
 }
 
-# Monitor TCP connections on port 7236
-Write-Host "`nMonitoring TCP port 7236 (AirPlay)..." -ForegroundColor Cyan
+# Monitor TCP connections on port 7000
+Write-Host "`nMonitoring TCP port 7000 (AirPlay)..." -ForegroundColor Cyan
 Write-Host "Press Ctrl+C to stop`n" -ForegroundColor Gray
 
 $lastConnections = @()
 
 while ($true) {
-    $connections = netstat -ano | Select-String ":7236.*ESTABLISHED"
+    $connections = netstat -ano | Select-String ":7000.*ESTABLISHED"
     
     if ($connections) {
         foreach ($conn in $connections) {
@@ -35,7 +35,7 @@ while ($true) {
                 Write-Host "  $connStr" -ForegroundColor White
                 
                 # Extract remote IP
-                if ($connStr -match '(\d+\.\d+\.\d+\.\d+):7236\s+(\d+\.\d+\.\d+\.\d+):(\d+)') {
+                if ($connStr -match '(\d+\.\d+\.\d+\.\d+):7000\s+(\d+\.\d+\.\d+\.\d+):(\d+)') {
                     $remoteIP = $matches[2]
                     $remotePort = $matches[3]
                     Write-Host "  Remote device: $remoteIP:$remotePort" -ForegroundColor Cyan

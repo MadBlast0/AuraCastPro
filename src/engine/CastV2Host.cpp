@@ -281,6 +281,11 @@ void CastV2Host::start() {
     }
 
     AURA_LOG_INFO("CastV2Host", "Listening on TCP 0.0.0.0:{} (TLS)", CAST_PORT);
+    
+    // Enable mirroring by default so devices can connect immediately
+    m_mirroringActive.store(true, std::memory_order_relaxed);
+    AURA_LOG_INFO("CastV2Host", "Mirroring active - ready to accept connections");
+    
     m_acceptThread = std::thread([this]() { acceptLoop(); });
 }
 

@@ -31,13 +31,13 @@
 namespace aura {
 
 namespace {
-constexpr const char* kAirPlayFeatures = "0x5A7FFEE6";
+constexpr const char* kAirPlayFeatures = "0x5A7FFFF7,0x1E";
 constexpr const char* kAirPlayFlags    = "0x84";
 constexpr const char* kAirPlayVV       = "2";
 constexpr const char* kRaopTxtVers     = "1";
 constexpr const char* kRaopChannels    = "2";
 constexpr const char* kRaopCodecs      = "0,1,2,3";
-constexpr const char* kRaopEncryption  = "0,3,5";
+constexpr const char* kRaopEncryption  = "0";
 constexpr const char* kRaopRhd         = "5.6.0.0";
 constexpr const char* kRaopSf          = "0x4";
 constexpr const char* kRaopSv          = "false";
@@ -315,9 +315,10 @@ static std::vector<ServiceDefinition> buildServices(const std::string& displayNa
         txt << "flags=" << kAirPlayFlags << "\n";
         txt << "vv=" << kAirPlayVV << "\n";
         txt << "pw=false\n";
-        txt << "model=AppleTV3,2\n";
+        txt << "model=AppleTV5,3\n";
         txt << "pi=" << piUUID << "\n";
-        txt << "pk=" << pkHex << "\n";
+        // txt << "pk=" << pkHex << "\n";  // REMOVED: pk makes iOS think password is required
+        txt << "statusFlags=0x4\n";
         airplayTxt = txt.str();
     }
 
@@ -331,7 +332,7 @@ static std::vector<ServiceDefinition> buildServices(const std::string& displayNa
         txt << "et=" << kRaopEncryption << "\n";
         txt << "vv=" << kAirPlayVV << "\n";
         txt << "ft=" << kAirPlayFeatures << "\n";
-        txt << "am=AppleTV3,2\n";
+        txt << "am=AppleTV5,3\n";
         txt << "md=" << kRaopMd << "\n";
         txt << "rhd=" << kRaopRhd << "\n";
         txt << "pw=false\n";
@@ -342,7 +343,7 @@ static std::vector<ServiceDefinition> buildServices(const std::string& displayNa
         txt << "tp=" << kRaopTp << "\n";
         txt << "vs=220.68\n";
         txt << "vn=" << kRaopVn << "\n";
-        txt << "pk=" << pkHex << "\n";
+        // txt << "pk=" << pkHex << "\n";  // REMOVED: pk makes iOS think password is required
         raopTxt = txt.str();
     }
 
@@ -368,8 +369,8 @@ static std::vector<ServiceDefinition> buildServices(const std::string& displayNa
         castTxt = txt.str();
     }
 
-    services.push_back({displayName, "_airplay._tcp", sanitizeHostLabel(displayName), 7236, encodeTxtRecord(airplayTxt)});
-    services.push_back({mac + "@" + displayName, "_raop._tcp", sanitizeHostLabel(displayName), 7236, encodeTxtRecord(raopTxt)});
+    services.push_back({displayName, "_airplay._tcp", sanitizeHostLabel(displayName), 7100, encodeTxtRecord(airplayTxt)});
+    services.push_back({mac + "@" + displayName, "_raop._tcp", sanitizeHostLabel(displayName), 7100, encodeTxtRecord(raopTxt)});
     services.push_back({displayName, "_googlecast._tcp", sanitizeHostLabel(displayName), 8009, encodeTxtRecord(castTxt)});
 
     for (const auto& extra : extraRecords) {
@@ -426,8 +427,14 @@ void MDNSService::buildCastTxtRecord(std::string& out) const {
 }
 
 void MDNSService::start() {
-    if (m_running.exchange(true)) return;
+    AURA_LOG_INFO("MDNSService", "=== START CALLED ===");
+    
+    if (m_running.exchange(true)) {
+        AURA_LOG_WARN("MDNSService", "Already running, ignoring start() call");
+        return;
+    }
 
+    AURA_LOG_INFO("MDNSService", "Initializing Winsock for mDNS...");
     WSADATA wsa{};
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         m_running = false;
@@ -435,7 +442,9 @@ void MDNSService::start() {
         return;
     }
     m_runtime->winsockStarted = true;
+    AURA_LOG_INFO("MDNSService", "Winsock initialized");
 
+    AURA_LOG_INFO("MDNSService", "Detecting local IP address...");
     m_runtime->localIp = NetworkTools::bestLocalIPv4();
     if (m_runtime->localIp.empty() || m_runtime->localIp == "127.0.0.1") {
         m_running = false;
@@ -446,7 +455,9 @@ void MDNSService::start() {
             "Make sure you're connected to Wi-Fi or Ethernet.");
         return;
     }
+    AURA_LOG_INFO("MDNSService", "=== LOCAL IP: {} ===", m_runtime->localIp);
 
+    AURA_LOG_INFO("MDNSService", "Creating UDP socket...");
     SOCKET sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock == INVALID_SOCKET) {
         m_running = false;
@@ -455,10 +466,13 @@ void MDNSService::start() {
         AURA_LOG_ERROR("MDNSService", "socket() failed for built-in mDNS: {}", WSAGetLastError());
         return;
     }
+    AURA_LOG_INFO("MDNSService", "Socket created: {}", sock);
 
+    AURA_LOG_INFO("MDNSService", "Setting SO_REUSEADDR...");
     BOOL reuse = TRUE;
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse), sizeof(reuse));
 
+    AURA_LOG_INFO("MDNSService", "Binding to 0.0.0.0:5353...");
     sockaddr_in bindAddr{};
     bindAddr.sin_family = AF_INET;
     bindAddr.sin_port = htons(kMDNSPort);
@@ -475,15 +489,20 @@ void MDNSService::start() {
         m_runtime->winsockStarted = false;
         return;
     }
+    AURA_LOG_INFO("MDNSService", "Bind successful");
 
+    AURA_LOG_INFO("MDNSService", "Joining multicast group 224.0.0.251...");
     ip_mreq membership{};
     membership.imr_multiaddr.s_addr = inet_addr("224.0.0.251");
     membership.imr_interface.s_addr = inet_addr(m_runtime->localIp.c_str());
     if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
             reinterpret_cast<const char*>(&membership), sizeof(membership)) != 0) {
         AURA_LOG_WARN("MDNSService", "IP_ADD_MEMBERSHIP failed: {}", WSAGetLastError());
+    } else {
+        AURA_LOG_INFO("MDNSService", "Joined multicast group successfully");
     }
 
+    AURA_LOG_INFO("MDNSService", "Setting socket options...");
     const DWORD timeoutMs = 1000;
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeoutMs), sizeof(timeoutMs));
 
@@ -497,11 +516,16 @@ void MDNSService::start() {
     m_runtime->socket = sock;
     m_runtime->lastAnnounce = std::chrono::steady_clock::now() - kPeriodicAnnounce;
 
+    AURA_LOG_INFO("MDNSService", "=== MDNS FULLY CONFIGURED - SPAWNING WORKER THREAD ===");
+
     m_runtime->worker = std::thread([this]() {
+        AURA_LOG_INFO("MDNSService", "=== mDNS Worker Thread Started ===");
+        
         const auto multicastIp = std::string("224.0.0.251");
 
         auto collectServices = [&]() {
             std::lock_guard<std::mutex> lock(m_mutex);
+            AURA_LOG_DEBUG("MDNSService", "Collecting services for advertisement");
             return buildServices(m_displayName, m_extraRecords);
         };
 
@@ -510,9 +534,10 @@ void MDNSService::start() {
             dest.sin_family = AF_INET;
             dest.sin_port = htons(kMDNSPort);
             dest.sin_addr.s_addr = inet_addr(destIp.c_str());
-            sendto(m_runtime->socket, reinterpret_cast<const char*>(packet.data()),
+            int sent = sendto(m_runtime->socket, reinterpret_cast<const char*>(packet.data()),
                 static_cast<int>(packet.size()), 0,
                 reinterpret_cast<const sockaddr*>(&dest), sizeof(dest));
+            AURA_LOG_DEBUG("MDNSService", "Sent {} bytes to {} (result: {})", packet.size(), destIp, sent);
         };
 
         auto buildResponse = [&](uint16_t queryId, bool goodbye) {
@@ -582,14 +607,24 @@ void MDNSService::start() {
         };
 
         auto announce = [&](bool goodbye) {
-            const auto packet = buildResponse(0, goodbye);
-            sendPacket(packet, multicastIp);
-            AURA_LOG_INFO("MDNSService", "{} AirPlay/Cast via built-in mDNS on {}",
-                goodbye ? "Goodbye announced for" : "Broadcasting",
-                m_runtime->localIp);
+            try {
+                AURA_LOG_INFO("MDNSService", "Building {} packet...", goodbye ? "goodbye" : "announcement");
+                const auto packet = buildResponse(0, goodbye);
+                AURA_LOG_INFO("MDNSService", "Packet built: {} bytes", packet.size());
+                sendPacket(packet, multicastIp);
+                AURA_LOG_INFO("MDNSService", "{} AirPlay/Cast via built-in mDNS on {}",
+                    goodbye ? "Goodbye announced for" : "Broadcasting",
+                    m_runtime->localIp);
+            } catch (const std::exception& e) {
+                AURA_LOG_ERROR("MDNSService", "Exception in announce: {}", e.what());
+            } catch (...) {
+                AURA_LOG_ERROR("MDNSService", "Unknown exception in announce");
+            }
         };
 
+        AURA_LOG_INFO("MDNSService", "Sending initial announcement...");
         announce(false);
+        AURA_LOG_INFO("MDNSService", "Initial announcement sent, entering receive loop...");
 
         std::vector<uint8_t> buf(2048);
         while (m_running.load()) {
@@ -646,6 +681,65 @@ void MDNSService::start() {
 
 void MDNSService::stop() {
     if (!m_running.exchange(false)) return;
+
+    // Send goodbye packets immediately before closing socket
+    // This ensures devices are notified even if the worker thread is busy
+    if (m_runtime->socket != INVALID_SOCKET && !m_runtime->localIp.empty()) {
+        try {
+            const auto services = buildServices(m_displayName, m_extraRecords);
+            const std::string hostName = fqdn(sanitizeHostLabel(m_displayName));
+            
+            // Build goodbye packet (TTL=0)
+            std::vector<uint8_t> goodbyePacket;
+            appendU16(goodbyePacket, 0);  // Transaction ID
+            appendU16(goodbyePacket, kResponseFlags);  // Flags
+            appendU16(goodbyePacket, 0);  // Questions
+            
+            // Count answers
+            uint16_t answerCount = 3;  // _services PTR records
+            for (const auto& service : services) {
+                answerCount += 3;  // PTR + SRV + TXT per service
+            }
+            answerCount += 1;  // A record
+            appendU16(goodbyePacket, answerCount);
+            appendU16(goodbyePacket, 0);  // Authority
+            appendU16(goodbyePacket, 0);  // Additional
+            
+            // Add all records with TTL=0
+            appendResourceRecord(goodbyePacket, "_services._dns-sd._udp.local", kTypePTR, kClassIN, 0, makePtrData("_airplay._tcp.local"));
+            appendResourceRecord(goodbyePacket, "_services._dns-sd._udp.local", kTypePTR, kClassIN, 0, makePtrData("_raop._tcp.local"));
+            appendResourceRecord(goodbyePacket, "_services._dns-sd._udp.local", kTypePTR, kClassIN, 0, makePtrData("_googlecast._tcp.local"));
+            
+            for (const auto& service : services) {
+                const std::string serviceFqdn = fqdn(service.serviceType);
+                const std::string instanceFqdn = fqdn(service.instanceName + "." + service.serviceType);
+                const std::string hostFqdn = fqdn(service.hostName);
+                appendResourceRecord(goodbyePacket, serviceFqdn, kTypePTR, kClassIN, 0, makePtrData(instanceFqdn));
+                appendResourceRecord(goodbyePacket, instanceFqdn, kTypeSRV, kClassIN | 0x8000, 0, makeSrvData(service.port, hostFqdn));
+                appendResourceRecord(goodbyePacket, instanceFqdn, kTypeTXT, kClassIN, 0, service.txtRecord);
+            }
+            
+            appendResourceRecord(goodbyePacket, hostName, kTypeA, kClassIN | 0x8000, 0, makeAData(m_runtime->localIp));
+            
+            // Send goodbye packet to multicast address
+            sockaddr_in dest{};
+            dest.sin_family = AF_INET;
+            dest.sin_port = htons(kMDNSPort);
+            dest.sin_addr.s_addr = inet_addr("224.0.0.251");
+            
+            // Send multiple times to ensure delivery
+            for (int i = 0; i < 3; ++i) {
+                sendto(m_runtime->socket, reinterpret_cast<const char*>(goodbyePacket.data()),
+                       static_cast<int>(goodbyePacket.size()), 0,
+                       reinterpret_cast<const sockaddr*>(&dest), sizeof(dest));
+                if (i < 2) Sleep(50);  // Small delay between sends
+            }
+            
+            AURA_LOG_INFO("MDNSService", "Sent goodbye packets (TTL=0) to notify devices of shutdown");
+        } catch (...) {
+            // Ignore errors during shutdown
+        }
+    }
 
     if (m_runtime->socket != INVALID_SOCKET) {
         closesocket(m_runtime->socket);

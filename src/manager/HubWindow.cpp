@@ -6,6 +6,12 @@
 
 #include "HubWindow.h"
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+
 #include <QAction>
 #include <QApplication>
 #include <QCloseEvent>
@@ -21,6 +27,7 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQuickItem>
+#include <QQuickStyle>
 #include <QQuickWidget>
 #include <QSystemTrayIcon>
 #include <QTimer>
@@ -36,18 +43,33 @@
 #include "NetworkStatsModel.h"
 #include "PerformanceOverlay.h"
 #include "SettingsModel.h"
+#include "VideoFrameProvider.h"
 
 
 namespace aura {
 
 // ── Constructor ───────────────────────────────────────────────────────────────
 HubWindow::HubWindow(QWidget* parent) : QMainWindow(parent) {
+    // Set Qt Quick Controls style to Basic (allows full customization)
+    QQuickStyle::setStyle("Basic");
+    
     setWindowTitle("AuraCastPro");
     resize(1280, 800);
     setMinimumSize(900, 600);
     
-    // Remove native title bar - keep solid background
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    // Use standard window with title bar
+    setWindowFlags(Qt::Window);
+    
+    // Set dark title bar on Windows 10/11
+    #ifdef Q_OS_WIN
+    HWND hwnd = reinterpret_cast<HWND>(winId());
+    BOOL useDarkMode = TRUE;
+    // Windows 11 and Windows 10 20H1+
+    DwmSetWindowAttribute(hwnd, 20, &useDarkMode, sizeof(useDarkMode)); // DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+    // Set title bar color to match app theme (#151c25)
+    COLORREF titleBarColor = RGB(0x15, 0x1c, 0x25);
+    DwmSetWindowAttribute(hwnd, 35, &titleBarColor, sizeof(titleBarColor)); // DWMWA_CAPTION_COLOR = 35
+    #endif
 }
 
 HubWindow::~HubWindow() {
@@ -104,6 +126,10 @@ void HubWindow::setupQmlEngine() {
     
     // Register Theme as a singleton type
     qmlRegisterSingletonType(QUrl("qrc:/qml/Theme.qml"), "AuraCastPro", 1, 0, "Theme");
+    
+    // Register video frame image provider
+    auto* videoProvider = new VideoFrameProvider();
+    m_view->engine()->addImageProvider("videoframe", videoProvider);
     
     AURA_LOG_INFO("HubWindow", "QML import paths configured, Theme singleton registered");
 

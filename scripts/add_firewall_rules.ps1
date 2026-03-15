@@ -2,7 +2,7 @@
 # add_firewall_rules.ps1 — Add Windows Firewall rules for AuraCastPro
 #
 # This script is called by the NSIS installer with elevated privileges.
-# It adds inbound firewall rules for AirPlay (UDP 7236, TCP 7000),
+# It adds inbound firewall rules for AirPlay (TCP 7000, UDP 7001/7002),
 # Google Cast (TCP/UDP 8009), and mDNS (UDP 5353).
 #
 # Safe to run multiple times — rules are removed before re-adding.
@@ -21,11 +21,11 @@ if (-not $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
 
 $appName = "AuraCastPro"
 $rules = @(
-    @{ Name="$appName AirPlay RTSP"; Protocol="TCP"; Port=7236; Direction="Inbound" },  # RTSP control
-    @{ Name="$appName AirPlay HTTP"; Protocol="TCP"; Port=7000; Direction="Inbound" },  # AirPlay HTTP
+    @{ Name="$appName AirPlay RTSP"; Protocol="TCP"; Port=7000; Direction="Inbound" },  # RTSP control (standard iOS port)
+    @{ Name="$appName AirPlay Timing 1"; Protocol="UDP"; Port=7001; Direction="Inbound" },  # Timing sync
+    @{ Name="$appName AirPlay Timing 2"; Protocol="UDP"; Port=7002; Direction="Inbound" },  # Timing sync
     @{ Name="$appName AirPlay RTP Video"; Protocol="UDP"; Port=7010; Direction="Inbound" },  # Video RTP
     @{ Name="$appName AirPlay RTP Audio"; Protocol="UDP"; Port=7011; Direction="Inbound" },  # Audio RTP
-    @{ Name="$appName AirPlay Timing";    Protocol="UDP"; Port=7238; Direction="Inbound" },  # NTP timing
     @{ Name="$appName Cast TCP";     Protocol="TCP"; Port=8009; Direction="Inbound" },
     @{ Name="$appName Cast UDP";     Protocol="UDP"; Port=8009; Direction="Inbound" },
     @{ Name="$appName mDNS";         Protocol="UDP"; Port=5353; Direction="Inbound" },

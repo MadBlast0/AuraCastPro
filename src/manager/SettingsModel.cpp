@@ -94,6 +94,27 @@ void SettingsModel::load() {
             m_recordingQuality = QString::fromStdString(s.value("quality", m_recordingQuality.toStdString()));
             m_diskWarnGb       = s.value("diskWarnGb", m_diskWarnGb);
             m_autoRecord       = s.value("autoRecord", m_autoRecord);
+            m_generateFileNameWithoutSpace = s.value("generateFileNameWithoutSpace", m_generateFileNameWithoutSpace);
+            m_recordingFormat  = QString::fromStdString(s.value("format", m_recordingFormat.toStdString()));
+            m_videoEncoder     = QString::fromStdString(s.value("videoEncoder", m_videoEncoder.toStdString()));
+            m_audioEncoder     = QString::fromStdString(s.value("audioEncoder", m_audioEncoder.toStdString()));
+            m_audioTrackMask   = s.value("audioTrackMask", m_audioTrackMask);
+            m_rescaleFilter    = QString::fromStdString(s.value("rescaleFilter", m_rescaleFilter.toStdString()));
+            m_rescaleResolution= QString::fromStdString(s.value("rescaleResolution", m_rescaleResolution.toStdString()));
+            m_customMuxerSettings = QString::fromStdString(s.value("customMuxerSettings", m_customMuxerSettings.toStdString()));
+            m_autoFileSplitting= s.value("autoFileSplitting", m_autoFileSplitting);
+            m_fileSplitMode    = QString::fromStdString(s.value("fileSplitMode", m_fileSplitMode.toStdString()));
+            m_rateControl      = QString::fromStdString(s.value("rateControl", m_rateControl.toStdString()));
+            m_bitrate          = s.value("bitrate", m_bitrate);
+            m_keyframeInterval = s.value("keyframeInterval", m_keyframeInterval);
+            m_encoderPreset    = QString::fromStdString(s.value("encoderPreset", m_encoderPreset.toStdString()));
+            m_encoderTuning    = QString::fromStdString(s.value("encoderTuning", m_encoderTuning.toStdString()));
+            m_multipassMode    = QString::fromStdString(s.value("multipassMode", m_multipassMode.toStdString()));
+            m_encoderProfile   = QString::fromStdString(s.value("encoderProfile", m_encoderProfile.toStdString()));
+            m_lookAhead        = s.value("lookAhead", m_lookAhead);
+            m_adaptiveQuantization = s.value("adaptiveQuantization", m_adaptiveQuantization);
+            m_bFrames          = s.value("bFrames", m_bFrames);
+            m_customEncoderOptions = QString::fromStdString(s.value("customEncoderOptions", m_customEncoderOptions.toStdString()));
         }
         // Streaming
         if (j.contains("streaming")) {
@@ -189,6 +210,27 @@ void SettingsModel::save() const {
     j["recording"]["quality"]           = m_recordingQuality.toStdString();
     j["recording"]["autoRecord"]        = m_autoRecord;
     j["recording"]["diskWarnGb"]        = m_diskWarnGb;
+    j["recording"]["generateFileNameWithoutSpace"] = m_generateFileNameWithoutSpace;
+    j["recording"]["format"]            = m_recordingFormat.toStdString();
+    j["recording"]["videoEncoder"]      = m_videoEncoder.toStdString();
+    j["recording"]["audioEncoder"]      = m_audioEncoder.toStdString();
+    j["recording"]["audioTrackMask"]    = m_audioTrackMask;
+    j["recording"]["rescaleFilter"]     = m_rescaleFilter.toStdString();
+    j["recording"]["rescaleResolution"] = m_rescaleResolution.toStdString();
+    j["recording"]["customMuxerSettings"] = m_customMuxerSettings.toStdString();
+    j["recording"]["autoFileSplitting"] = m_autoFileSplitting;
+    j["recording"]["fileSplitMode"]     = m_fileSplitMode.toStdString();
+    j["recording"]["rateControl"]       = m_rateControl.toStdString();
+    j["recording"]["bitrate"]           = m_bitrate;
+    j["recording"]["keyframeInterval"]  = m_keyframeInterval;
+    j["recording"]["encoderPreset"]     = m_encoderPreset.toStdString();
+    j["recording"]["encoderTuning"]     = m_encoderTuning.toStdString();
+    j["recording"]["multipassMode"]     = m_multipassMode.toStdString();
+    j["recording"]["encoderProfile"]    = m_encoderProfile.toStdString();
+    j["recording"]["lookAhead"]         = m_lookAhead;
+    j["recording"]["adaptiveQuantization"] = m_adaptiveQuantization;
+    j["recording"]["bFrames"]           = m_bFrames;
+    j["recording"]["customEncoderOptions"] = m_customEncoderOptions.toStdString();
 
     j["streaming"]["rtmpUrl"]             = m_rtmpUrl.toStdString();
     // streamKey is stored encrypted in SecurityVault, not in the JSON file
@@ -237,7 +279,7 @@ void SettingsModel::resetToDefaults() {
     m_virtualAudioEnabled = false; m_deviceVolume = 1.0; m_micVolume = 0.7;
     m_avSyncOffsetMs      = 0;     m_outputDeviceId = {};
     m_maxBitrateKbps      = 20000; m_fecEnabled = true; m_jitterBufferMs = 50;
-    m_airplayPort         = 7236;  m_castPort = 8009;
+    m_airplayPort         = 7000;  m_castPort = 8009;
     m_selectedNetworkIface= {};    m_networkThreadCount = 0;
     m_recordingQuality    = "source"; m_autoRecord = false;
     m_rtmpUrl             = {};    m_streamKey = {};
@@ -294,6 +336,27 @@ void SettingsModel::setNetworkThreadCount(int v)         { if (m_networkThreadCo
 void SettingsModel::setRecordingFolder(const QString& v) { if (m_recordingFolder == v) return; m_recordingFolder = v; save(); emit recordingChanged(); }
 void SettingsModel::setRecordingQuality(const QString& v){ if (m_recordingQuality == v) return; m_recordingQuality = v; save(); emit recordingChanged(); }
 void SettingsModel::setAutoRecord(bool v)                { if (m_autoRecord == v) return; m_autoRecord = v; save(); emit recordingChanged(); }
+void SettingsModel::setGenerateFileNameWithoutSpace(bool v) { if (m_generateFileNameWithoutSpace == v) return; m_generateFileNameWithoutSpace = v; save(); emit recordingChanged(); }
+void SettingsModel::setRecordingFormat(const QString& v) { if (m_recordingFormat == v) return; m_recordingFormat = v; save(); emit recordingChanged(); }
+void SettingsModel::setVideoEncoder(const QString& v)    { if (m_videoEncoder == v) return; m_videoEncoder = v; save(); emit recordingChanged(); }
+void SettingsModel::setAudioEncoder(const QString& v)    { if (m_audioEncoder == v) return; m_audioEncoder = v; save(); emit recordingChanged(); }
+void SettingsModel::setAudioTrackMask(int v)             { if (m_audioTrackMask == v) return; m_audioTrackMask = v; save(); emit recordingChanged(); }
+void SettingsModel::setRescaleFilter(const QString& v)   { if (m_rescaleFilter == v) return; m_rescaleFilter = v; save(); emit recordingChanged(); }
+void SettingsModel::setRescaleResolution(const QString& v){ if (m_rescaleResolution == v) return; m_rescaleResolution = v; save(); emit recordingChanged(); }
+void SettingsModel::setCustomMuxerSettings(const QString& v) { if (m_customMuxerSettings == v) return; m_customMuxerSettings = v; save(); emit recordingChanged(); }
+void SettingsModel::setAutoFileSplitting(bool v)         { if (m_autoFileSplitting == v) return; m_autoFileSplitting = v; save(); emit recordingChanged(); }
+void SettingsModel::setFileSplitMode(const QString& v)   { if (m_fileSplitMode == v) return; m_fileSplitMode = v; save(); emit recordingChanged(); }
+void SettingsModel::setRateControl(const QString& v)     { if (m_rateControl == v) return; m_rateControl = v; save(); emit recordingChanged(); }
+void SettingsModel::setBitrate(int v)                    { if (m_bitrate == v) return; m_bitrate = v; save(); emit recordingChanged(); }
+void SettingsModel::setKeyframeInterval(int v)           { if (m_keyframeInterval == v) return; m_keyframeInterval = v; save(); emit recordingChanged(); }
+void SettingsModel::setEncoderPreset(const QString& v)   { if (m_encoderPreset == v) return; m_encoderPreset = v; save(); emit recordingChanged(); }
+void SettingsModel::setEncoderTuning(const QString& v)   { if (m_encoderTuning == v) return; m_encoderTuning = v; save(); emit recordingChanged(); }
+void SettingsModel::setMultipassMode(const QString& v)   { if (m_multipassMode == v) return; m_multipassMode = v; save(); emit recordingChanged(); }
+void SettingsModel::setEncoderProfile(const QString& v)  { if (m_encoderProfile == v) return; m_encoderProfile = v; save(); emit recordingChanged(); }
+void SettingsModel::setLookAhead(bool v)                 { if (m_lookAhead == v) return; m_lookAhead = v; save(); emit recordingChanged(); }
+void SettingsModel::setAdaptiveQuantization(bool v)      { if (m_adaptiveQuantization == v) return; m_adaptiveQuantization = v; save(); emit recordingChanged(); }
+void SettingsModel::setBFrames(int v)                    { if (m_bFrames == v) return; m_bFrames = v; save(); emit recordingChanged(); }
+void SettingsModel::setCustomEncoderOptions(const QString& v) { if (m_customEncoderOptions == v) return; m_customEncoderOptions = v; save(); emit recordingChanged(); }
 
 // Streaming
 void SettingsModel::setRtmpUrl(const QString& v)         { if (m_rtmpUrl == v) return; m_rtmpUrl = v; save(); emit streamingChanged(); }

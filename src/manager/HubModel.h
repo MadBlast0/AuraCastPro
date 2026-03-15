@@ -14,6 +14,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QImage>
 #include <atomic>
 
 namespace aura {
@@ -30,6 +31,7 @@ class HubModel : public QObject {
     Q_PROPERTY(QString connectionStatus  READ connectionStatus  NOTIFY statusChanged)
     Q_PROPERTY(QString recentLogLines    READ recentLogLines    NOTIFY logsUpdated)
     Q_PROPERTY(bool    isRecording        READ isRecording       NOTIFY recordingChanged)
+    Q_PROPERTY(QImage  videoFrame         READ videoFrame        NOTIFY videoFrameChanged)
 
 public:
     explicit HubModel(QObject* parent = nullptr);
@@ -42,12 +44,14 @@ public:
     bool    isMirroring()      const { return m_isMirroring.load(); }
     QString connectionStatus() const { return m_connectionStatus; }
     QString recentLogLines()   const;
+    QImage  videoFrame()       const { return m_videoFrame; }
 
     // ── Called by backend when state changes ──────────────────────────────────
     void setMirroring(bool active);
     void setStatus(const QString& status);
     void appendLogLine(const QString& line);
     void setPairingPin(const QString& pin);
+    void updateVideoFrame(const QImage& frame);
 
 public slots:
     // ── Q_INVOKABLEs called from QML ─────────────────────────────────────────
@@ -68,6 +72,7 @@ signals:
     void recordingToggleRequested();
     void pairingPinSubmitted(const QString& pin);
     void recordingChanged();
+    void videoFrameChanged();
 
     // Emitted by C++ (AirPlay2Host) after PIN verification completes.
     // QML PairingDialog connects: hubModel.onPairingResult -> showSuccess/showFailed
@@ -85,6 +90,7 @@ private:
     std::atomic<bool> m_isMirroring{false};
     bool              m_isRecording{false};
     QString           m_connectionStatus{"IDLE"};
+    QImage            m_videoFrame;
 
     // Ring buffer of recent log lines (last 200 lines)
     static constexpr int kMaxLogLines = 200;
