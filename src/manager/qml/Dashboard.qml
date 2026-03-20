@@ -50,80 +50,6 @@ Item {
             }
 
             Item { Layout.fillWidth: true }
-
-            // Record Button with Timer
-            ColumnLayout {
-                spacing: 8
-
-                Rectangle {
-                    width: recordRow.width + 20
-                    height: 36
-                    radius: 6
-                    color: hubModel && hubModel.isRecording ? "#c42b1c" : "#f28b82"
-                    border.width: 0
-
-                    RowLayout {
-                        id: recordRow
-                        anchors.centerIn: parent
-                        spacing: 8
-
-                        Rectangle {
-                            width: 12
-                            height: 12
-                            radius: hubModel && hubModel.isRecording ? 2 : 6
-                            color: "white"
-                            
-                            Behavior on radius {
-                                NumberAnimation { duration: 200 }
-                            }
-                        }
-
-                        Text {
-                            text: hubModel && hubModel.isRecording ? "Stop Recording" : "Start Recording"
-                            font.family: "Inter"
-                            font.pixelSize: 13
-                            font.weight: Font.Medium
-                            color: "white"
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (hubModel) hubModel.toggleRecording()
-                        }
-                        onEntered: parent.color = hubModel && hubModel.isRecording ? "#a52a1f" : "#e07872"
-                        onExited: parent.color = hubModel && hubModel.isRecording ? "#c42b1c" : "#f28b82"
-                    }
-                }
-
-                // Recording Timer
-                Text {
-                    visible: hubModel && hubModel.isRecording
-                    text: formatDuration(recordingTimer.elapsedSeconds)
-                    font.family: "Roboto Mono"
-                    font.pixelSize: 12
-                    font.weight: Font.Medium
-                    color: "#f28b82"
-                    Layout.alignment: Qt.AlignHCenter
-
-                    Timer {
-                        id: recordingTimer
-                        property int elapsedSeconds: 0
-                        interval: 1000
-                        running: hubModel && hubModel.isRecording
-                        repeat: true
-                        onTriggered: elapsedSeconds++
-                        onRunningChanged: {
-                            if (running) {
-                                elapsedSeconds = 0
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         // Device panel
@@ -401,19 +327,4 @@ Item {
         }
     }
 
-    // Helper function to format recording duration
-    function formatDuration(seconds) {
-        var hours = Math.floor(seconds / 3600)
-        var minutes = Math.floor((seconds % 3600) / 60)
-        var secs = seconds % 60
-        
-        if (hours > 0) {
-            return hours + ":" + 
-                   (minutes < 10 ? "0" : "") + minutes + ":" + 
-                   (secs < 10 ? "0" : "") + secs
-        } else {
-            return (minutes < 10 ? "0" : "") + minutes + ":" + 
-                   (secs < 10 ? "0" : "") + secs
-        }
-    }
 }

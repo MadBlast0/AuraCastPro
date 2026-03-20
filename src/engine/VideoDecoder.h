@@ -17,7 +17,7 @@ struct ID3D12Resource;
 
 namespace aura {
 
-enum class VideoCodec { H265, AV1 };
+enum class VideoCodec { H264, H265, AV1 };
 
 struct DecodedFrame {
     ID3D12Resource* texture{nullptr};
@@ -52,6 +52,9 @@ public:
     VideoCodec codec() const { return m_codec; }
     uint64_t framesDecoded() const { return m_decoded.load(); }
     uint64_t decodeErrors() const { return m_errors.load(); }
+
+    // Static method to detect which codecs are available on the system
+    static bool isCodecAvailable(VideoCodec codec);
 
 private:
     ID3D12Device* m_device;

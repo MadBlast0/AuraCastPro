@@ -73,6 +73,7 @@ public:
     // Task 110: Called when window moves to a monitor with different DPI
     void setDpiChangedCallback(DpiChangedCallback cb) { m_onDpiChanged = std::move(cb); }
     uint32_t dpi() const { return m_dpi; }
+    void applyPendingResize();         // Task 111: called from render loop
 
 private:
     HWND              m_hwnd{nullptr};
@@ -101,8 +102,6 @@ private:
     uint32_t          m_dpi{96};       // Task 110: current DPI (default 96 = 100%)
 
     bool              m_registered{false};
-
-    void applyPendingResize();         // Task 111: called from render loop
 
     static long __stdcall WndProc(HWND__* hwnd, unsigned msg,
                                    unsigned long long wParam, long long lParam);

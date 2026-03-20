@@ -10,7 +10,7 @@
 class ReconnectManager {
 public:
     struct Config {
-        int    silenceTimeoutSec  = 3;   // no packets -> trigger disconnect
+        int    silenceTimeoutSec  = 0;   // no packets -> trigger disconnect (0 = disabled, no timeout)
         int    retryIntervalSec   = 5;   // seconds between reconnect attempts
         int    maxRetries         = 12;  // give up after this many attempts
         int    checkIntervalMs    = 1000;

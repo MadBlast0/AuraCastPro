@@ -65,8 +65,14 @@ public:
     uint16_t port() const { return m_port; }
 
     // Allow packets only from this IP (wires into PacketValidator -- Task 072)
-    void setAllowedSource(const std::string& ip) { m_validator.setAllowedSource(ip); }
-    void clearAllowedSource()                    { m_validator.clearAllowedSource(); }
+    void setAllowedSource(const std::string& ip) {
+        m_validator.setAllowedSource(ip);
+        m_validator.resetSequence();
+    }
+    void clearAllowedSource() {
+        m_validator.clearAllowedSource();
+        m_validator.resetSequence();
+    }
     void resetPacketSequence()                   { m_validator.resetSequence(); }
 
     // Task 074: Bind to a specific local network interface IP.

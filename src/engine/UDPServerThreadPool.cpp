@@ -38,8 +38,8 @@ void UDPServerThreadPool::start() {
     for (int i = 0; i < m_numThreads; ++i) {
         m_threads.emplace_back([this, i]() { workerLoop(i); });
 
-        // Set high thread priority so socket draining preempts normal work
-        SetThreadPriority(m_threads.back().native_handle(), THREAD_PRIORITY_TIME_CRITICAL);
+        // Keep IO threads responsive without starving the UI/message pump.
+        SetThreadPriority(m_threads.back().native_handle(), THREAD_PRIORITY_ABOVE_NORMAL);
 
         // Give each thread a descriptive name (visible in debugger)
         const std::wstring name = std::format(L"aura-io-{}", i);

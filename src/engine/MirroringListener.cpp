@@ -1,6 +1,7 @@
 #include "MirroringListener.h"
 #include "../utils/Logger.h"
 #include <vector>
+#include <algorithm>
 
 MirroringListener::MirroringListener(int port)
     : m_port(port)
@@ -114,85 +115,156 @@ void MirroringListener::acceptLoop() {
 
 void MirroringListener::handleClient(SOCKET clientSocket) {
     AURA_LOG_INFO("MirroringListener", "Handling video stream client");
-
-    std::vector<uint8_t> headerBuffer(128);
+    constexpr size_t kReadChunk = 16 * 1024;
+    constexpr size_t kMaxBuffered = 4 * 1024 * 1024;
+    constexpr uint32_t kMaxPayload = 2 * 1024 * 1024;
+    std::vector<uint8_t> readBuffer(kReadChunk);
+    std::vector<uint8_t> streamBuffer;
+    streamBuffer.reserve(256 * 1024);
     int frameCount = 0;
+    int invalidFrames = 0;
+
+    auto readU32BE = [](const uint8_t* p) -> uint32_t {
+        return (static_cast<uint32_t>(p[0]) << 24) |
+               (static_cast<uint32_t>(p[1]) << 16) |
+               (static_cast<uint32_t>(p[2]) << 8) |
+               static_cast<uint32_t>(p[3]);
+    };
+    auto readU32LE = [](const uint8_t* p) -> uint32_t {
+        return static_cast<uint32_t>(p[0]) |
+               (static_cast<uint32_t>(p[1]) << 8) |
+               (static_cast<uint32_t>(p[2]) << 16) |
+               (static_cast<uint32_t>(p[3]) << 24);
+    };
 
     while (m_running.load()) {
-        // Read 128-byte header
-        int totalRead = 0;
-        while (totalRead < 128) {
-            int n = recv(clientSocket, reinterpret_cast<char*>(headerBuffer.data() + totalRead), 
-                        128 - totalRead, 0);
-            if (n <= 0) {
-                if (n == 0) {
-                    AURA_LOG_INFO("MirroringListener", "Client closed video stream connection");
-                } else {
-                    AURA_LOG_ERROR("MirroringListener", "Recv error: {}", WSAGetLastError());
+        const int n = recv(clientSocket, reinterpret_cast<char*>(readBuffer.data()),
+                           static_cast<int>(readBuffer.size()), 0);
+        if (n <= 0) {
+            if (n == 0) {
+                AURA_LOG_INFO("MirroringListener", "Client closed video stream connection");
+            } else {
+                AURA_LOG_ERROR("MirroringListener", "Recv error: {}", WSAGetLastError());
+            }
+            goto cleanup;
+        }
+        streamBuffer.insert(streamBuffer.end(), readBuffer.begin(), readBuffer.begin() + n);
+
+        bool madeProgress = true;
+        while (madeProgress && !streamBuffer.empty()) {
+            madeProgress = false;
+
+            // RTSP interleaved framing: '$' channel length_hi length_lo payload...
+            if (streamBuffer.size() >= 4 && streamBuffer[0] == 0x24) {
+                const uint16_t packetLen = static_cast<uint16_t>(
+                    (static_cast<uint16_t>(streamBuffer[2]) << 8) | streamBuffer[3]);
+                if (packetLen == 0 || packetLen > 65535) {
+                    streamBuffer.erase(streamBuffer.begin());
+                    madeProgress = true;
+                    continue;
                 }
-                goto cleanup;
-            }
-            totalRead += n;
-        }
-
-        // Check if this is actually RTSP text (POST/GET) instead of binary video data
-        if (headerBuffer[0] == 'P' || headerBuffer[0] == 'G') {
-            AURA_LOG_DEBUG("MirroringListener", "Received RTSP request on video port (ignoring)");
-            // Skip this - it's not video data
-            continue;
-        }
-
-        // Log first frame header for debugging
-        if (frameCount == 0) {
-            std::string hexDump;
-            for (int i = 0; i < 32; i++) {
-                hexDump += std::format("{:02x} ", headerBuffer[i]);
-            }
-            AURA_LOG_INFO("MirroringListener", "First video frame header (32 bytes): {}", hexDump);
-        }
-
-        // Parse payload size from header (bytes 4-7, big endian)
-        uint32_t payloadSize = (static_cast<uint32_t>(headerBuffer[4]) << 24) |
-                               (static_cast<uint32_t>(headerBuffer[5]) << 16) |
-                               (static_cast<uint32_t>(headerBuffer[6]) << 8) |
-                               static_cast<uint32_t>(headerBuffer[7]);
-
-        if (payloadSize == 0 || payloadSize > 10 * 1024 * 1024) {
-            AURA_LOG_WARN("MirroringListener", "Invalid payload size: {}", payloadSize);
-            continue;
-        }
-
-        // Read payload
-        std::vector<uint8_t> payload(payloadSize);
-        totalRead = 0;
-        while (totalRead < static_cast<int>(payloadSize)) {
-            int n = recv(clientSocket, reinterpret_cast<char*>(payload.data() + totalRead), 
-                        payloadSize - totalRead, 0);
-            if (n <= 0) {
-                if (n == 0) {
-                    AURA_LOG_INFO("MirroringListener", "Client closed during payload read");
-                } else {
-                    AURA_LOG_ERROR("MirroringListener", "Recv error during payload: {}", WSAGetLastError());
+                if (streamBuffer.size() < (4 + packetLen)) {
+                    break;
                 }
-                goto cleanup;
+
+                const uint8_t* payload = streamBuffer.data() + 4;
+                const size_t payloadSize = packetLen;
+                frameCount++;
+                if (frameCount % 120 == 0) {
+                    AURA_LOG_INFO("MirroringListener",
+                                  "Interleaved packets processed: {} (latest {} bytes)",
+                                  frameCount, payloadSize);
+                }
+                if (m_videoDataCallback) {
+                    m_videoDataCallback(nullptr, 0, payload, payloadSize);
+                }
+                streamBuffer.erase(streamBuffer.begin(), streamBuffer.begin() + 4 + packetLen);
+                madeProgress = true;
+                continue;
             }
-            totalRead += n;
+
+            // Legacy mirroring framing: 128-byte header + payload length.
+            // Different senders encode payload length in different places/endian.
+            if (streamBuffer.size() >= 128) {
+                const uint8_t* b = streamBuffer.data();
+                const uint32_t candidateSizes[] = {
+                    readU32BE(b + 4),  // historical default
+                    readU32LE(b + 4),
+                    readU32BE(b + 0),
+                    readU32LE(b + 0)
+                };
+
+                uint32_t payloadSize = 0;
+                for (uint32_t s : candidateSizes) {
+                    if (s > 0 && s <= kMaxPayload && streamBuffer.size() >= (128 + s)) {
+                        payloadSize = s;
+                        break;
+                    }
+                }
+
+                if (payloadSize > 0) {
+                    const uint8_t* header = streamBuffer.data();
+                    const uint8_t* payload = streamBuffer.data() + 128;
+                    frameCount++;
+                    if (frameCount % 120 == 0) {
+                        AURA_LOG_INFO("MirroringListener",
+                                      "Legacy frames processed: {} (latest {} bytes)",
+                                      frameCount, payloadSize);
+                    }
+                    if (m_videoDataCallback) {
+                        m_videoDataCallback(header, 128, payload, payloadSize);
+                    }
+                    streamBuffer.erase(streamBuffer.begin(), streamBuffer.begin() + 128 + payloadSize);
+                    madeProgress = true;
+                    continue;
+                }
+            }
+            
+            // Raw stream mode: If we have enough data and it doesn't match known formats,
+            // treat it as raw AVCC stream and send chunks to callback
+            if (streamBuffer.size() >= 1024) {
+                // Send 1KB chunks as raw video data
+                const size_t chunkSize = std::min(size_t(16384), streamBuffer.size());
+                if (m_videoDataCallback) {
+                    m_videoDataCallback(nullptr, 0, streamBuffer.data(), chunkSize);
+                }
+                streamBuffer.erase(streamBuffer.begin(), streamBuffer.begin() + chunkSize);
+                frameCount++;
+                if (frameCount % 120 == 0) {
+                    AURA_LOG_INFO("MirroringListener",
+                                  "Raw stream chunks processed: {} (latest {} bytes)",
+                                  frameCount, chunkSize);
+                }
+                madeProgress = true;
+                continue;
+            }
+
+            // Not parseable yet. Shift one byte and resync only if we have a lot of data.
+            if (streamBuffer.size() > 256) {
+                ++invalidFrames;
+                if (invalidFrames % 2000 == 0) {
+                    AURA_LOG_WARN("MirroringListener",
+                                  "Resyncing stream (invalid frames: {}, buffered: {} bytes)",
+                                  invalidFrames, streamBuffer.size());
+                }
+                streamBuffer.erase(streamBuffer.begin());
+                madeProgress = true;
+                continue;
+            }
         }
 
-        frameCount++;
-        if (frameCount % 30 == 0) {
-            AURA_LOG_INFO("MirroringListener", "Received {} video frames (latest: {} bytes payload)", 
-                         frameCount, payloadSize);
-        }
-
-        // Call callback if set
-        if (m_videoDataCallback) {
-            m_videoDataCallback(headerBuffer.data(), headerBuffer.size(), 
-                               payload.data(), payload.size());
+        // Prevent unbounded growth if we can't parse incoming bytes.
+        if (streamBuffer.size() > kMaxBuffered) {
+            const size_t drop = streamBuffer.size() - (kMaxBuffered / 2);
+            AURA_LOG_WARN("MirroringListener",
+                          "Dropping {} bytes from buffered stream (resync)", drop);
+            streamBuffer.erase(streamBuffer.begin(), streamBuffer.begin() + drop);
         }
     }
 
 cleanup:
     closesocket(clientSocket);
-    AURA_LOG_INFO("MirroringListener", "Video stream client disconnected (received {} frames)", frameCount);
+    AURA_LOG_INFO("MirroringListener",
+                  "Video stream client disconnected (received {} frames, {} invalid)",
+                  frameCount, invalidFrames);
 }

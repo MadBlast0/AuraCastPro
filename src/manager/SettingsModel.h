@@ -38,6 +38,8 @@ class SettingsModel : public QObject {
     Q_PROPERTY(bool hdrEnabled           READ hdrEnabled           WRITE setHdrEnabled           NOTIFY videoChanged)
     Q_PROPERTY(bool hardwareDecodeEnabled READ hardwareDecodeEnabled WRITE setHardwareDecodeEnabled NOTIFY videoChanged)
     Q_PROPERTY(QString preferredCodec    READ preferredCodec       WRITE setPreferredCodec       NOTIFY videoChanged)
+    Q_PROPERTY(QString colorSpace        READ colorSpace           WRITE setColorSpace           NOTIFY videoChanged)
+    Q_PROPERTY(QString hardwareEncoder   READ hardwareEncoder      WRITE setHardwareEncoder      NOTIFY videoChanged)
 
     // ── Audio ─────────────────────────────────────────────────────────────────
     Q_PROPERTY(bool    audioEnabled        READ audioEnabled        WRITE setAudioEnabled        NOTIFY audioChanged)
@@ -150,6 +152,8 @@ public:
     bool    hdrEnabled()           const { return m_hdrEnabled; }
     bool    hardwareDecodeEnabled() const { return m_hardwareDecodeEnabled; }
     QString preferredCodec()       const { return m_preferredCodec; }
+    QString colorSpace()           const { return m_colorSpace; }
+    QString hardwareEncoder()      const { return m_hardwareEncoder; }
 
     bool    audioEnabled()         const { return m_audioEnabled; }
     bool    micEnabled()           const { return m_micEnabled; }
@@ -230,6 +234,8 @@ public:
     void setHdrEnabled(bool v);
     void setHardwareDecodeEnabled(bool v);
     void setPreferredCodec(const QString& v);
+    void setColorSpace(const QString& v);
+    void setHardwareEncoder(const QString& v);
 
     void setAudioEnabled(bool v);
     void setMicEnabled(bool v);
@@ -335,6 +341,8 @@ private:
     bool    m_hdrEnabled{false};
     bool    m_hardwareDecodeEnabled{true};
     QString m_preferredCodec{"h265"};
+    QString m_colorSpace{"sRGB"};
+    QString m_hardwareEncoder{"Auto"};
 
     // Audio
     bool    m_audioEnabled{true};
@@ -364,7 +372,7 @@ private:
     QString m_audioEncoder{"FFmpeg AAC"};
     int     m_audioTrackMask{1};       // Track 1 enabled by default
     QString m_rescaleFilter{"Lanczos (Sharpened scaling, 36 samples)"};
-    QString m_rescaleResolution{"1920x1080"};
+    QString m_rescaleResolution{"Source"};  // Use source resolution by default
     QString m_customMuxerSettings{};
     bool    m_autoFileSplitting{false};
     QString m_fileSplitMode{"Split by Time"};

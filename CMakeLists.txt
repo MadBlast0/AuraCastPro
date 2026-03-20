@@ -113,9 +113,10 @@ find_library(AVCODEC_LIB  avcodec)
 find_library(AVFORMAT_LIB avformat)
 find_library(AVUTIL_LIB   avutil)
 find_library(SWRESAMPLE_LIB swresample)
+find_library(SWSCALE_LIB swscale)
 
 # Task 025/vcpkg: Fail early with a clear message if FFmpeg wasn't found
-if(NOT AVCODEC_LIB OR NOT AVFORMAT_LIB OR NOT AVUTIL_LIB OR NOT SWRESAMPLE_LIB)
+if(NOT AVCODEC_LIB OR NOT AVFORMAT_LIB OR NOT AVUTIL_LIB OR NOT SWRESAMPLE_LIB OR NOT SWSCALE_LIB)
     message(FATAL_ERROR
         "FFmpeg libraries not found.\n"
         "Run: vcpkg install ffmpeg[avcodec,avformat,avutil,swresample,swscale] --triplet x64-windows\n"
@@ -160,6 +161,8 @@ set(SOURCES
     src/engine/H265Demuxer.cpp
     src/engine/AV1Demuxer.cpp
     src/engine/VideoDecoder.cpp
+    src/engine/SoftwareVideoDecoder.cpp
+    src/engine/FFmpegVideoDecoder.cpp
     src/engine/BitratePID.cpp
     src/engine/NetworkPredictor.cpp
     src/engine/UDPServerThreadPool.cpp
@@ -172,6 +175,7 @@ set(SOURCES
     # Display
     src/display/MirrorWindow.cpp
     src/display/MirrorWindowWin32.cpp
+    src/display/DeviceMirrorWindow.cpp
     src/display/DX12Manager.cpp
     src/display/DX12DeviceContext.cpp
     src/display/DX12CommandQueue.cpp
@@ -224,6 +228,7 @@ set(SOURCES
     src/manager/SettingsModel.cpp
     src/manager/SecurityVault.cpp
     src/manager/DeviceManager.cpp
+    src/manager/DeviceMirrorManager.cpp
     src/manager/NetworkStatsModel.cpp
     src/manager/PerformanceOverlay.cpp
     src/manager/GlobalHotkey.cpp
@@ -302,7 +307,7 @@ target_link_libraries(AuraCastPro PRIVATE
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     Boost::system
-    ${AVCODEC_LIB} ${AVFORMAT_LIB} ${AVUTIL_LIB} ${SWRESAMPLE_LIB}
+    ${AVCODEC_LIB} ${AVFORMAT_LIB} ${AVUTIL_LIB} ${SWRESAMPLE_LIB} ${SWSCALE_LIB}
     d3d12 dxgi dxguid d3dcompiler
     mf mfplat mfreadwrite mfuuid
     winhttp

@@ -38,11 +38,11 @@ public:
     void setTitle(const std::string& title);
     void setFullscreen(bool fs);
     void toggleOverlay();
-    
-    void show() { m_running = true; }
-    void hide() { m_running = false; }
-    bool isFullscreen() const { return false; }
-    void toggleFullscreen() { setFullscreen(!isFullscreen()); }
+
+    void show();
+    void hide();
+    bool isFullscreen() const;
+    void toggleFullscreen();
 
     bool     isVisible()     const;
     uint32_t clientWidth()   const;

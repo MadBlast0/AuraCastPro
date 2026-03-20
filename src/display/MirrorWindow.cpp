@@ -77,12 +77,23 @@ void MirrorWindow::init() {
 
 // -----------------------------------------------------------------------------
 void MirrorWindow::start() {
+    if (m_running) {
+        show();
+        return;
+    }
+
+    if (m_render && m_render->swapChain && m_win32 && m_win32->hwnd()) {
+        m_running = true;
+        m_win32->show();
+        return;
+    }
+
     // Create the Win32 window
     m_win32->create(m_width, m_height, "AuraCastPro -- Mirror");
 
-    // Wire close event -> application exit
+    // Closing the mirror window should not terminate the full app.
     m_win32->setCloseCallback([]() {
-        PostQuitMessage(0);
+        AURA_LOG_INFO("MirrorWindow", "Mirror window closed by user.");
     });
     // Wire resize event -> swapchain resize
     m_win32->setResizeCallback([this](uint32_t w, uint32_t h) {
@@ -211,6 +222,13 @@ void MirrorWindow::createSwapchainAndResources() {
         m_render->fenceValues[i] = 0;
     }
 
+    // Let the Win32 host apply safe pending resizes from WM_SIZE.
+    m_win32->bindSwapchain(
+        m_render->swapChain.Get(),
+        device,
+        m_render->rtvHeap.Get(),
+        kFrameCount);
+
     // ── 5. Command list (reused every frame) ─────────────────────────────
     hr = device->CreateCommandList(
         0,
@@ -242,6 +260,7 @@ void MirrorWindow::presentFrame(uint32_t width, uint32_t height) {
 
     m_width  = width;
     m_height = height;
+    m_win32->applyPendingResize();
 
     const UINT fi = m_render->frameIndex;
 
@@ -458,6 +477,24 @@ void MirrorWindow::setTitle(const std::string& title) {
     if (m_win32 && m_win32->hwnd()) {
         SetWindowTextA(m_win32->hwnd(), title.c_str());
     }
+}
+
+void MirrorWindow::show() {
+    if (!m_running) start();
+    if (m_win32) m_win32->show();
+}
+
+void MirrorWindow::hide() {
+    if (m_win32) m_win32->hide();
+    m_running = false;
+}
+
+bool MirrorWindow::isFullscreen() const {
+    return m_win32 ? m_win32->isFullscreen() : false;
+}
+
+void MirrorWindow::toggleFullscreen() {
+    if (m_win32) m_win32->toggleFullscreen();
 }
 
 void MirrorWindow::setFullscreen(bool fs) { m_win32->setFullscreen(fs); }

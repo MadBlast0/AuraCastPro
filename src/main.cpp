@@ -19,11 +19,6 @@
 #include <QStandardPaths>
 #include <QTimer>
 #include <QTranslator>
-#include <QPainter>
-#include <QImage>
-#include <QColor>
-#include <QFont>
-#include <QMetaObject>
 
 #include "version_info.h"  // Task 024: auto-generated version header
 
@@ -43,6 +38,7 @@
 // -- Display -------------------------------------------------------------------
 #include "display/DX12Manager.h"
 #include "display/MirrorWindow.h"
+#include "manager/DeviceMirrorManager.h"  // Includes MirrorDeviceInfo
 
 // -- Engine --------------------------------------------------------------------
 #include "engine/ADBBridge.h"
@@ -63,6 +59,8 @@
 #include "engine/TimingServer.h"
 #include "engine/UDPServerThreadPool.h"
 #include "engine/VideoDecoder.h"
+#include "engine/SoftwareVideoDecoder.h"
+#include "engine/FFmpegVideoDecoder.h"
 
 
 // -- Discovery -----------------------------------------------------------------
@@ -166,6 +164,7 @@ static std::unique_ptr<aura::NALParser> g_nalParser;
 static std::unique_ptr<aura::H265Demuxer> g_h265Demuxer;
 static std::unique_ptr<aura::AV1Demuxer> g_av1Demuxer;
 static std::unique_ptr<aura::VideoDecoder> g_videoDecoder;
+static std::unique_ptr<aura::FFmpegVideoDecoder> g_ffmpegDecoder;
 static std::unique_ptr<aura::BitratePID> g_bitratePID;
 static std::unique_ptr<aura::NetworkPredictor> g_networkPredictor;
 static std::unique_ptr<aura::FrameTimingQueue> g_frameTiming;
@@ -181,7 +180,7 @@ static std::unique_ptr<aura::KeyboardToInput> g_keyboardInput;
 static std::unique_ptr<aura::AndroidControlBridge> g_androidControl;
 static std::unique_ptr<aura::ClipboardBridge> g_clipboard;  // Task 150
 static std::unique_ptr<aura::USBHotplug> g_usbHotplug;      // Task 062
-static std::unique_ptr<aura::MirrorWindow> g_mirrorWindow;
+static std::unique_ptr<aura::DeviceMirrorManager> g_deviceMirrorManager;  // Multi-device mirror windows
 static std::unique_ptr<aura::DeviceManager> g_deviceManager;
 static std::unique_ptr<aura::NetworkStatsModel> g_networkStats;
 static std::unique_ptr<aura::PerformanceOverlay> g_overlay;
@@ -397,10 +396,10 @@ static void shutdownAll() {
             g_videoDecoder.reset();
         }
     });
-    safe("MirrorWindow", [&] {
-        if (g_mirrorWindow) {
-            g_mirrorWindow->shutdown();
-            g_mirrorWindow.reset();
+    safe("DeviceMirrorManager", [&] {
+        if (g_deviceMirrorManager) {
+            g_deviceMirrorManager->shutdown();
+            g_deviceMirrorManager.reset();
         }
     });
     safe("DX12Manager", [&] {
@@ -567,6 +566,7 @@ int main(int argc, char* argv[]) {
 
     AURA_LOG_INFO("main", "=========================================");
     AURA_LOG_INFO("main", " AuraCastPro v{} starting", AURA_VERSION_STRING);
+    AURA_LOG_INFO("main", " Build stamp: {} {}", __DATE__, __TIME__);
     AURA_LOG_INFO("main", "=========================================");
 
     aura::PerformanceTimer::init();
@@ -716,16 +716,61 @@ int main(int argc, char* argv[]) {
 
     // 8a. Video decoder -- created first so downstream can capture its pointer
     SAFE_INIT("VideoDecoder", {
-        g_videoDecoder = std::make_unique<aura::VideoDecoder>(g_dx12 ? g_dx12->device() : nullptr,
-                                                              aura::VideoCodec::H265);
+        // Detect available codecs on the system
+        bool h265Available = aura::VideoDecoder::isCodecAvailable(aura::VideoCodec::H265);
+        bool h264Available = aura::VideoDecoder::isCodecAvailable(aura::VideoCodec::H264);
+        
+        AURA_LOG_INFO("main", "Hardware codec availability: H.264={}, H.265={}", 
+                     h264Available ? "YES" : "NO", 
+                     h265Available ? "YES" : "NO");
+        
+        // Get user preference from settings
+        QString preferredCodec = g_settings->preferredCodec().toLower();
+        aura::VideoCodec codec = aura::VideoCodec::H264; // Default fallback
+        
+        // Try to use preferred codec if available
+        if (preferredCodec == "h265" || preferredCodec == "hevc") {
+            if (h265Available) {
+                codec = aura::VideoCodec::H265;
+                AURA_LOG_INFO("main", "Using H.265/HEVC hardware codec (user preference)");
+            } else {
+                AURA_LOG_WARN("main", "H.265 preferred but hardware codec not available");
+                AURA_LOG_INFO("main", "Will use FFmpeg software decoder if iPad sends H.265");
+                codec = aura::VideoCodec::H264;
+            }
+        } else if (preferredCodec == "h264" || preferredCodec == "avc") {
+            if (h264Available) {
+                codec = aura::VideoCodec::H264;
+                AURA_LOG_INFO("main", "Using H.264/AVC hardware codec (user preference)");
+            } else {
+                AURA_LOG_ERROR("main", "H.264 hardware codec not available - this should never happen!");
+            }
+        } else {
+            // Auto mode: prefer H.265 if available (better quality/bandwidth)
+            if (h265Available) {
+                codec = aura::VideoCodec::H265;
+                AURA_LOG_INFO("main", "Auto-selected H.265/HEVC hardware codec (better quality)");
+            } else if (h264Available) {
+                codec = aura::VideoCodec::H264;
+                AURA_LOG_INFO("main", "Auto-selected H.264/AVC hardware codec (H.265 not available)");
+            } else {
+                throw std::runtime_error("No hardware video codecs available on this system!");
+            }
+        }
+        
+        g_videoDecoder = std::make_unique<aura::VideoDecoder>(g_dx12 ? g_dx12->device() : nullptr, codec);
         g_videoDecoder->init();
 
-        // Wire: decoder frame output -> mirror window + virtual camera + dashboard
+        // Wire: decoder frame output -> device mirror windows + virtual camera
         g_videoDecoder->setFrameCallback([](const aura::DecodedFrame& frame) {
-            if (g_mirrorWindow) {
-                if (frame.texture)
-                    g_mirrorWindow->setCurrentTexture(frame.texture);
-                g_mirrorWindow->presentFrame(frame.width, frame.height);
+            // TODO: Route frame to correct device window based on device ID
+            // For now, route to all connected devices (will fix with proper device tracking)
+            if (g_deviceMirrorManager) {
+                auto deviceIds = g_deviceMirrorManager->getDeviceIds();
+                for (const auto& deviceId : deviceIds) {
+                    g_deviceMirrorManager->routeFrameToDevice(deviceId, frame.texture, 
+                                                             frame.width, frame.height);
+                }
             }
             if (g_vcam && frame.texture) {
                 g_vcam->pushFrameGPU(frame.texture, frame.width, frame.height);
@@ -758,38 +803,35 @@ int main(int argc, char* argv[]) {
                 if (frame.wasDropped)
                     g_networkStats->incrementDroppedFrames();
             }
-            
-            // Update dashboard video preview (every 2nd frame to reduce overhead)
-            static int dashboardFrameCount = 0;
-            if (g_hubWindow && g_hubWindow->hubModel() && ++dashboardFrameCount % 2 == 0) {
-                // TODO: Convert D3D12 texture to QImage
-                // For now, create a placeholder showing we're receiving decoded frames
-                QImage previewFrame(frame.width, frame.height, QImage::Format_RGB888);
-                previewFrame.fill(QColor(40, 40, 60));
-                
-                QPainter painter(&previewFrame);
-                painter.setPen(Qt::white);
-                painter.setFont(QFont("Arial", 16, QFont::Bold));
-                painter.drawText(previewFrame.rect(), Qt::AlignCenter, 
-                                QString("Decoding Video\n%1x%2 @ %3 FPS\nFrame #%4")
-                                .arg(frame.width)
-                                .arg(frame.height)
-                                .arg(g_networkStats ? QString::number(g_networkStats->fps(), 'f', 1) : "?")
-                                .arg(frame.frameIndex));
-                
-                QMetaObject::invokeMethod(g_hubWindow->hubModel(), "updateVideoFrame",
-                                        Qt::QueuedConnection,
-                                        Q_ARG(QImage, previewFrame));
+        });
+    });
+    
+    // 8b. FFmpeg Video Decoder -- Simple H.264 decoder that handles AVCC format
+    SAFE_INIT("FFmpegVideoDecoder", {
+        g_ffmpegDecoder = std::make_unique<aura::FFmpegVideoDecoder>();
+        g_ffmpegDecoder->init();
+        
+        // Wire: FFmpeg decoder output -> device mirror windows (TODO: convert YUV to texture)
+        g_ffmpegDecoder->setFrameCallback([](const aura::DecodedVideoFrame& frame) {
+            // For now, just log that we got frames
+            // TODO: Convert YUV420P to NV12 texture and route to windows
+            static int frameCount = 0;
+            frameCount++;
+            if (frameCount <= 10 || frameCount % 30 == 0) {
+                AURA_LOG_INFO("main", "FFmpeg decoded frame #{}: {}x{}", 
+                             frameCount, frame.width, frame.height);
             }
         });
     });
 
-    // 8b. NAL parser -- constructor requires callback; wire directly to decoder
+    // 8c. NAL parser -- constructor requires callback; wire directly to decoder
     SAFE_INIT("NALParser", {
         g_nalParser = std::make_unique<aura::NALParser>([](aura::NalUnit nal) {
             if (!g_videoDecoder)
                 return;
-            g_videoDecoder->submitNAL(nal.data, nal.isKeyframe, 0 /*pts filled by demuxer*/);
+            
+            // We're forcing H.264 only, so just submit NALs directly to hardware decoder
+            g_videoDecoder->submitNAL(nal.data, nal.isKeyframe, 0);
             g_videoDecoder->processOutput();
         });
     });
@@ -812,15 +854,21 @@ int main(int argc, char* argv[]) {
     });
     SAFE_INIT("BitratePID", {
         g_bitratePID = std::make_unique<aura::BitratePID>();
-        g_bitratePID->reset(20'000'000.f);  // start at 20 Mbps
+        // Use bitrate from settings (convert Kbps to bps)
+        const float initialBitrate = g_settings ? (g_settings->maxBitrateKbps() * 1000.f) : 20'000'000.f;
+        g_bitratePID->reset(initialBitrate);
         g_bitratePID->setOnBitrateChanged(
             [](float bps) { AURA_LOG_DEBUG("main", "Bitrate -> {:.1f} Mbps", bps / 1e6f); });
+        AURA_LOG_INFO("main", "Bitrate initialized to {:.1f} Mbps from settings", initialBitrate / 1e6f);
     });
 
     // 8c. FEC -- wire to NALParser downstream
     SAFE_INIT("FECRecovery", {
         g_fec = std::make_unique<aura::FECRecovery>(10, 12);
         g_fec->init();
+        // AirPlay mirroring path in this build does not provide RS parity packets.
+        // Keep FEC in pass-through mode to avoid dropping every Nth packet.
+        g_fec->setEnabled(false);
         // Wire: FEC recovered data -> NALParser + update packet loss stats
         g_fec->setCallback([](std::vector<uint8_t> data, uint16_t /*seq*/) {
             if (g_nalParser)
@@ -853,7 +901,7 @@ int main(int argc, char* argv[]) {
     // 9a.5: ReconnectManager -- auto-reconnect when packets stop arriving
     SAFE_INIT("ReconnectManager", {
         ReconnectManager::Config rcfg;
-        rcfg.silenceTimeoutSec = 5;
+        rcfg.silenceTimeoutSec = 0;  // 0 = disabled, no automatic timeout
         rcfg.retryIntervalSec = 3;
         rcfg.maxRetries = 20;
         g_reconnect = std::make_unique<ReconnectManager>(rcfg);
@@ -917,13 +965,27 @@ int main(int argc, char* argv[]) {
             aura::OrderedPacket op;
             op.insertedAt = pkt.receivedAt;
 
-            if (pkt.data.size() >= 4) {
+            if (pkt.data.size() >= 12) {
                 op.sequenceNumber =
                     static_cast<uint16_t>((static_cast<uint16_t>(pkt.data[2]) << 8) | pkt.data[3]);
 
-                constexpr size_t kRTPHeaderSize = 12;
-                if (pkt.data.size() > kRTPHeaderSize) {
-                    op.payload.assign(pkt.data.begin() + kRTPHeaderSize, pkt.data.end());
+                // Parse RTP variable header size:
+                // 12-byte fixed + CC*4 CSRC bytes + optional extension block.
+                size_t payloadOffset = 12;
+                const uint8_t cc = pkt.data[0] & 0x0F;
+                payloadOffset += static_cast<size_t>(cc) * 4;
+
+                const bool hasExtension = (pkt.data[0] & 0x10) != 0;
+                if (hasExtension && pkt.data.size() >= payloadOffset + 4) {
+                    const uint16_t extWords = static_cast<uint16_t>(
+                        (static_cast<uint16_t>(pkt.data[payloadOffset + 2]) << 8) |
+                         pkt.data[payloadOffset + 3]);
+                    payloadOffset += 4 + static_cast<size_t>(extWords) * 4;
+                }
+
+                if (pkt.data.size() > payloadOffset) {
+                    op.payload.assign(pkt.data.begin() + static_cast<std::ptrdiff_t>(payloadOffset),
+                                      pkt.data.end());
                 }
             } else {
                 op.sequenceNumber = 0;
@@ -938,9 +1000,7 @@ int main(int argc, char* argv[]) {
             g_reorderCache->drain([](aura::OrderedPacket ordered) {
                 if (!g_fec)
                     return;
-                // In an RS(10,12) group: packets 0-9 = data, 10-11 = parity
-                const bool isParity = (ordered.sequenceNumber % 12) >= 10;
-                g_fec->feedPacket(ordered.sequenceNumber, isParity, std::move(ordered.payload));
+                g_fec->feedPacket(ordered.sequenceNumber, false, std::move(ordered.payload));
             });
         };
 
@@ -964,29 +1024,125 @@ int main(int argc, char* argv[]) {
         // No init() -- ready after construction
     });
 
-    // 9d. Timing server for AirPlay NTP sync on UDP port 7000
+    // 9d. Timing server for AirPlay NTP sync on UDP port 7001
     SAFE_INIT("TimingServer", {
-        g_timingServer = std::make_unique<aura::TimingServer>(7100);
+        g_timingServer = std::make_unique<aura::TimingServer>(7001);
     });
 
-    // 9e. Mirroring listener for AirPlay video stream on TCP port 7001
+    // 9e. Mirroring listener for AirPlay video stream on TCP port 7010
+    // Keep this aligned with AirPlay SETUP stream dataPort to avoid media blackhole.
     SAFE_INIT("MirroringListener", {
-        g_mirroringListener = std::make_unique<MirroringListener>(7001);
+        g_mirroringListener = std::make_unique<MirroringListener>(7010);
         g_mirroringListener->setVideoDataCallback([](const uint8_t* header, size_t headerSize,
                                                       const uint8_t* payload, size_t payloadSize) {
-            // Video data received from iPad over TCP
+            // XINDAWN APPROACH: Parse AVCC format and convert to Annex-B
+            // payloadtype is encoded in the stream format:
+            //   - avcC config (SPS/PPS): starts with 0x01 version byte
+            //   - Video frames: length-prefixed NALs
+            
             static int frameCount = 0;
             frameCount++;
             
-            if (frameCount % 30 == 0) {
-                AURA_LOG_INFO("main", "Encrypted video frame received: header={} bytes, payload={} bytes (frame #{})", 
-                              headerSize, payloadSize, frameCount);
+            if (frameCount % 120 == 0) {
+                AURA_LOG_INFO("main", "TCP video packets: {} (latest {} bytes)", 
+                              frameCount, payloadSize);
             }
+
+            // Keep reconnect watchdog alive
+            if (g_reconnect) {
+                g_reconnect->onPacketReceived();
+            }
+
+            if (!g_ffmpegDecoder || !payload || payloadSize == 0) return;
+
+            // Detect payload type by inspecting first bytes
+            // avcC config: byte[0]=1, byte[5] has SPS count
+            bool isConfig = (payloadSize >= 8 && payload[0] == 0x01);
             
-            // TODO: Wire this to the decryption pipeline
-            // The payload is encrypted with AES-128-CTR using keys from the AirPlay pairing
-            // Flow should be: decrypt -> NALParser -> H265Demuxer -> VideoDecoder -> Dashboard
-            // For now, the VideoDecoder will show a placeholder when it receives decoded frames
+            if (isConfig) {
+                // PAYLOADTYPE 1: avcC decoder config (SPS/PPS)
+                // Format: [version=1][profile][compat][level][reserved+lengthSize][reserved+spsCount]
+                //         [spsSize:2][spsData...][ppsCount][ppsSize:2][ppsData...]
+                
+                if (payloadSize < 11) {
+                    AURA_LOG_WARN("main", "avcC config too short: {} bytes", payloadSize);
+                    return;
+                }
+                
+                const uint8_t* head = payload;
+                int spsCnt = head[5] & 0x1f;
+                int spsNalSize = (static_cast<int>(head[6]) << 8) | static_cast<int>(head[7]);
+                int ppsCnt = head[8 + spsNalSize];
+                int ppsNalSize = (static_cast<int>(head[9 + spsNalSize]) << 8) | 
+                                 static_cast<int>(head[10 + spsNalSize]);
+                
+                // Build Annex-B packet: [0x00000001][SPS][0x00000001][PPS]
+                std::vector<uint8_t> annexB;
+                annexB.reserve(4 + spsNalSize + 4 + ppsNalSize);
+                
+                // SPS with start code
+                annexB.push_back(0x00);
+                annexB.push_back(0x00);
+                annexB.push_back(0x00);
+                annexB.push_back(0x01);
+                annexB.insert(annexB.end(), head + 8, head + 8 + spsNalSize);
+                
+                // PPS with start code
+                annexB.push_back(0x00);
+                annexB.push_back(0x00);
+                annexB.push_back(0x00);
+                annexB.push_back(0x01);
+                annexB.insert(annexB.end(), head + 11 + spsNalSize, 
+                             head + 11 + spsNalSize + ppsNalSize);
+                
+                AURA_LOG_INFO("main", "Sending avcC config to FFmpeg: SPS={} bytes, PPS={} bytes", 
+                             spsNalSize, ppsNalSize);
+                
+                g_ffmpegDecoder->feedData(annexB.data(), annexB.size());
+                g_ffmpegDecoder->processFrames();
+                
+            } else {
+                // PAYLOADTYPE 0: Video frame with length-prefixed NALs
+                // Convert length prefixes to Annex-B start codes
+                
+                std::vector<uint8_t> annexB;
+                annexB.reserve(payloadSize + 1024); // Extra space for start codes
+                
+                size_t rLen = 0;
+                const uint8_t* data = payload;
+                
+                while (rLen < payloadSize) {
+                    if (rLen + 4 > payloadSize) break;
+                    
+                    // Read 4-byte length prefix (big-endian)
+                    uint32_t nalLen = (static_cast<uint32_t>(data[0]) << 24) |
+                                     (static_cast<uint32_t>(data[1]) << 16) |
+                                     (static_cast<uint32_t>(data[2]) << 8) |
+                                      static_cast<uint32_t>(data[3]);
+                    
+                    if (rLen + 4 + nalLen > payloadSize) {
+                        AURA_LOG_WARN("main", "Invalid NAL length: {} at offset {}", nalLen, rLen);
+                        break;
+                    }
+                    
+                    // Replace length with Annex-B start code
+                    annexB.push_back(0x00);
+                    annexB.push_back(0x00);
+                    annexB.push_back(0x00);
+                    annexB.push_back(0x01);
+                    
+                    // Copy NAL data
+                    annexB.insert(annexB.end(), data + 4, data + 4 + nalLen);
+                    
+                    rLen += 4 + nalLen;
+                    data = payload + rLen;
+                }
+                
+                if (!annexB.empty()) {
+                    g_ffmpegDecoder->feedData(annexB.data(), annexB.size());
+                    g_ffmpegDecoder->processFrames();
+                }
+            }
         });
         if (!g_mirroringListener->start()) {
             AURA_LOG_ERROR("main", "Failed to start MirroringListener");
@@ -1139,15 +1295,58 @@ int main(int argc, char* argv[]) {
     // -- Step 12: Protocol hosts -----------------------------------------------
     splashMsg("Starting protocol hosts...", 60);
 
+    // Configure AirPlay display capabilities from settings
+    int airplayWidth = 1920, airplayHeight = 1080, airplayFps = 60;
+    if (g_settings) {
+        switch (g_settings->maxResolutionIndex()) {
+            case 0: airplayWidth = 1920; airplayHeight = 1080; break;  // Native (Auto) - use 1080p as safe default
+            case 1: airplayWidth = 3840; airplayHeight = 2160; break;  // 4K
+            case 2: airplayWidth = 2560; airplayHeight = 1440; break;  // 2K
+            case 3: airplayWidth = 1920; airplayHeight = 1080; break;  // 1080p
+            case 4: airplayWidth = 1280; airplayHeight = 720;  break;  // 720p
+            case 5: airplayWidth = 640;  airplayHeight = 360;  break;  // 360p
+        }
+        switch (g_settings->fpsCapIndex()) {
+            case 0: airplayFps = 60;  break;  // Auto (default 60)
+            case 1: airplayFps = 120; break;  // 120 FPS
+            case 2: airplayFps = 90;  break;  // 90 FPS
+            case 3: airplayFps = 60;  break;  // 60 FPS
+            case 4: airplayFps = 30;  break;  // 30 FPS
+            case 5: airplayFps = 24;  break;  // 24 FPS
+        }
+    }
+
     SAFE_INIT("AirPlay2Host", {
         g_airplay = std::make_unique<aura::AirPlay2Host>();
+        
+        // FORCE H.264 only - iPad will send H.265 if we advertise support, but Windows doesn't have HEVC codec
+        // This matches behavior of Xindawn/Douwan apps that work without HEVC codec
+        bool h264Available = aura::VideoDecoder::isCodecAvailable(aura::VideoCodec::H264);
+        g_airplay->setSupportedCodecs(h264Available, false);  // H.265 disabled
+        AURA_LOG_INFO("main", "Forcing H.264 codec only (H.265 disabled to avoid HEVC codec requirement)");
+        
         g_airplay->init();
-
+        g_airplay->setDisplayCapabilities(airplayWidth, airplayHeight, airplayFps);
         g_airplay->setSessionStartedCallback([](const aura::AirPlaySessionInfo& info) {
             if (g_reconnect)
                 g_reconnect->onConnected(info.deviceId);
             AURA_LOG_INFO("main", "AirPlay session started: {} ({})", info.deviceName,
                           info.ipAddress);
+            
+            // Create device mirror window
+            if (g_deviceMirrorManager) {
+                aura::MirrorDeviceInfo devInfo;
+                devInfo.deviceId = info.deviceId;
+                devInfo.deviceName = info.deviceName.empty() ? info.ipAddress : info.deviceName;
+                devInfo.ipAddress = info.ipAddress;
+                devInfo.videoCodec = info.videoCodec;
+                devInfo.width = 1920;  // Will be updated when first frame arrives
+                devInfo.height = 1080;
+                devInfo.fps = 60;
+                devInfo.bitrate = 20.0f;
+                g_deviceMirrorManager->onDeviceConnected(info.deviceId, devInfo);
+            }
+            
             if (g_deviceManager) {
                 aura::DeviceInfo deviceInfo;
                 deviceInfo.id = QString::fromStdString(info.deviceId);
@@ -1177,6 +1376,12 @@ int main(int argc, char* argv[]) {
             if (g_reconnect)
                 g_reconnect->onDisconnected();
             AURA_LOG_INFO("main", "AirPlay session ended: {}", deviceId);
+            
+            // Close device mirror window
+            if (g_deviceMirrorManager) {
+                g_deviceMirrorManager->onDeviceDisconnected(deviceId);
+            }
+            
             if (g_deviceManager)
                 g_deviceManager->onDeviceStateChanged(QString::fromStdString(deviceId),
                                                       aura::DeviceState::Connected);
@@ -1320,11 +1525,11 @@ int main(int argc, char* argv[]) {
             g_advertiser->setDisplayName(g_settings->displayName().toStdString());
     });
 
-    // -- Step 14: Mirror window + render loop ---------------------------------
-    splashMsg("Creating mirror window...", 75);
-    SAFE_INIT("MirrorWindow", {
-        g_mirrorWindow = std::make_unique<aura::MirrorWindow>(g_dx12.get(), g_vcam.get());
-        g_mirrorWindow->init();
+    // -- Step 14: Device Mirror Manager (multi-window support) ----------------
+    splashMsg("Creating device mirror manager...", 75);
+    SAFE_INIT("DeviceMirrorManager", {
+        g_deviceMirrorManager = std::make_unique<aura::DeviceMirrorManager>(g_dx12.get(), g_videoDecoder.get());
+        g_deviceMirrorManager->init();
     });
 
     // -- Step 15: Device manager -----------------------------------------------
@@ -1365,8 +1570,8 @@ int main(int argc, char* argv[]) {
     SAFE_INIT("PerformanceOverlay", {
         g_overlay = std::make_unique<aura::PerformanceOverlay>(g_networkStats.get());
         g_overlay->init();
-        if (g_mirrorWindow)
-            g_mirrorWindow->setOverlay(g_overlay.get());
+        // TODO: Set overlay for device mirror windows
+        // if (g_deviceMirrorManager) { ... }
     });
 
     // -- Step 17: Plugins -----------------------------------------------------
@@ -1462,14 +1667,12 @@ int main(int argc, char* argv[]) {
         aura::GlobalHotkey::instance().setCallback([](aura::HotkeyId id) {
             switch (id) {
                 case aura::HotkeyId::ToggleMirrorWindow:
-                    if (g_mirrorWindow) {
-                        g_mirrorWindow->isFullscreen() ? g_mirrorWindow->hide()
-                                                       : g_mirrorWindow->show();
-                    }
+                    // TODO: Toggle all device mirror windows
+                    // For now, do nothing (windows are managed per-device)
                     break;
                 case aura::HotkeyId::ToggleFullscreen:
-                    if (g_mirrorWindow)
-                        g_mirrorWindow->toggleFullscreen();
+                    // TODO: Toggle fullscreen for focused device window
+                    // For now, do nothing
                     break;
                 case aura::HotkeyId::Screenshot:
                     // FrameCapture fires via InputExtras -- signal via DeviceManager

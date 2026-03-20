@@ -75,7 +75,7 @@ bool ReceiverSocket::receiveOnce(int timeoutMs) {
     tv.tv_usec = (timeoutMs % 1000) * 1000;
 
     const int ready = select(0, &readSet, nullptr, nullptr, &tv);
-    if (ready <= 0) return m_running.load(); // timeout or error
+    if (ready <= 0) return false; // timeout or select error
 
     sockaddr_in senderAddr{};
     int addrLen = sizeof(senderAddr);
@@ -92,10 +92,10 @@ bool ReceiverSocket::receiveOnce(int timeoutMs) {
         if (err != WSAEWOULDBLOCK && err != WSAEINTR && m_running.load()) {
             AURA_LOG_ERROR("ReceiverSocket", "recvfrom error: {}", err);
         }
-        return m_running.load();
+        return false;
     }
 
-    if (received == 0) return m_running.load();
+    if (received == 0) return false;
 
     // Build RawPacket -- copy payload bytes
     RawPacket pkt;
@@ -111,12 +111,12 @@ bool ReceiverSocket::receiveOnce(int timeoutMs) {
     m_packetsReceived.fetch_add(1, std::memory_order_relaxed);
     m_bytesReceived.fetch_add(static_cast<uint64_t>(received), std::memory_order_relaxed);
 
-    // ── Task 072: 5-check packet validation [WIRED IN] ───────────────────────
-    // Extract sequence number from bytes 8-9 of header (big-endian uint16)
+    // ── Task 072: packet validation [WIRED IN] ───────────────────────────────
+    // RTP sequence number is bytes 2-3 (big-endian uint16).
     uint16_t seqNum = 0;
-    if (static_cast<int>(pkt.data.size()) >= 10) {
+    if (pkt.data.size() >= 4) {
         seqNum = static_cast<uint16_t>(
-            (static_cast<uint16_t>(pkt.data[8]) << 8) | pkt.data[9]);
+            (static_cast<uint16_t>(pkt.data[2]) << 8) | pkt.data[3]);
     }
     const auto vResult = m_validator.validate(
         std::span<const uint8_t>(pkt.data.data(), pkt.data.size()),
@@ -127,7 +127,7 @@ bool ReceiverSocket::receiveOnce(int timeoutMs) {
             "Packet dropped: {} (from {}:{})",
             aura::PacketValidator::resultString(vResult),
             pkt.senderIp, pkt.senderPort);
-        return true; // DROP -- do not deliver to callback
+        return false; // DROP -- do not deliver to callback
     }
 
     // Deliver to registered callback

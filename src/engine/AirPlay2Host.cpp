@@ -57,13 +57,15 @@
 
 namespace aura {
 
-constexpr uint16_t AIRPLAY_CONTROL_PORT = 7100;  // Changed from 7000 to avoid zombie process conflict
+constexpr uint16_t AIRPLAY_CONTROL_PORT = 7000;  // Standard AirPlay port
 constexpr uint16_t AIRPLAY_AUDIO_RTP_PORT = 7011;    // Audio RTP (used in SETUP response)
 constexpr uint16_t AIRPLAY_TIMING_SYNC_PORT = 7001;  // RTCP timing (standard port)
 constexpr uint16_t AIRPLAY_TIMING_PORT = 7002;       // RTCP sync (standard port)
 constexpr int BACKLOG = 4;
 constexpr int RECV_TIMEOUT_MS = 0;  // No timeout - keep RTSP connection alive indefinitely
-constexpr uint32_t AIRPLAY_FEATURES = 0x5A7FFFF7;
+// Features bitmask - Apple TV 3rd gen features (H.264 only, no H.265)
+constexpr uint32_t AIRPLAY_FEATURES_BASE = 0x5A7FFEE7;  // Minimal features, H.264 only
+constexpr uint32_t AIRPLAY_FEATURES_H265 = 0x5A7FFFF7;  // H.265 enabled (not used)
 constexpr uint32_t AIRPLAY_FLAGS = 0x0;
 constexpr uint8_t kPairingMethodSetup = 0x00;
 constexpr uint8_t kPairingMethodSetupAuth = 0x01;
@@ -332,11 +334,12 @@ struct SRPSession {
 struct AirPlaySessionState {
     SOCKET sock{INVALID_SOCKET};
     std::string clientIp;
-    std::string videoCodec{"H265"};
+    std::string videoCodec{"H264"};  // Default to H.264 (universally supported)
     uint16_t videoPort{0};
     uint16_t audioPort{0};
     bool paired{false};
     bool recordReceived{false};  // Track if RECORD was received
+    bool sessionStartedNotified{false};
     std::string deviceId;
     std::string deviceName;
 
@@ -829,9 +832,14 @@ static std::string bestAirPlayDeviceId() {
     return fallback;
 }
 
-static std::vector<uint8_t> makeAirPlayInfoPlist(const std::string& displayName) {
+static std::vector<uint8_t> makeAirPlayInfoPlist(const std::string& displayName, 
+                                                  int displayWidth, int displayHeight, int displayMaxFps,
+                                                  bool supportsH265) {
     const auto [pkHex, piUUID] = loadAirPlayIdentity();
     const std::string deviceId = bestAirPlayDeviceId();
+    
+    // Use appropriate features bitmask based on H.265 support
+    uint32_t features = supportsH265 ? AIRPLAY_FEATURES_H265 : AIRPLAY_FEATURES_BASE;
 
     const std::string xml = std::format(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -873,13 +881,13 @@ static std::vector<uint8_t> makeAirPlayInfoPlist(const std::string& displayName)
         "<dict>"
         "<key>features</key><integer>30</integer>"
         "<key>heightPhysical</key><integer>0</integer>"
-        "<key>heightPixels</key><integer>1080</integer>"
+        "<key>heightPixels</key><integer>{}</integer>"
         "<key>overscanned</key><false/>"
         "<key>primaryInputDevice</key><integer>1</integer>"
         "<key>rotation</key><true/>"
         "<key>uuid</key><string>061013ae-7b0f-4305-984b-974f677a150b</string>"
         "<key>widthPhysical</key><integer>0</integer>"
-        "<key>widthPixels</key><integer>1920</integer>"
+        "<key>widthPixels</key><integer>{}</integer>"
         "</dict>"
         "</array>"
         "<key>features</key><integer>{}</integer>"
@@ -887,7 +895,7 @@ static std::vector<uint8_t> makeAirPlayInfoPlist(const std::string& displayName)
         "<key>keepAliveSendStatsAsBody</key><true/>"
         "<key>macAddress</key><string>{}</string>"
         "<key>manufacturer</key><string>AuraCastPro</string>"
-        "<key>model</key><string>AppleTV5,3</string>"
+        "<key>model</key><string>AppleTV3,2</string>"  // Apple TV 3rd gen - H.264 only
         "<key>name</key><string>{}</string>"
         "<key>pi</key><string>{}</string>"
         "<key>pw</key><false/>"
@@ -896,8 +904,8 @@ static std::vector<uint8_t> makeAirPlayInfoPlist(const std::string& displayName)
         "<key>vv</key><integer>2</integer>"
         "</dict>"
         "</plist>",
-        xmlEscape(deviceId), AIRPLAY_FEATURES, xmlEscape(deviceId), xmlEscape(displayName),
-        piUUID);
+        xmlEscape(deviceId), displayHeight, displayWidth,
+        features, xmlEscape(deviceId), xmlEscape(displayName), piUUID);
 
     return std::vector<uint8_t>(xml.begin(), xml.end());
 }
@@ -907,6 +915,12 @@ static std::vector<uint8_t> makeAirPlayInfoPlist(const std::string& displayName)
 // =============================================================================
 struct AirPlay2Host::Impl {
     SOCKET listenSocket{INVALID_SOCKET};
+    
+    // Active session decryption keys (protected by mutex)
+    std::mutex aesKeyMutex;
+    std::array<uint8_t, 16> activeAESKey{};
+    std::array<uint8_t, 16> activeAESIV{};
+    bool hasActiveKeys{false};
 };
 
 // =============================================================================
@@ -922,6 +936,20 @@ AirPlay2Host::~AirPlay2Host() {
 // =============================================================================
 // init / start / acceptLoop
 // =============================================================================
+void AirPlay2Host::setDisplayCapabilities(int width, int height, int maxFps) {
+    m_displayWidth = width;
+    m_displayHeight = height;
+    m_displayMaxFps = maxFps;
+    AURA_LOG_INFO("AirPlay2Host", "Display capabilities set to: {}x{} @{}fps", width, height, maxFps);
+}
+
+void AirPlay2Host::setSupportedCodecs(bool h264, bool h265) {
+    m_supportsH264 = h264;
+    m_supportsH265 = h265;
+    AURA_LOG_INFO("AirPlay2Host", "Codec support: H.264={}, H.265={}", 
+                 h264 ? "YES" : "NO", h265 ? "YES" : "NO");
+}
+
 void AirPlay2Host::init() {
     AURA_LOG_INFO("AirPlay2Host",
                   "Initialised. TCP:{} SRP-6a pairing + AES-128-CTR decryption ready.",
@@ -1252,7 +1280,7 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
         // ── /info: receiver capabilities queried by iOS before pairing ───
         if (method == "GET" && urlPath == "/info") {
             AURA_LOG_INFO("AirPlay2Host", "PHASE 1: /info request from {} - sending capabilities", clientIp);
-            const auto body = makeAirPlayInfoPlist("AuraCastPro");
+            const auto body = makeAirPlayInfoPlist("AuraCastPro", m_displayWidth, m_displayHeight, m_displayMaxFps, m_supportsH265);
             response = makeRTSP(200, "OK", cseq,
                                 "Content-Type: application/x-apple-binary-plist\r\n"
                                 "Server: AirTunes/220.68\r\n",
@@ -1469,10 +1497,25 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
             
             // Extract video codec from SDP body
             std::string sdp = req.substr(req.find("\r\n\r\n") + 4);
-            if (sdp.find("H265") != std::string::npos || sdp.find("hevc") != std::string::npos)
+            bool clientWantsH265 = (sdp.find("H265") != std::string::npos || sdp.find("hevc") != std::string::npos);
+            
+            // Choose codec based on what's supported and what client prefers
+            if (clientWantsH265 && m_supportsH265) {
                 session.videoCodec = "H265";
-            else
+                AURA_LOG_INFO("AirPlay2Host", "ANNOUNCE: Using H.265/HEVC (client preference, supported)");
+            } else if (m_supportsH264) {
                 session.videoCodec = "H264";
+                if (clientWantsH265) {
+                    AURA_LOG_INFO("AirPlay2Host", "ANNOUNCE: Using H.264/AVC (H.265 not supported, fallback)");
+                } else {
+                    AURA_LOG_INFO("AirPlay2Host", "ANNOUNCE: Using H.264/AVC (client preference)");
+                }
+            } else {
+                AURA_LOG_ERROR("AirPlay2Host", "ANNOUNCE: No supported codec available!");
+                response = makeRTSP(406, "Not Acceptable", cseq);
+                sendResponse(sock, response);
+                continue;
+            }
 
             // Extract device-id if present
             const std::string devId = extractHeader(req, "X-Apple-Device-ID");
@@ -1533,9 +1576,9 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
                 AURA_LOG_INFO("AirPlay2Host", "PHASE 5: Stream SETUP - type={}", streamType);
                 
                 if (streamType == 110) {
-                    // Video stream - use port 7100 (same as RTSP control, like C# reference)
-                    session.videoPort = 7100;
-                    responseBody = BinaryPlist::Encoder::encodeStreamsResponse(110, 7100);
+                    // Video stream - use port 7010 (standard AirPlay video RTP port)
+                    session.videoPort = 7010;
+                    responseBody = BinaryPlist::Encoder::encodeStreamsResponse(110, 7010);
                 } else if (streamType == 96) {
                     // Audio stream
                     session.audioPort = AIRPLAY_AUDIO_RTP_PORT;
@@ -1550,12 +1593,12 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
                 AURA_LOG_INFO("AirPlay2Host", "PHASE 5 COMPLETE: Stream SETUP response sent (type={}, {} bytes)", 
                              streamType, responseBody.size());
             } else {
-                // Initial SETUP - return {"timingPort": 7000, "eventPort": 7000}
+                // Initial SETUP - return {"timingPort": 7001, "eventPort": 7000}
                 AURA_LOG_INFO("AirPlay2Host", "PHASE 5: Initial SETUP (timing/event ports)");
                 
                 std::map<std::string, int> setupResponse;
-                setupResponse["timingPort"] = 7100;
-                setupResponse["eventPort"] = 7100;
+                setupResponse["timingPort"] = AIRPLAY_TIMING_SYNC_PORT;  // 7001
+                setupResponse["eventPort"] = AIRPLAY_CONTROL_PORT;  // 7000
                 
                 responseBody = BinaryPlist::Encoder::encodeDictionary(setupResponse);
                 
@@ -1584,8 +1627,25 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
                               "Audio-Latency: 0\r\n");
             AURA_LOG_INFO("AirPlay2Host", "PHASE 6 COMPLETE: Stream active. Codec: {}, continuing RTSP for Stream SETUP", 
                          session.videoCodec);
-            if (m_onSessionStarted)
+            
+            // Derive AES-128-CTR keys for video decryption from pair-verify shared secret
+            {
+                std::array<uint8_t, 16> aesKey, aesIV;
+                derivePairVerifyCtrKeyMaterial(session.sharedSecret, aesKey, aesIV);
+                
+                // Store keys globally for MirroringListener to use
+                std::lock_guard<std::mutex> lock(m_impl->aesKeyMutex);
+                m_impl->activeAESKey = aesKey;
+                m_impl->activeAESIV = aesIV;
+                m_impl->hasActiveKeys = true;
+                
+                AURA_LOG_INFO("AirPlay2Host", "Derived and stored AES-128-CTR keys for video decryption");
+            }
+            
+            if (m_onSessionStarted && !session.sessionStartedNotified) {
                 m_onSessionStarted(session.toInfo());
+                session.sessionStartedNotified = true;
+            }
             
             // Mark that RECORD was received - we'll switch to video stream mode
             // after handling the Stream SETUP requests that come next
@@ -1658,7 +1718,7 @@ void AirPlay2Host::handleSession(int clientSocketRaw, std::string clientIp) {
 
     closesocket(sock);
     AURA_LOG_INFO("AirPlay2Host", "Session ended: {}", clientIp);
-    if (m_onSessionEnded)
+    if (m_onSessionEnded && session.sessionStartedNotified)
         m_onSessionEnded(session.deviceId);
 }
 
@@ -1737,6 +1797,16 @@ std::string AirPlay2Host::generatePin() const {
 
 int AirPlay2Host::activeSessionCount() const {
     return m_activeSessions.load(std::memory_order_relaxed);
+}
+
+bool AirPlay2Host::getDecryptionKeys(std::array<uint8_t, 16>& key, std::array<uint8_t, 16>& iv) const {
+    std::lock_guard<std::mutex> lock(m_impl->aesKeyMutex);
+    if (!m_impl->hasActiveKeys) {
+        return false;
+    }
+    key = m_impl->activeAESKey;
+    iv = m_impl->activeAESIV;
+    return true;
 }
 
 }  // namespace aura

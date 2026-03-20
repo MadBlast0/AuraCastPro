@@ -35,22 +35,25 @@ ValidateResult PacketValidator::validate(std::span<const uint8_t> data,
         return ValidateResult::TooLarge;
     }
 
-    // ── Check 3: Magic bytes ──────────────────────────────────────────────────
-    uint32_t magic = 0;
-    std::memcpy(&magic, data.data(), 4);
-    // Accept any known protocol magic, or skip if no magic filtering needed
-    // (AirPlay uses RTSP text, Cast uses protobuf -- magic check is protocol-layer)
-    // We accept all non-zero magic to avoid breaking raw protocols
-    if (magic == 0) {
-        AURA_LOG_WARN("PacketValidator", "DROP: zero magic bytes from {}", senderIp);
-        ++m_rejected;
-        return ValidateResult::BadMagic;
+    // ── Check 3: Basic RTP shape check (non-fatal fallback) ──────────────────
+    // AirPlay media packets are RTP/UDP and should use RTP version 2.
+    // Some devices still send control/aux packets on the same path, so we keep
+    // this check permissive to avoid false drops.
+    const bool looksLikeRtpV2 = ((data[0] >> 6) == 2);
+    if (!looksLikeRtpV2) {
+        uint32_t magic = 0;
+        std::memcpy(&magic, data.data(), 4);
+        if (magic == 0) {
+            AURA_LOG_TRACE("PacketValidator",
+                "ALLOW: non-RTP packet with zero magic from {} (len={})",
+                senderIp, data.size());
+        }
     }
 
     // ── Check 4: Sequence number sanity (wrap-around safe) ───────────────────
     if (m_seqInitialised) {
-        const int32_t diff = static_cast<int32_t>(
-            static_cast<uint32_t>(seqNum) - static_cast<uint32_t>(m_nextExpectedSeq));
+        // Signed 16-bit delta correctly handles RTP wrap-around at 65535 -> 0.
+        const int32_t diff = static_cast<int16_t>(seqNum - m_nextExpectedSeq);
         if (diff > kMaxSeqJump) {
             AURA_LOG_WARN("PacketValidator",
                 "DROP: seq jump too large (got {}, expected ~{}, diff {})",
@@ -58,9 +61,11 @@ ValidateResult PacketValidator::validate(std::span<const uint8_t> data,
             ++m_rejected;
             return ValidateResult::SeqJump;
         }
-        if (diff > 0) m_nextExpectedSeq = seqNum + 1;
+        if (diff >= 0) {
+            m_nextExpectedSeq = static_cast<uint16_t>(seqNum + 1);
+        }
     } else {
-        m_nextExpectedSeq = seqNum + 1;
+        m_nextExpectedSeq = static_cast<uint16_t>(seqNum + 1);
         m_seqInitialised  = true;
     }
 

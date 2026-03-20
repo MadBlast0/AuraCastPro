@@ -296,17 +296,66 @@ void HubWindow::setRecorder(StreamRecorder* rec) {
             m_hubModel->appendLogLine("[Recorder] Recording stopped.");
             AURA_LOG_INFO("HubWindow", "Recording stopped via QML.");
         } else {
+            // Build recording configuration from settings
+            aura::RecordingConfig config;
+            
+            if (m_settings) {
+                // Use 1080p as default source resolution (will be updated when stream starts)
+                // User can override via rescaleResolution setting
+                config.videoWidth = 1920;
+                config.videoHeight = 1080;
+                config.fps = 60;
+                
+                // All recording settings
+                config.videoCodec = m_settings->preferredCodec().toStdString();
+                config.containerFormat = m_settings->recordingFormat().toStdString();
+                config.videoEncoder = m_settings->videoEncoder().toStdString();
+                config.audioEncoder = m_settings->audioEncoder().toStdString();
+                config.videoBitrateKbps = m_settings->bitrate();
+                config.rateControl = m_settings->rateControl().toStdString();
+                config.encoderPreset = m_settings->encoderPreset().toStdString();
+                config.encoderProfile = m_settings->encoderProfile().toStdString();
+                config.encoderTuning = m_settings->encoderTuning().toStdString();
+                config.multipassMode = m_settings->multipassMode().toStdString();
+                config.keyframeInterval = m_settings->keyframeInterval();
+                config.lookAhead = m_settings->lookAhead();
+                config.adaptiveQuantization = m_settings->adaptiveQuantization();
+                config.bFrames = m_settings->bFrames();
+                config.customEncoderOptions = m_settings->customEncoderOptions().toStdString();
+                config.customMuxerSettings = m_settings->customMuxerSettings().toStdString();
+                config.audioTrackMask = m_settings->audioTrackMask();
+                config.rescaleFilter = m_settings->rescaleFilter().toStdString();
+                config.rescaleResolution = m_settings->rescaleResolution().toStdString();
+                config.autoFileSplitting = m_settings->autoFileSplitting();
+                config.fileSplitMode = m_settings->fileSplitMode().toStdString();
+                config.generateFileNameWithoutSpace = m_settings->generateFileNameWithoutSpace();
+            }
+            
+            // Determine file extension from format
+            std::string extension = ".mp4";
+            if (config.containerFormat.find("mkv") != std::string::npos) {
+                extension = ".mkv";
+            } else if (config.containerFormat.find("flv") != std::string::npos) {
+                extension = ".flv";
+            } else if (config.containerFormat.find("mov") != std::string::npos) {
+                extension = ".mov";
+            } else if (config.containerFormat.find("avi") != std::string::npos) {
+                extension = ".avi";
+            }
+            
             // Build output path from settings
             const QString folder =
                 m_settings ? m_settings->recordingFolder() : QString::fromStdString("");
             const std::string outPath =
-                aura::StreamRecorder::generateOutputPath(folder.toStdString());
-            const uint32_t w = m_settings ? (uint32_t)m_settings->maxWidth() : 1920u;
-            const uint32_t h = m_settings ? (uint32_t)m_settings->maxHeight() : 1080u;
-            const uint32_t fps = m_settings ? (uint32_t)m_settings->maxFps() : 30u;
-            const std::string codec =
-                m_settings ? m_settings->preferredCodec().toStdString() : "hevc";
-            if (m_recorder->startRecording(outPath, w, h, fps, codec)) {
+                aura::StreamRecorder::generateOutputPath(folder.toStdString(), 
+                                                        extension,
+                                                        config.generateFileNameWithoutSpace);
+            
+            AURA_LOG_INFO("HubWindow", "Starting recording: {}x{} @{}fps codec={} format={} encoder={}", 
+                         config.videoWidth, config.videoHeight, config.fps, 
+                         config.videoCodec, config.containerFormat, config.videoEncoder);
+            
+            if (m_recorder->startRecording(outPath, config)) {
                 m_hubModel->setProperty("isRecording", true);
                 m_hubModel->appendLogLine(QString("[Recorder] Recording started -> %1")
                                               .arg(QString::fromStdString(outPath)));

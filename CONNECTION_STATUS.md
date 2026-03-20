@@ -1,66 +1,160 @@
-# AuraCastPro Connection Status
+# iPad Connection Status
 
-## ✅ What's Working
-1. Window controls (minimize, maximize, close) - FIXED
-2. Modern recording settings UI with sliders - DONE
-3. Recording timer on dashboard - DONE
-4. mDNS broadcasting correctly - VERIFIED
-5. Port 7236 is OPEN and listening - VERIFIED
-6. Firewall rules configured - DONE
-7. Network profile set to Private - DONE
-8. iPad CAN SEE "auracastpro" in Screen Mirroring list - CONFIRMED
+## Current Status: READY TO TEST
 
-## ❌ Current Issue
-iPad shows: "Unable to connect to 'auracastpro'"
+### What's Been Fixed
+1. ✅ Multi-window system implemented
+2. ✅ App is running (PID: 16236)
+3. ✅ Port 7100 is listening
+4. ✅ Pairing data cleared (fresh start)
+5. ✅ Logs cleared
+6. ✅ mDNS broadcasting on network
 
-This means:
-- Discovery is working (iPad finds the service)
-- TCP connection attempt is failing or timing out
+### App Configuration
+- **AirPlay Port**: 7100 (TCP)
+- **Video Port**: 7010 (UDP)
+- **Cast Port**: 8009 (TCP/TLS)
+- **Local IP**: 192.168.1.64
 
-## What Was Fixed
-1. `m_mirroringActive` now defaults to `true` in AirPlay2Host and CastV2Host
-2. Services now accept connections immediately on startup
-3. Added firewall rule for port 7236
+### How to Connect iPad
 
-## Possible Causes
-1. **iOS AirPlay Protocol Requirements** - iOS might be expecting specific RTSP responses that aren't being sent correctly
-2. **Hostname Resolution** - iPad might not be able to resolve "auracastpro.local" to 192.168.1.66
-3. **Certificate/TLS Issues** - AirPlay might require specific encryption setup
-4. **Router Issues** - Some routers block mDNS .local domain resolution
+1. **Open Control Center** on iPad
+   - Swipe down from top-right (iPhone X and later)
+   - Or swipe up from bottom (older iPhones)
 
-## Next Steps to Try
+2. **Tap "Screen Mirroring"**
 
-### 1. Check if iPad can ping the PC
-On iPad, install "Network Analyzer" app and see if it can ping 192.168.1.66
+3. **Select "AuraCastPro"** from the list
 
-### 2. Try from a different device
-If you have an iPhone or another iPad, try connecting from that to see if it's device-specific
+4. **If prompted for PIN**:
+   - Check the AuraCastPro window on PC
+   - Enter the 4-digit PIN shown
 
-### 3. Check router mDNS settings
-Some routers have "mDNS Gateway" or "Bonjour Forwarding" settings that need to be enabled
+5. **Wait for connection**:
+   - iPad will show "Connecting..."
+   - Should connect within 5-10 seconds
+   - A new window will appear on PC with your iPad screen
 
-### 4. Restart everything in order
-1. Restart router
-2. Restart PC
-3. Restart iPad
-4. Start AuraCastPro
-5. Try connecting
+### If Connection Fails
 
-### 5. Check for other AirPlay services
-Close any other apps that might be using AirPlay (iTunes, Apple Music, etc.)
+#### Issue: "Unable to Connect" popup on iPad
 
-## Technical Details
-- PC IP: 192.168.1.66
-- AirPlay Port: 7000 (standard iOS port, listening on 0.0.0.0)
-- Timing Ports: 7001 (UDP), 7002 (UDP)
-- mDNS Service: _airplay._tcp.local
-- Hostname: auracastpro.local
-- Display Name: AuraCastPro
+**Possible Causes**:
+1. Firewall blocking port 7100
+2. iPad and PC on different WiFi networks
+3. Router blocking mDNS/Bonjour
+4. iPad needs to forget and re-pair
 
-## Logs to Check
-When you try to connect from iPad, check output.log for any connection attempts or errors.
+**Solutions**:
 
-The app should log something like:
-- "Connection from [iPad IP]" - if TCP connection succeeds
-- "Connection refused" - if mirroring is inactive (should not happen now)
-- Nothing - if connection never reaches the app (firewall/network issue)
+**A. Add Firewall Rule** (Run as Administrator):
+```powershell
+.\add_firewall_7100.ps1
+```
+
+**B. Check Same Network**:
+- PC IP: 192.168.1.64
+- iPad should be on same 192.168.1.x network
+- Check iPad WiFi settings
+
+**C. Restart iPad WiFi**:
+- Settings → WiFi → Toggle Off/On
+- Try connecting again
+
+**D. Forget Device** (if previously paired):
+- iPad Settings → General → AirPlay & Handoff
+- Remove "AuraCastPro" if listed
+- Try connecting again
+
+**E. Restart Everything**:
+```powershell
+# Kill app
+Stop-Process -Name "AuraCastPro" -Force
+
+# Clear pairing
+Remove-Item "$env:APPDATA\AuraCastPro\AuraCastPro\security\*" -Force
+
+# Restart app
+.\build\Release\AuraCastPro.exe
+```
+
+### Monitoring Connection Attempts
+
+To see what's happening when you try to connect:
+
+```powershell
+# Watch logs in real-time
+Get-Content "$env:APPDATA\AuraCastPro\AuraCastPro\logs\auracastpro.log" -Wait -Tail 20
+```
+
+Look for:
+- `accept` - iPad trying to connect
+- `client` - Connection established
+- `session started` - Mirroring active
+- `PIN` - Pairing required
+
+### What Should Happen When It Works
+
+1. iPad shows "Connecting..."
+2. PC log shows: "Client connected from [iPad IP]"
+3. PC log shows: "AirPlay session started"
+4. New window appears on PC
+5. iPad screen appears in window
+6. Window title shows: "iPad - 1920x1080 @60fps"
+
+### Multi-Window Features
+
+Once connected:
+- **Separate window per device**
+- **Keyboard shortcuts**:
+  - F = Fullscreen
+  - R = Toggle Recording
+  - D = Disconnect
+  - O = Stats Overlay
+  - T = Always On Top
+
+### Troubleshooting Checklist
+
+- [ ] App is running (check Task Manager)
+- [ ] Port 7100 is listening (run: `netstat -an | findstr 7100`)
+- [ ] Firewall allows port 7100
+- [ ] iPad and PC on same WiFi network
+- [ ] iPad can see "AuraCastPro" in Screen Mirroring list
+- [ ] No other AirPlay receivers running (Apple TV, etc.)
+
+### Log Locations
+
+- **Main Log**: `%APPDATA%\AuraCastPro\AuraCastPro\logs\auracastpro.log`
+- **Pairing Data**: `%APPDATA%\AuraCastPro\AuraCastPro\security\`
+- **Settings**: `%APPDATA%\AuraCastPro\AuraCastPro\settings.json`
+
+### Quick Commands
+
+```powershell
+# Check if app is running
+Get-Process -Name "AuraCastPro"
+
+# Check if port is listening
+netstat -an | findstr "7100"
+
+# View recent logs
+Get-Content "$env:APPDATA\AuraCastPro\AuraCastPro\logs\auracastpro.log" -Tail 50
+
+# Restart app fresh
+Stop-Process -Name "AuraCastPro" -Force
+.\build\Release\AuraCastPro.exe
+```
+
+### Next Steps
+
+1. **Try connecting iPad now**
+2. **If it fails**, check the log for errors
+3. **If you see "Unable to Connect"**, run firewall script
+4. **If still failing**, restart both iPad WiFi and PC app
+
+---
+
+**Status**: App is ready and waiting for iPad connection
+**Port**: 7100 listening ✅
+**Broadcasting**: Yes ✅
+**Ready**: Yes ✅

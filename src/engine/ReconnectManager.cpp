@@ -57,7 +57,8 @@ void ReconnectManager::monitorLoop() {
         bool connected = m_connected.load();
         int64_t silenceMs = nowMs() - m_lastPacketMs.load();
 
-        if (connected && silenceMs > m_cfg.silenceTimeoutSec * 1000LL) {
+        // Only check timeout if silenceTimeoutSec > 0 (0 = disabled)
+        if (connected && m_cfg.silenceTimeoutSec > 0 && silenceMs > m_cfg.silenceTimeoutSec * 1000LL) {
             // Timeout -- looks like connection dropped
             LOG_WARN("ReconnectManager: No packets for {}ms -- triggering reconnect",
                      silenceMs);

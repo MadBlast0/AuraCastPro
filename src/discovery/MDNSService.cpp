@@ -31,7 +31,7 @@
 namespace aura {
 
 namespace {
-constexpr const char* kAirPlayFeatures = "0x5A7FFFF7,0x1E";
+constexpr const char* kAirPlayFeatures = "0x5A7FFEE7,0x1E";  // H.264 only (bit 27 cleared)
 constexpr const char* kAirPlayFlags    = "0x84";
 constexpr const char* kAirPlayVV       = "2";
 constexpr const char* kRaopTxtVers     = "1";
@@ -369,8 +369,8 @@ static std::vector<ServiceDefinition> buildServices(const std::string& displayNa
         castTxt = txt.str();
     }
 
-    services.push_back({displayName, "_airplay._tcp", sanitizeHostLabel(displayName), 7100, encodeTxtRecord(airplayTxt)});
-    services.push_back({mac + "@" + displayName, "_raop._tcp", sanitizeHostLabel(displayName), 7100, encodeTxtRecord(raopTxt)});
+    services.push_back({displayName, "_airplay._tcp", sanitizeHostLabel(displayName), 7000, encodeTxtRecord(airplayTxt)});
+    services.push_back({mac + "@" + displayName, "_raop._tcp", sanitizeHostLabel(displayName), 7000, encodeTxtRecord(raopTxt)});
     services.push_back({displayName, "_googlecast._tcp", sanitizeHostLabel(displayName), 8009, encodeTxtRecord(castTxt)});
 
     for (const auto& extra : extraRecords) {

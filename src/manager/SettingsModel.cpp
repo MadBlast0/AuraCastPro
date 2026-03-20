@@ -64,6 +64,8 @@ void SettingsModel::load() {
             m_hdrEnabled           = s.value("hdrEnabled",           m_hdrEnabled);
             m_hardwareDecodeEnabled= s.value("hardwareDecodeEnabled",m_hardwareDecodeEnabled);
             m_preferredCodec       = QString::fromStdString(s.value("preferredCodec", m_preferredCodec.toStdString()));
+            m_colorSpace           = QString::fromStdString(s.value("colorSpace", m_colorSpace.toStdString()));
+            m_hardwareEncoder      = QString::fromStdString(s.value("hardwareEncoder", m_hardwareEncoder.toStdString()));
         }
         // Audio
         if (j.contains("audio")) {
@@ -189,6 +191,8 @@ void SettingsModel::save() const {
     j["video"]["hdrEnabled"]           = m_hdrEnabled;
     j["video"]["hardwareDecodeEnabled"]= m_hardwareDecodeEnabled;
     j["video"]["preferredCodec"]       = m_preferredCodec.toStdString();
+    j["video"]["colorSpace"]           = m_colorSpace.toStdString();
+    j["video"]["hardwareEncoder"]      = m_hardwareEncoder.toStdString();
 
     j["audio"]["audioEnabled"]        = m_audioEnabled;
     j["audio"]["micEnabled"]          = m_micEnabled;
@@ -272,9 +276,9 @@ void SettingsModel::resetToDefaults() {
     m_displayName         = "AuraCastPro";
     m_firstRunCompleted   = false;
     m_maxWidth            = 1920; m_maxHeight = 1080; m_maxFps = 60;
-    m_maxResolutionIndex  = 1;    m_fpsCapIndex = 1;
+    m_maxResolutionIndex  = 0;    m_fpsCapIndex = 0;  // 0 = Native/Auto
     m_hdrEnabled          = false; m_hardwareDecodeEnabled = true;
-    m_preferredCodec      = "h265";
+    m_preferredCodec      = "h264"; m_colorSpace = "sRGB"; m_hardwareEncoder = "Auto";  // Default to H.264 for better compatibility
     m_audioEnabled        = true;  m_micEnabled = false;
     m_virtualAudioEnabled = false; m_deviceVolume = 1.0; m_micVolume = 0.7;
     m_avSyncOffsetMs      = 0;     m_outputDeviceId = {};
@@ -313,6 +317,8 @@ void SettingsModel::setFpsCapIndex(int v)                { if (m_fpsCapIndex == 
 void SettingsModel::setHdrEnabled(bool v)                { if (m_hdrEnabled == v) return; m_hdrEnabled = v; save(); emit videoChanged(); }
 void SettingsModel::setHardwareDecodeEnabled(bool v)     { if (m_hardwareDecodeEnabled == v) return; m_hardwareDecodeEnabled = v; save(); emit videoChanged(); }
 void SettingsModel::setPreferredCodec(const QString& v)  { if (m_preferredCodec == v) return; m_preferredCodec = v; save(); emit videoChanged(); }
+void SettingsModel::setColorSpace(const QString& v)      { if (m_colorSpace == v) return; m_colorSpace = v; save(); emit videoChanged(); }
+void SettingsModel::setHardwareEncoder(const QString& v) { if (m_hardwareEncoder == v) return; m_hardwareEncoder = v; save(); emit videoChanged(); }
 
 // Audio
 void SettingsModel::setAudioEnabled(bool v)              { if (m_audioEnabled == v) return; m_audioEnabled = v; save(); emit audioChanged(); }

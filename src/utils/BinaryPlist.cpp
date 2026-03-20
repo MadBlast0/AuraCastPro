@@ -180,88 +180,61 @@ std::vector<uint8_t> Encoder::encodeStreamsResponse(int streamType, int dataPort
     
     // Write header
     writeHeader(result);
-    
-    // For video (type=110): only type and dataPort
-    // For audio (type=96): type, controlPort, and dataPort
-    bool isVideo = (streamType == 110);
-    int numKeys = isVideo ? 2 : 3;
-    
-    // Object 0: top-level dictionary {"streams": array}
+
+    // Use a single shape for both video and audio:
+    // {"streams":[{"controlPort":<port>,"dataPort":<port>,"type":<type>}]}
+    // iOS is strict about stream dictionaries and some versions expect controlPort
+    // even for video streams.
+    //
+    // Object indices:
+    //   0 = top dict
+    //   1 = "type"
+    //   2 = <streamType>
+    //   3 = "controlPort"
+    //   4 = <dataPort>
+    //   5 = "dataPort"
+    //   6 = <dataPort>
+    //   7 = "streams"
+    //   8 = array[dict]
+    //   9 = stream dict
     offsets.push_back(result.size());
     writeDictMarker(result, 1);
-    result.push_back(isVideo ? 5 : 7);  // key ref: "streams"
-    result.push_back(isVideo ? 6 : 8);  // value ref: array
-    
-    // Object 1: string "type"
+    writeObjectRef(result, 7);  // key: "streams"
+    writeObjectRef(result, 8);  // value: array
+
     offsets.push_back(result.size());
     writeString(result, "type");
-    
-    // Object 2: integer streamType
+
     offsets.push_back(result.size());
     writeInteger(result, streamType);
-    
-    if (isVideo) {
-        // Object 3: string "dataPort"
-        offsets.push_back(result.size());
-        writeString(result, "dataPort");
-        
-        // Object 4: integer dataPort
-        offsets.push_back(result.size());
-        writeInteger(result, dataPort);
-        
-        // Object 5: string "streams"
-        offsets.push_back(result.size());
-        writeString(result, "streams");
-        
-        // Object 6: array [dict]
-        offsets.push_back(result.size());
-        writeArrayMarker(result, 1);
-        writeObjectRef(result, 7);  // reference to dictionary (object 7)
-        
-        // Object 7: dictionary {"type": streamType, "dataPort": dataPort}
-        offsets.push_back(result.size());
-        writeDictMarker(result, 2);  // 2 key-value pairs
-        writeObjectRef(result, 3);  // key "dataPort"
-        writeObjectRef(result, 1);  // key "type"
-        writeObjectRef(result, 4);  // value dataPort
-        writeObjectRef(result, 2);  // value streamType
-    } else {
-        // Audio: include controlPort
-        // Object 3: string "controlPort"
-        offsets.push_back(result.size());
-        writeString(result, "controlPort");
-        
-        // Object 4: integer controlPort
-        offsets.push_back(result.size());
-        writeInteger(result, dataPort);
-        
-        // Object 5: string "dataPort"
-        offsets.push_back(result.size());
-        writeString(result, "dataPort");
-        
-        // Object 6: integer dataPort
-        offsets.push_back(result.size());
-        writeInteger(result, dataPort);
-        
-        // Object 7: string "streams"
-        offsets.push_back(result.size());
-        writeString(result, "streams");
-        
-        // Object 8: array [dict]
-        offsets.push_back(result.size());
-        writeArrayMarker(result, 1);
-        writeObjectRef(result, 9);  // reference to dictionary (object 9)
-        
-        // Object 9: dictionary {"type": streamType, "controlPort": dataPort, "dataPort": dataPort}
-        offsets.push_back(result.size());
-        writeDictMarker(result, 3);  // 3 key-value pairs
-        writeObjectRef(result, 3);  // key "controlPort"
-        writeObjectRef(result, 5);  // key "dataPort"
-        writeObjectRef(result, 1);  // key "type"
-        writeObjectRef(result, 4);  // value controlPort
-        writeObjectRef(result, 6);  // value dataPort
-        writeObjectRef(result, 2);  // value streamType
-    }
+
+    offsets.push_back(result.size());
+    writeString(result, "controlPort");
+
+    offsets.push_back(result.size());
+    writeInteger(result, dataPort);
+
+    offsets.push_back(result.size());
+    writeString(result, "dataPort");
+
+    offsets.push_back(result.size());
+    writeInteger(result, dataPort);
+
+    offsets.push_back(result.size());
+    writeString(result, "streams");
+
+    offsets.push_back(result.size());
+    writeArrayMarker(result, 1);
+    writeObjectRef(result, 9);
+
+    offsets.push_back(result.size());
+    writeDictMarker(result, 3);
+    writeObjectRef(result, 3);  // "controlPort"
+    writeObjectRef(result, 5);  // "dataPort"
+    writeObjectRef(result, 1);  // "type"
+    writeObjectRef(result, 4);  // controlPort value
+    writeObjectRef(result, 6);  // dataPort value
+    writeObjectRef(result, 2);  // type value
     
     // Write offset table
     size_t offsetTableStart = result.size();

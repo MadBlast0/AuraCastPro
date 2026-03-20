@@ -44,6 +44,12 @@ public:
     void stop();
     void shutdown();
 
+    // Configure advertised display capabilities
+    void setDisplayCapabilities(int width, int height, int maxFps);
+    
+    // Set which codecs are supported (call before init)
+    void setSupportedCodecs(bool h264, bool h265);
+
     // Enable/disable new incoming mirror sessions
     // (existing sessions continue until their client disconnects)
     void setMirroringActive(bool active) { m_mirroringActive.store(active, std::memory_order_relaxed); }
@@ -59,6 +65,9 @@ public:
     static void decryptVideoPacket(uint8_t* data, int len,
                                    const std::array<uint8_t, 16>& key,
                                    const std::array<uint8_t, 16>& iv);
+    
+    // Get decryption key/IV for active session (returns false if no active session)
+    bool getDecryptionKeys(std::array<uint8_t, 16>& key, std::array<uint8_t, 16>& iv) const;
 
     std::string generatePin() const;
     int         activeSessionCount() const;
@@ -71,6 +80,15 @@ private:
     std::atomic<bool>  m_mirroringActive{true};
     std::atomic<int>   m_activeSessions{0};  // counts live handleSession threads
     std::thread        m_acceptThread;
+
+    // Display capabilities
+    int m_displayWidth{1920};
+    int m_displayHeight{1080};
+    int m_displayMaxFps{60};
+    
+    // Codec support
+    bool m_supportsH264{true};
+    bool m_supportsH265{false};
 
     SessionStartedCallback m_onSessionStarted;
     SessionEndedCallback   m_onSessionEnded;

@@ -67,9 +67,86 @@ VideoDecoder::~VideoDecoder() {
 }
 
 // -----------------------------------------------------------------------------
+// Static method to check if a codec is available (hardware or software)
+bool VideoDecoder::isCodecAvailable(VideoCodec codec) {
+    GUID inputSubtype;
+    
+    switch (codec) {
+        case VideoCodec::H264:
+            inputSubtype = MFVideoFormat_H264;
+            break;
+        case VideoCodec::H265:
+            inputSubtype = MFVideoFormat_HEVC;
+            break;
+        case VideoCodec::AV1:
+            inputSubtype = MFVideoFormat_AV1;
+            break;
+    }
+
+    // Initialize MF if not already done
+    static bool mfInitialized = false;
+    if (!mfInitialized) {
+        HRESULT hr = MFStartup(MF_VERSION);
+        if (FAILED(hr)) return false;
+        mfInitialized = true;
+    }
+
+    MFT_REGISTER_TYPE_INFO inputInfo{MFMediaType_Video, inputSubtype};
+    MFT_REGISTER_TYPE_INFO outputInfo{MFMediaType_Video, MFVideoFormat_NV12};
+
+    IMFActivate** activates = nullptr;
+    UINT32 count = 0;
+
+    // Try hardware first
+    HRESULT hr = MFTEnumEx(
+        MFT_CATEGORY_VIDEO_DECODER,
+        MFT_ENUM_FLAG_HARDWARE | MFT_ENUM_FLAG_SORTANDFILTER,
+        &inputInfo, &outputInfo,
+        &activates, &count);
+
+    if (SUCCEEDED(hr) && count > 0) {
+        for (UINT32 i = 0; i < count; ++i) activates[i]->Release();
+        CoTaskMemFree(activates);
+        return true;
+    }
+
+    // Try software
+    hr = MFTEnumEx(
+        MFT_CATEGORY_VIDEO_DECODER,
+        MFT_ENUM_FLAG_SYNCMFT | MFT_ENUM_FLAG_SORTANDFILTER,
+        &inputInfo, nullptr,
+        &activates, &count);
+
+    if (SUCCEEDED(hr) && count > 0) {
+        for (UINT32 i = 0; i < count; ++i) activates[i]->Release();
+        CoTaskMemFree(activates);
+        return true;
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
 void VideoDecoder::init() {
-    AURA_LOG_INFO("VideoDecoder", "Initialising {} hardware decoder...",
-                  m_codec == VideoCodec::H265 ? "H.265/HEVC" : "AV1");
+    std::string codecName;
+    GUID inputSubtype;
+    
+    switch (m_codec) {
+        case VideoCodec::H264:
+            codecName = "H.264/AVC";
+            inputSubtype = MFVideoFormat_H264;
+            break;
+        case VideoCodec::H265:
+            codecName = "H.265/HEVC";
+            inputSubtype = MFVideoFormat_HEVC;
+            break;
+        case VideoCodec::AV1:
+            codecName = "AV1";
+            inputSubtype = MFVideoFormat_AV1;
+            break;
+    }
+    
+    AURA_LOG_INFO("VideoDecoder", "Initialising {} hardware decoder...", codecName);
 
     // Start the Media Foundation platform (idempotent)
     HRESULT hr = MFStartup(MF_VERSION);
@@ -80,9 +157,7 @@ void VideoDecoder::init() {
     m_mf->mfStarted = true;
 
     // Find and activate a hardware decoder MFT for the requested codec
-    const GUID& inputSubtype = (m_codec == VideoCodec::H265)
-                                ? MFVideoFormat_HEVC
-                                : MFVideoFormat_AV1;
+    const GUID& inputSubtypeRef = inputSubtype;
 
     MFT_REGISTER_TYPE_INFO inputInfo{MFMediaType_Video, inputSubtype};
     MFT_REGISTER_TYPE_INFO outputInfo{MFMediaType_Video, MFVideoFormat_NV12};
@@ -100,12 +175,15 @@ void VideoDecoder::init() {
         // Fall back to software decoder if no hardware decoder found
         AURA_LOG_WARN("VideoDecoder",
             "No hardware {} decoder found, falling back to software decoder.",
-            m_codec == VideoCodec::H265 ? "H.265" : "AV1");
+            codecName);
 
+        // Broaden enumeration: some Windows HEVC software decoders are not
+        // advertised with NV12 output at enum time, but can be configured to
+        // NV12 after activation. So we don't constrain output subtype here.
         hr = MFTEnumEx(
             MFT_CATEGORY_VIDEO_DECODER,
             MFT_ENUM_FLAG_SYNCMFT | MFT_ENUM_FLAG_SORTANDFILTER,
-            &inputInfo, &outputInfo,
+            &inputInfo, nullptr,
             &activates, &count);
     }
 
@@ -113,7 +191,7 @@ void VideoDecoder::init() {
         throw std::runtime_error(std::format(
             "VideoDecoder: No {} decoder available (hardware or software). "
             "Install codec pack or update GPU drivers.",
-            m_codec == VideoCodec::H265 ? "H.265" : "AV1"));
+            codecName));
     }
 
     // Activate the first (highest priority) decoder
@@ -156,8 +234,7 @@ void VideoDecoder::init() {
     }
 
     m_initialised.store(true);
-    AURA_LOG_INFO("VideoDecoder", "{} decoder ready.",
-                  m_codec == VideoCodec::H265 ? "H.265/HEVC" : "AV1");
+    AURA_LOG_INFO("VideoDecoder", "{} decoder ready.", codecName);
 }
 
 // -----------------------------------------------------------------------------
@@ -185,16 +262,44 @@ bool VideoDecoder::submitNAL(const std::vector<uint8_t>& annexBData,
     if (!m_initialised.load()) return false;
     if (annexBData.empty()) return false;
 
-    // Track whether we have received parameter sets (VPS/SPS/PPS for H.265)
+    // Track whether we have received parameter sets (SPS/PPS for H.264, VPS/SPS/PPS for H.265)
     // The decoder cannot decode frames until the parameter sets are provided.
-    // For simplicity we trust the caller to send them first.
+    // SPS is NAL type 7, PPS is NAL type 8 for H.264
+    if (annexBData.size() > 4) {
+        uint8_t nalType = annexBData[4] & 0x1F;
+        if (nalType == 7 || nalType == 8) {
+            m_hasParameterSets = true;
+        }
+    }
     if (isKeyframe) m_hasParameterSets = true;
-    if (!m_hasParameterSets) return false;
+    
+    // Allow parameter sets through even if we don't have them yet
+    bool isParameterSet = false;
+    if (annexBData.size() > 4) {
+        uint8_t nalType = annexBData[4] & 0x1F;
+        isParameterSet = (nalType == 7 || nalType == 8); // SPS or PPS
+    }
+    
+    if (!m_hasParameterSets && !isParameterSet) {
+        return false; // Skip non-parameter-set frames until we have SPS/PPS
+    }
+    
+    // Log NAL submissions
+    static int nalSubmitCount = 0;
+    nalSubmitCount++;
+    if (nalSubmitCount <= 10 || nalSubmitCount % 30 == 0) {
+        AURA_LOG_INFO("VideoDecoder", "submitNAL #{}: size={} key={} pts={}", 
+                      nalSubmitCount, annexBData.size(), isKeyframe, presentationTimeUs);
+    }
 
     // Create an MF media buffer wrapping the NAL data
     ComPtr<IMFMediaBuffer> buffer;
     HRESULT hr = MFCreateMemoryBuffer(static_cast<DWORD>(annexBData.size()), &buffer);
-    if (FAILED(hr)) { m_errors++; return false; }
+    if (FAILED(hr)) { 
+        AURA_LOG_ERROR("VideoDecoder", "MFCreateMemoryBuffer failed: {:08X}", (uint32_t)hr);
+        m_errors++; 
+        return false; 
+    }
 
     BYTE* bufPtr = nullptr;
     DWORD maxLen{}, curLen{};
@@ -212,7 +317,8 @@ bool VideoDecoder::submitNAL(const std::vector<uint8_t>& annexBData,
 
     hr = m_mf->mft->ProcessInput(m_mf->inputStreamId, sample.Get(), 0);
     if (FAILED(hr)) {
-        AURA_LOG_TRACE("VideoDecoder", "ProcessInput returned {:08X}", (uint32_t)hr);
+        AURA_LOG_WARN("VideoDecoder", "ProcessInput failed: {:08X} (submitted {} NALs so far)", 
+                      (uint32_t)hr, nalSubmitCount);
         if (hr != MF_E_NOTACCEPTING) m_errors++;
         return false;
     }
@@ -298,6 +404,13 @@ void VideoDecoder::processOutput() {
             }
 
             m_decoded++;
+            
+            // Log decoded frames
+            if (m_decoded <= 10 || m_decoded % 30 == 0) {
+                AURA_LOG_INFO("VideoDecoder", "Decoded frame #{}: {}x{} pts={} key={}", 
+                              m_decoded.load(), frame.width, frame.height, 
+                              frame.presentationTimeUs, frame.isKeyframe);
+            }
 
             if (m_frameCallback) m_frameCallback(frame);
 

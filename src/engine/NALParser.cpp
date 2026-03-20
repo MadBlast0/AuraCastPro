@@ -28,24 +28,22 @@ void NALParser::reset() {
 }
 
 // -----------------------------------------------------------------------------
-// RTP H.265 payload header (RFC 7798 Section 4.4):
-//   Byte 0:  forbidden_zero_bit(1) | nal_unit_type(6) | nuh_layer_id_msb(1)
-//   Byte 1:  nuh_layer_id_lsb(5)  | nuh_temporal_id_plus1(3)
-// nal_unit_type is bits [9:5] of the 16-bit RTP payload header.
+// RTP H.264 payload header (RFC 6184 Section 5.3):
+//   Byte 0:  forbidden_zero_bit(1) | nal_ref_idc(2) | nal_unit_type(5)
+// nal_unit_type is bits [4:0] of the first byte.
 // -----------------------------------------------------------------------------
 NalUnitType NALParser::parseH265Type(uint8_t headerByte0) {
-    const uint8_t t = (headerByte0 >> 1) & 0x3F; // bits [6:1]
-    switch (t) {
-        case 0:  return NalUnitType::TRAIL_N;
-        case 1:  return NalUnitType::TRAIL_R;
-        case 19: return NalUnitType::IDR_W_RADL;
-        case 20: return NalUnitType::IDR_N_LP;
-        case 32: return NalUnitType::VPS;
-        case 33: return NalUnitType::SPS;
-        case 34: return NalUnitType::PPS;
-        case 48: return NalUnitType::RTP_STAP_A;
-        case 49: return NalUnitType::RTP_FU;
-        default: return NalUnitType::Unknown;
+    // Force H.264 parsing only (lower 5 bits)
+    const uint8_t h264Type = headerByte0 & 0x1F;
+    
+    switch (h264Type) {
+        case 1:  return NalUnitType::TRAIL_R;  // Non-IDR slice (P-frame)
+        case 5:  return NalUnitType::IDR_W_RADL;  // IDR keyframe
+        case 7:  return NalUnitType::SPS;  // SPS
+        case 8:  return NalUnitType::PPS;  // PPS
+        case 24: return NalUnitType::RTP_STAP_A;  // STAP-A aggregation
+        case 28: return NalUnitType::RTP_FU;  // FU-A fragmentation
+        default: return NalUnitType::TRAIL_N;  // Other slice types
     }
 }
 
@@ -60,9 +58,24 @@ bool NALParser::isParameterSetType(NalUnitType t) {
 
 // -----------------------------------------------------------------------------
 void NALParser::feedPacket(std::span<const uint8_t> payload) {
-    if (payload.size() < 2) return; // Minimum RTP H.265 header = 2 bytes
+    if (payload.size() < 2) {
+        AURA_LOG_TRACE("NALParser", "Packet too small: {} bytes", payload.size());
+        return; // Minimum RTP H.265 header = 2 bytes
+    }
 
     const NalUnitType rtpType = parseH265Type(payload[0]);
+    
+    // Log first few packets to diagnose framing
+    static int packetCount = 0;
+    packetCount++;
+    if (packetCount <= 5) {
+        std::string hexDump;
+        for (size_t i = 0; i < std::min(size_t(16), payload.size()); i++) {
+            hexDump += std::format("{:02x} ", payload[i]);
+        }
+        AURA_LOG_INFO("NALParser", "Packet #{}: size={} type={} first16: {}", 
+                      packetCount, payload.size(), static_cast<int>(rtpType), hexDump);
+    }
 
     switch (rtpType) {
         case NalUnitType::RTP_STAP_A:
@@ -181,6 +194,13 @@ void NALParser::emitNal(NalUnitType type, std::span<const uint8_t> data) {
     nal.data.insert(nal.data.end(), data.begin(), data.end());
 
     ++m_emitted;
+    
+    // Log NAL emissions
+    if (m_emitted <= 10 || m_emitted % 30 == 0) {
+        AURA_LOG_INFO("NALParser", "Emitted NAL #{}: type={} size={} key={} paramSet={}", 
+                      m_emitted, static_cast<int>(type), nal.data.size(), 
+                      nal.isKeyframe, nal.isParameterSet);
+    }
 
     if (m_callback) m_callback(std::move(nal));
 }

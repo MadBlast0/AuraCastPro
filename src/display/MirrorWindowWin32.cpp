@@ -365,7 +365,6 @@ long __stdcall MirrorWindowWin32::WndProc(
 
             case WM_DESTROY:
                 if (self->m_onClose) self->m_onClose();
-                PostQuitMessage(0);
                 return 0;
         }
     }
